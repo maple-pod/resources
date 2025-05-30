@@ -1,0 +1,14 @@
+node_modules
+pnpm-lock.yaml
+.dockerignore
+Dockerfile
+dev.sh
+.git
+.gitignore
+*.log
+.env
+dist
+build
+coverage
+output
+output.bak

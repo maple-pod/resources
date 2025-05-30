@@ -1,0 +1,1 @@
+sudo docker build --build-arg USER_ID=$(id -u) --build-arg USERNAME=$(whoami) -t maple-pod-resources-env .
