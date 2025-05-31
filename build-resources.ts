@@ -8,8 +8,7 @@ import fg from 'fast-glob'
 import { deflateSync, strFromU8 } from 'fflate'
 import ffmpeg from 'fluent-ffmpeg'
 import { ofetch } from 'ofetch'
-import path, { relative } from 'pathe'
-import simpleGit, { type SimpleGit } from 'simple-git'
+import path from 'pathe'
 
 process.env.YTDL_NO_UPDATE = 'true'
 
@@ -123,26 +122,6 @@ async function downloadBgm(item: OutputDataItem) {
 	})
 	downloadedBgms.add(bgmFilename)
 }
-
-// async function pushToRemote(target: 'bgm' | 'mark' | 'data') {
-// 	const dir = path.join(outputDir, target)
-// 	await rm(path.join(dir, '.git'))
-// 	const git: SimpleGit = simpleGit(dir)
-// 	await git.init(['--initial-branch=master'])
-// 	await git.commit('init', ['--allow-empty'])
-// 	await git.push(`https://github.com/maple-pod/${target}.git`, 'master', ['-f'])
-
-// 	const ext = target === 'bgm' ? 'mp3' : target === 'mark' ? 'png' : 'json'
-// 	const files = fg.sync(path.join(dir, `*.${ext}`))
-// 	let batchCount = 0
-// 	while (files.length > 0) {
-// 		batchCount++
-// 		const batch = files.splice(0, 100)
-// 		await git.add(batch.map(file => relative(dir, file)))
-// 		await git.commit(`upload ${target} batch ${batchCount} at ${new Date().toISOString()}`)
-// 		await git.push(`https://github.com/maple-pod/${target}.git`, 'master', ['-f'])
-// 	}
-// }
 
 function chunkArray<T>(array: T[], size: number): T[][] {
 	const result: T[][] = []
