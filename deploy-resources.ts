@@ -17,9 +17,7 @@ async function run() {
 	const git: SimpleGit = simpleGit(dir)
 
 	if (await git.checkIsRepo(CheckRepoActions.IS_REPO_ROOT)) {
-		console.log('Force pulling latest changes from the repository...')
-		await git.fetch(origin, branch)
-		await git.reset(['--hard', `${origin}/${branch}`])
+		console.log('Repository already initialized.')
 	}
 	else {
 		await git.init()

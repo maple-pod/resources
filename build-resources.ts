@@ -40,24 +40,18 @@ interface OutputDataItem {
 	data: MapleBgmItem
 }
 
-const CLEAR = false
-
 const outputDir = fileURLToPath(new URL('./output', import.meta.url))
 const dataDir = path.join(outputDir)
 const bgmDir = path.join(outputDir, 'bgm')
 const markDir = path.join(outputDir, 'mark')
 
 const mkdir = (dir: string) => _mkdir(dir, { recursive: true }).catch(() => {})
-const rm = (dir: string) => _rm(dir, { recursive: true, force: true }).catch(() => {})
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 let downloadedMarks: Set<string>
 let downloadedBgms: Set<string>
 
 async function prepareDirs() {
-	if (CLEAR)
-		await rm(outputDir)
-
 	await mkdir(dataDir)
 	await mkdir(bgmDir)
 	await mkdir(markDir)
@@ -197,7 +191,7 @@ async function main() {
 				const markPath = path.join(markDir, markFilename)
 				const buf = new Uint8Array(readFileSync(markPath))
 				const compressed = deflateSync(buf)
-				marks[item.data.mark] = strFromU8(compressed, true)
+				marks[item.data.mark] = String.fromCharCode(...compressed)
 			}))
 		}
 	})()
