@@ -8,7 +8,8 @@
 	"license": "MIT",
 	"keywords": [],
 	"scripts": {
-		"build": "tsx ./build-resources.ts"
+		"build": "tsx ./build-resources.ts",
+		"deploy": "tsx ./deploy-resources.ts"
 	},
 	"dependencies": {
 		"@deviltea/eslint-config": "^4.0.0",
