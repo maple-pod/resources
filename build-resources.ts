@@ -5,7 +5,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import ytdl from '@distube/ytdl-core'
 import fg from 'fast-glob'
-import { deflateSync, strFromU8 } from 'fflate'
+import { deflateSync } from 'fflate'
 import ffmpeg from 'fluent-ffmpeg'
 import { ofetch } from 'ofetch'
 import path from 'pathe'
@@ -31,13 +31,8 @@ interface MapleBgmItem {
 	youtube: string
 }
 
-interface OutputDataItem {
-	title: string
-	cover: string
+interface OutputDataItem extends MapleBgmItem {
 	duration: number
-	src: string
-
-	data: MapleBgmItem
 }
 
 const outputDir = fileURLToPath(new URL('./output', import.meta.url))
@@ -61,7 +56,7 @@ async function prepareDirs() {
 }
 
 function getMarkFilename(item: OutputDataItem) {
-	return `${item.data.mark}.png`
+	return `${item.mark}.png`
 }
 
 function isMarkDownloaded(item: OutputDataItem) {
@@ -80,7 +75,7 @@ async function downloadMark(item: OutputDataItem) {
 }
 
 function getBgmFilename(item: OutputDataItem) {
-	return `${item.data.filename}.mp3`
+	return `${item.filename}.mp3`
 }
 
 async function getBgmDuration(item: OutputDataItem) {
@@ -103,7 +98,7 @@ function isBgmDownloaded(item: OutputDataItem) {
 
 async function downloadBgm(item: OutputDataItem) {
 	const bgmFilename = getBgmFilename(item)
-	const bgmYoutubeId = item.data.youtube
+	const bgmYoutubeId = item.youtube
 	const bgmPath = path.join(bgmDir, bgmFilename)
 
 	await delay(5000) // To avoid hitting YouTube's rate limit
@@ -130,11 +125,8 @@ async function main() {
 	const outputData: OutputDataItem[] = (await ofetch<MapleBgmItem[]>('https://raw.githubusercontent.com/maplestory-music/maplebgm-db/prod/bgm.min.json', { responseType: 'json' }))
 		.filter(item => item.youtube)
 		.map<OutputDataItem>(item => ({
-			title: item.metadata.title,
-			cover: `/mark/${item.mark}.png`,
+			...item,
 			duration: 0, // Duration will be set after downloading the audio
-			src: `/bgm/${item.filename}.mp3`,
-			data: item,
 		}))
 
 	const errorLogs: { type: 'bgm' | 'mark', message: string }[] = []
@@ -145,16 +137,16 @@ async function main() {
 		for (const item of toDownloadList) {
 			const index = toDownloadList.indexOf(item) + 1
 			const total = toDownloadList.length
-			console.log(`Downloading ${item.data.filename}... (${index}/${total})`)
+			console.log(`Downloading ${item.filename}... (${index}/${total})`)
 			const [markResult, bgmResult] = await Promise.allSettled([
 				downloadMark(item),
 				downloadBgm(item),
 			])
 			if (markResult.status === 'rejected') {
-				errorLogs.push({ type: 'mark', message: `Failed to download mark for ${item.data.mark}: ${markResult.reason}` })
+				errorLogs.push({ type: 'mark', message: `Failed to download mark for ${item.mark}: ${markResult.reason}` })
 			}
 			if (bgmResult.status === 'rejected') {
-				errorLogs.push({ type: 'bgm', message: `Failed to download BGM for ${item.data.mark}: ${bgmResult.reason}` })
+				errorLogs.push({ type: 'bgm', message: `Failed to download BGM for ${item.filename}: ${bgmResult.reason}` })
 			}
 		}
 	})()
@@ -171,7 +163,7 @@ async function main() {
 					item.duration = await getBgmDuration(item)
 				}
 				catch (error) {
-					errorLogs.push({ type: 'bgm', message: `Failed to get duration for ${item.data.filename}: ${error}` })
+					errorLogs.push({ type: 'bgm', message: `Failed to get duration for ${item.filename}: ${error}` })
 					item.duration = 0 // Set to 0 if failed
 				}
 			}))
@@ -191,7 +183,7 @@ async function main() {
 				const markPath = path.join(markDir, markFilename)
 				const buf = new Uint8Array(readFileSync(markPath))
 				const compressed = deflateSync(buf)
-				marks[item.data.mark] = String.fromCharCode(...compressed)
+				marks[item.mark] = String.fromCharCode(...compressed)
 			}))
 		}
 	})()
