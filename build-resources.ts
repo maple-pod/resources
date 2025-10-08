@@ -1,16 +1,13 @@
 import { Buffer } from 'node:buffer'
-import { readFileSync } from 'node:fs'
-import { mkdir as _mkdir, rm as _rm, writeFile } from 'node:fs/promises'
-import process from 'node:process'
+import { createWriteStream, readFileSync } from 'node:fs'
+import { mkdir as _mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import ytdl from '@distube/ytdl-core'
 import fg from 'fast-glob'
 import { deflateSync } from 'fflate'
 import ffmpeg from 'fluent-ffmpeg'
 import { ofetch } from 'ofetch'
 import path from 'pathe'
-
-process.env.YTDL_NO_UPDATE = 'true'
+import { ClientType, Innertube, UniversalCache, Utils } from 'youtubei.js'
 
 interface MapleBgmItem {
 	description: string
@@ -102,13 +99,22 @@ async function downloadBgm(item: OutputDataItem) {
 	const bgmPath = path.join(bgmDir, bgmFilename)
 
 	await delay(5000) // To avoid hitting YouTube's rate limit
-	await new Promise<void>((resolve, reject) => {
-		const stream = ytdl(bgmYoutubeId, { quality: 'highestaudio', filter: 'audioonly' })
-		ffmpeg(stream)
-			.save(bgmPath)
-			.on('end', () => resolve())
-			.on('error', err => reject(err))
+	const yt = await Innertube.create({
+		cache: new UniversalCache(false),
+		generate_session_locally: true,
+		// REF: https://github.com/LuanRT/YouTube.js/issues/1043#issuecomment-3328154175
+		player_id: '0004de42',
+		client_type: ClientType.ANDROID,
 	})
+	const stream = await yt.download(bgmYoutubeId, {
+		type: 'audio', // audio, video or video+audio
+		quality: 'best', // best, bestefficiency, 144p, 240p, 480p, 720p and so on.
+		format: 'mp4', // media container format,
+	})
+	const file = createWriteStream(bgmPath)
+	for await (const chunk of Utils.streamToIterable(stream)) {
+		file.write(chunk)
+	}
 	downloadedBgms.add(bgmFilename)
 }
 

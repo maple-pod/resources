@@ -12,20 +12,20 @@
 		"deploy": "tsx ./deploy-resources.ts"
 	},
 	"dependencies": {
-		"@deviltea/eslint-config": "^4.0.0",
-		"@deviltea/tsconfig": "^0.0.7",
-		"@distube/ytdl-core": "^4.16.10",
+		"@deviltea/eslint-config": "^5.0.0",
+		"@deviltea/tsconfig": "^0.0.8",
 		"@types/fluent-ffmpeg": "^2.1.27",
-		"@types/node": "^22.15.24",
-		"eslint": "^9.27.0",
+		"@types/node": "^24.7.0",
+		"eslint": "^9.37.0",
 		"fast-glob": "^3.3.3",
 		"fflate": "^0.8.2",
 		"fluent-ffmpeg": "^2.1.3",
 		"ofetch": "^1.4.1",
 		"pathe": "^2.0.3",
-		"sharp": "^0.34.2",
-		"simple-git": "^3.27.0",
-		"tsx": "^4.19.4",
-		"typescript": "^5.8.3"
+		"sharp": "^0.34.4",
+		"simple-git": "^3.28.0",
+		"tsx": "^4.20.6",
+		"typescript": "^5.9.3",
+		"youtubei.js": "^15.1.1"
 	}
 }
