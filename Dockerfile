@@ -1,8 +1,5 @@
 FROM node:20-slim
 
-ARG USER_ID=1000
-ARG USERNAME=devuser
-
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 # apt-get update && apt-get install -y \

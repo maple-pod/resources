@@ -1,5 +1,7 @@
+import type { SimpleGit } from 'simple-git'
+import { env } from 'node:process'
 import { fileURLToPath } from 'node:url'
-import simpleGit, { CheckRepoActions, type SimpleGit } from 'simple-git'
+import simpleGit, { CheckRepoActions } from 'simple-git'
 
 function chunkArray<T>(array: T[], size: number): T[][] {
 	const result: T[][] = []
@@ -9,7 +11,13 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 	return result
 }
 
-const origin = 'https://github.com/maple-pod/resources.git'
+const origin = 'origin'
+const repoUrl = 'https://github.com/maple-pod/resources.git'
+let remoteUrl = repoUrl
+if (env.GH_TOKEN) {
+	remoteUrl = `https://${env.GH_TOKEN}@${repoUrl.slice(8)}`
+}
+console.log(remoteUrl)
 const branch = 'gh-pages'
 
 async function run() {
@@ -18,10 +26,11 @@ async function run() {
 
 	if (await git.checkIsRepo(CheckRepoActions.IS_REPO_ROOT)) {
 		console.log('Repository already initialized.')
+		await git.remote(['set-url', origin, remoteUrl])
 	}
 	else {
 		await git.init()
-		await git.addRemote('origin', origin)
+		await git.addRemote(origin, remoteUrl)
 		await git.checkout(['--orphan', branch])
 	}
 
