@@ -26,6 +26,6 @@
 		"simple-git": "^3.28.0",
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3",
-		"youtubei.js": "^15.1.1"
+		"youtube-dl-exec": "^3.1.1"
 	}
 }

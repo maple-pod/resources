@@ -1,5 +1,5 @@
 import type { SimpleGit } from 'simple-git'
-import { env } from 'node:process'
+import process, { env } from 'node:process'
 import { fileURLToPath } from 'node:url'
 import simpleGit, { CheckRepoActions } from 'simple-git'
 
@@ -16,67 +16,73 @@ const repoUrl = 'https://github.com/maple-pod/resources.git'
 let remoteUrl = repoUrl
 if (env.GH_TOKEN) {
 	remoteUrl = `https://${env.GH_TOKEN}@${repoUrl.slice(8)}`
+	console.log('Using authenticated remote URL (token hidden)')
 }
-console.log(remoteUrl)
+else {
+	console.log(`Remote URL: ${repoUrl}`)
+}
 const branch = 'gh-pages'
 
 async function run() {
 	const dir = fileURLToPath(new URL('./output', import.meta.url))
 	const git: SimpleGit = simpleGit(dir)
 
-	if (await git.checkIsRepo(CheckRepoActions.IS_REPO_ROOT)) {
-		console.log('Repository already initialized.')
-		await git.remote(['set-url', origin, remoteUrl])
-	}
-	else {
-		await git.init()
-		await git.addRemote(origin, remoteUrl)
-		await git.checkout(['--orphan', branch])
-	}
-
-	const { files } = await git.status()
-	const jsonFiles = files.filter(file => file.path.endsWith('.json'))
-	const pngFiles = files.filter(file => file.path.endsWith('.png'))
-	const mp3Files = files.filter(file => file.path.endsWith('.mp3'))
-
-	if (jsonFiles.length === 0 && pngFiles.length === 0 && mp3Files.length === 0) {
-		console.log('No files to commit.')
-		return
-	}
-
-	let part = 1
-	// eslint-disable-next-line style/newline-per-chained-call
-	const dateText = new Date().toISOString().split('T')[0]
-	// png + json files
-	if (jsonFiles.length > 0 || pngFiles.length > 0) {
-		console.log(`Committing JSON and PNG files - Part ${part}...`)
-		await git.add([...jsonFiles, ...pngFiles].map(file => file.path))
-		// Commit with a message `YYYY-MM-DD - Deploy resources - Part {part}`
-		const commitMessage = `${dateText} - Deploy resources - Part ${part}`
-		await git.commit(commitMessage, [...jsonFiles, ...pngFiles].map(file => file.path))
-		part++
-		console.log('Pushing commit to the remote repository...')
-		await git.push(origin, branch, ['--force'])
-	}
-
-	// mp3 files
-	if (mp3Files.length > 0) {
-		const batchSize = 100
-		const batches = chunkArray(mp3Files, batchSize)
-		for (const batch of batches) {
-			const batchCount = batches.indexOf(batch) + 1
-			console.log(`Committing MP3 files - Part ${part} (${batchCount}/${batches.length})...`)
-			await git.add(batch.map(file => file.path))
-			// Commit with a message `YYYY-MM-DD - Deploy resources - Part {part}`
-			const commitMessage = `${dateText} - Deploy resources - Part ${part}`
-			await git.commit(commitMessage, batch.map(file => file.path))
-			part++
-			console.log('Pushing commit to the remote repository...')
-			await git.push(origin, branch, ['--force'])
+	try {
+		if (await git.checkIsRepo(CheckRepoActions.IS_REPO_ROOT)) {
+			console.log('Repository already initialized.')
+			await git.remote(['set-url', origin, remoteUrl])
 		}
-	}
+		else {
+			await git.init()
+			await git.addRemote(origin, remoteUrl)
+			await git.checkout(['--orphan', branch])
+		}
 
-	console.log('Deployment completed successfully!')
+		const { files } = await git.status()
+		// Only commit actual content files; skip hidden/state files (e.g. .build-state.json)
+		const jsonFiles = files.filter(f => f.path.endsWith('.json') && !f.path.startsWith('.'))
+		const pngFiles = files.filter(f => f.path.endsWith('.png'))
+		const mp3Files = files.filter(f => f.path.endsWith('.mp3'))
+
+		if (jsonFiles.length === 0 && pngFiles.length === 0 && mp3Files.length === 0) {
+			console.log('No files to commit.')
+			return
+		}
+
+		let part = 1
+		const dateText = new Date().toISOString().split('T')[0]!
+
+		// Commit JSON + PNG files first
+		if (jsonFiles.length > 0 || pngFiles.length > 0) {
+			const filePaths = [...jsonFiles, ...pngFiles].map(f => f.path)
+			console.log(`Committing ${jsonFiles.length} JSON and ${pngFiles.length} PNG files — Part ${part}...`)
+			await git.add(filePaths)
+			await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
+			part++
+			console.log('Pushing...')
+			await git.push(['-u', origin, branch, '--force'])
+		}
+
+		// Commit MP3 files in batches to avoid oversized commits
+		if (mp3Files.length > 0) {
+			const batches = chunkArray(mp3Files, 100)
+			for (const [batchIdx, batch] of batches.entries()) {
+				const filePaths = batch.map(f => f.path)
+				console.log(`Committing MP3 batch ${batchIdx + 1}/${batches.length} (${filePaths.length} files) — Part ${part}...`)
+				await git.add(filePaths)
+				await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
+				part++
+				console.log('Pushing...')
+				await git.push(['-u', origin, branch, '--force'])
+			}
+		}
+
+		console.log('Deployment completed successfully!')
+	}
+	catch (error) {
+		console.error(`[ERROR] Deployment failed: ${error instanceof Error ? error.message : error}`)
+		process.exit(1)
+	}
 }
 
 run()
