@@ -1,17 +1,30 @@
-import { mkdir as _mkdir, rm, writeFile } from 'node:fs/promises'
+import { mkdir as _mkdir, rename, rm, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import fg from 'fast-glob'
 import { deflateSync } from 'fflate'
 import path from 'pathe'
 import sharp from 'sharp'
+import { assertRunningInContainer } from './assert-container'
 
 const root = fileURLToPath(new URL('.', import.meta.url))
 const outputDir = path.join(root, 'output/bg')
 
 const mkdir = (dir: string) => _mkdir(dir, { recursive: true }).catch(() => {})
 
+// Latin1 string of raw bytes, chunked because spreading a whole buffer into
+// String.fromCharCode overflows the call stack on larger inputs.
+function toBinaryString(bytes: Uint8Array): string {
+	const chunkSize = 0x8000
+	let result = ''
+	for (let i = 0; i < bytes.length; i += chunkSize) {
+		result += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
+	}
+	return result
+}
+
 async function run() {
+	assertRunningInContainer('pnpm process-bgs')
 	await mkdir(outputDir)
 
 	const bgImgPaths = fg.sync(path.join(root, 'assets/bg', '*.png'))
@@ -46,12 +59,10 @@ async function run() {
 				throw new Error('Preview buffer is empty')
 
 			// Atomic rename: only commit once both operations succeeded
-			await rm(outJpeg, { force: true })
-			await sharp(tempJpeg).toFile(outJpeg)
-			await rm(tempJpeg, { force: true }).catch(() => {})
+			await rename(tempJpeg, outJpeg)
 
 			bgData.list.push(name)
-			bgData.preview[name] = String.fromCharCode(...deflateSync(new Uint8Array(previewBuffer)))
+			bgData.preview[name] = toBinaryString(deflateSync(new Uint8Array(previewBuffer)))
 			process.stdout.write(' done\n')
 		}
 		catch (error) {

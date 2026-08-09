@@ -1,13 +1,19 @@
+import type { OptionFormatSortPlus } from 'youtube-dl-exec'
 import { Buffer } from 'node:buffer'
+import { execFile } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir as _mkdir, rename, rm, stat, writeFile } from 'node:fs/promises'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 import fg from 'fast-glob'
 import { deflateSync } from 'fflate'
-import ffmpeg from 'fluent-ffmpeg'
 import { ofetch } from 'ofetch'
 import path from 'pathe'
 import { create as createYtDlp } from 'youtube-dl-exec'
+import { assertRunningInContainer } from './assert-container'
+
+const execFileAsync = promisify(execFile)
 
 interface MapleBgmItem {
 	description: string
@@ -65,6 +71,17 @@ function chunkArray<T>(array: T[], size: number): T[][] {
 	const result: T[][] = []
 	for (let i = 0; i < array.length; i += size) {
 		result.push(array.slice(i, i + size))
+	}
+	return result
+}
+
+// Latin1 string of raw bytes, chunked because spreading a whole buffer into
+// String.fromCharCode overflows the call stack on larger inputs.
+function toBinaryString(bytes: Uint8Array): string {
+	const chunkSize = 0x8000
+	let result = ''
+	for (let i = 0; i < bytes.length; i += chunkSize) {
+		result += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
 	}
 	return result
 }
@@ -219,7 +236,12 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 			audioQuality: 0, // 0 = best VBR quality
 			noPlaylist: true,
 			retries: 3,
-			formatSort: 'acodec:mp3,acodec:aac,acodec:opus',
+			// YouTube extraction without a JS runtime is deprecated; yt-dlp only
+			// enables deno by default, so point it at the image's own Node.
+			jsRuntimes: 'node',
+			// The published type only allows bare sort fields, but yt-dlp accepts
+			// the `field:value` preference syntax this build relies on.
+			formatSort: ['acodec:mp3,acodec:aac,acodec:opus'] as unknown as OptionFormatSortPlus[],
 		})
 
 		if (!existsSync(expectedTempMp3)) {
@@ -256,18 +278,22 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 // ── Duration probe via ffprobe ─────────────────────────────────────────────
 async function getBgmDuration(item: OutputDataItem): Promise<number> {
 	const bgmPath = path.join(bgmDir, getBgmFilename(item))
-	return new Promise<number>((resolve, reject) => {
-		ffmpeg.ffprobe(bgmPath, (err, metadata) => {
-			if (err)
-				reject(err)
-			else
-				resolve(metadata.format.duration ?? 0)
-		})
-	})
+	const { stdout } = await execFileAsync('ffprobe', [
+		'-v',
+		'error',
+		'-show_entries',
+		'format=duration',
+		'-of',
+		'default=noprint_wrappers=1:nokey=1',
+		bgmPath,
+	])
+	const duration = Number.parseFloat(stdout.trim())
+	return Number.isFinite(duration) ? duration : 0
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
+	assertRunningInContainer('pnpm build')
 	console.log('=== MapleStory BGM Resource Builder ===\n')
 	await prepareDirs()
 
@@ -392,7 +418,7 @@ async function main(): Promise<void> {
 			const markPath = path.join(markDir, markFilename)
 			try {
 				const buf = new Uint8Array(readFileSync(markPath))
-				marks[item.mark] = String.fromCharCode(...deflateSync(buf))
+				marks[item.mark] = toBinaryString(deflateSync(buf))
 			}
 			catch (error) {
 				const msg = error instanceof Error ? error.message : String(error)

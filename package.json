@@ -9,17 +9,19 @@
 	"keywords": [],
 	"scripts": {
 		"build": "tsx ./build-resources.ts",
-		"deploy": "tsx ./deploy-resources.ts"
+		"process-bgs": "tsx ./processBgs.ts",
+		"deploy": "tsx ./deploy-resources.ts",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@deviltea/eslint-config": "^5.0.0",
 		"@deviltea/tsconfig": "^0.0.8",
-		"@types/fluent-ffmpeg": "^2.1.27",
 		"@types/node": "^24.7.0",
 		"eslint": "^9.37.0",
 		"fast-glob": "^3.3.3",
 		"fflate": "^0.8.2",
-		"fluent-ffmpeg": "^2.1.3",
 		"ofetch": "^1.4.1",
 		"pathe": "^2.0.3",
 		"sharp": "^0.34.4",
