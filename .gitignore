@@ -207,3 +207,6 @@ dist
 
 output
 assets
+
+# Incremental build state — regenerated on every build, must not be versioned
+.build-state.json
