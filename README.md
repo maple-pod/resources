@@ -117,10 +117,6 @@ YTDLP_VERSION=2026.01.15 ./build-env.sh
 `--extract-audio`、不指定 `--audio-format mp3`，也不再使用 codec format-sort 去偏好某個轉檔格式。
 若 yt-dlp/FFmpeg 只做 container fixup/remux（例如 M4A 修正），音訊 stream 仍不會重新編碼。
 
-大量重建時，下載以 bounded batches 執行，預設 concurrency 為 4；可用
-`BGM_DOWNLOAD_CONCURRENCY=<n> ./dev.sh pnpm build` 暫時調整。state 只在每個 batch 完成後寫入，
-避免多個下載 worker 同時寫 state。
-
 **推送被拒（non-fast-forward）**
 
 代表 `output/` 的本機歷史與 `origin/gh-pages` 對不上，通常是 `output/` 被重建過。

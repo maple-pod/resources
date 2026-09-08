@@ -60,7 +60,6 @@ interface BuildState {
 }
 
 const BUILD_STATE_VERSION = 2
-const DOWNLOAD_CONCURRENCY = Math.max(1, Number.parseInt(process.env.BGM_DOWNLOAD_CONCURRENCY ?? '4', 10) || 4)
 
 // ── Paths ──────────────────────────────────────────────────────────────────
 const workspaceDir = fileURLToPath(new URL('.', import.meta.url))
@@ -392,61 +391,52 @@ async function main(): Promise<void> {
 	else {
 		console.log(`[Step 1/4] Downloading ${toDownloadList.length} item(s)...\n`)
 
-		console.log(`  Download concurrency: ${DOWNLOAD_CONCURRENCY}`)
-		const downloadBatches = chunkArray(toDownloadList, DOWNLOAD_CONCURRENCY)
-		let completedCount = 0
+		for (const [idx, item] of toDownloadList.entries()) {
+			const pos = `(${idx + 1}/${toDownloadList.length})`
+			const needMark = !isMarkDownloaded(item)
+			const needBgm = !isBgmDownloaded(item)
+			const tags = [needMark && 'mark', needBgm && 'bgm'].filter(Boolean).join(', ')
 
-		for (const batch of downloadBatches) {
-			await Promise.all(batch.map(async (item, batchItemIdx) => {
-				const idx = completedCount + batchItemIdx
-				const pos = `(${idx + 1}/${toDownloadList.length})`
-				const needMark = !isMarkDownloaded(item)
-				const needBgm = !isBgmDownloaded(item)
-				const tags = [needMark && 'mark', needBgm && 'bgm'].filter(Boolean).join(', ')
+			console.log(`  ${pos} ${item.filename} [${tags}]`)
 
-				console.log(`  ${pos} ${item.filename} [${tags}]`)
+			const tasks: Promise<void>[] = []
+			if (needMark)
+				tasks.push(downloadMark(item))
+			if (needBgm)
+				tasks.push(downloadBgm(item))
 
-				const tasks: Promise<void>[] = []
-				if (needMark)
-					tasks.push(downloadMark(item))
-				if (needBgm)
-					tasks.push(downloadBgm(item))
+			const results = await Promise.allSettled(tasks)
 
-				const results = await Promise.allSettled(tasks)
-
-				let taskIdx = 0
-				if (needMark) {
-					const result = results[taskIdx++]!
-					if (result.status === 'rejected') {
-						const msg = result.reason instanceof Error ? result.reason.message : String(result.reason)
-						console.error(`    [ERROR] Mark "${item.mark}": ${msg}`)
-						errorLogs.push({
-							type: 'mark',
-							filename: item.mark,
-							message: msg,
-							attempts: buildState.failedMarks[getMarkFilename(item)]?.attempts ?? 1,
-						})
-					}
-				}
-				if (needBgm) {
-					const result = results[taskIdx++]!
-					if (result.status === 'rejected') {
-						const msg = result.reason instanceof Error ? result.reason.message : String(result.reason)
-						console.error(`    [ERROR] BGM "${item.filename}": ${msg}`)
-						errorLogs.push({
-							type: 'bgm',
-							filename: item.filename,
-							message: msg,
-							attempts: buildState.failedBgms[item.filename]?.attempts ?? 1,
-						})
-					}
-				}
-			}))
-
-			completedCount += batch.length
-			// Persist state after every bounded batch so interrupted builds resume
-			// close to where they stopped without concurrent writes to the state file.
+			// Persist state after every item — enables resuming after interruption
 			await saveBuildState()
+
+			let taskIdx = 0
+			if (needMark) {
+				const result = results[taskIdx++]!
+				if (result.status === 'rejected') {
+					const msg = result.reason instanceof Error ? result.reason.message : String(result.reason)
+					console.error(`    [ERROR] Mark "${item.mark}": ${msg}`)
+					errorLogs.push({
+						type: 'mark',
+						filename: item.mark,
+						message: msg,
+						attempts: buildState.failedMarks[getMarkFilename(item)]?.attempts ?? 1,
+					})
+				}
+			}
+			if (needBgm) {
+				const result = results[taskIdx++]!
+				if (result.status === 'rejected') {
+					const msg = result.reason instanceof Error ? result.reason.message : String(result.reason)
+					console.error(`    [ERROR] BGM "${item.filename}": ${msg}`)
+					errorLogs.push({
+						type: 'bgm',
+						filename: item.filename,
+						message: msg,
+						attempts: buildState.failedBgms[item.filename]?.attempts ?? 1,
+					})
+				}
+			}
 		}
 
 		const failCount = errorLogs.length
