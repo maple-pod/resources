@@ -1,11 +1,12 @@
 # UI/UX screenshot matrix — maple-pod.github.io #6
 
-Baseline corpus for https://github.com/maple-pod/maple-pod.github.io/issues/6.
+Screenshot corpus for https://github.com/maple-pod/maple-pod.github.io/issues/6.
 
-## Baseline
+## Current baseline
 
 - App repository: `maple-pod/maple-pod.github.io`
-- App commit: `f10c742`
+- App commit: `11c478d`
+- Capture mode: production build (`pnpm build`) served via `pnpm preview`
 - Themes: `light`, `dark`
 - Viewports: `1920x1080`, `1180x820`, `820x1180`, `393x852`
 - Screenshots use CSS-pixel viewport dimensions and the app's real resource data.
@@ -25,18 +26,29 @@ Baseline corpus for https://github.com/maple-pod/maple-pod.github.io/issues/6.
 11. `music-actions`
 12. `download-manager`
 
-The complete matrix contains 96 screenshots (`2 themes × 4 viewports × 12 states`).
+The complete current matrix contains 96 screenshots (`2 themes × 4 viewports × 12 states`).
 
 ## Deterministic fixture
 
-The capture harness normalizes persisted user state before each batch: theme, no background image, fixed volume/playback preferences, a small liked list, a fixed custom playlist, and recent-history entries. `Dragon Dream` is saved through the app's real offline-download flow so the Download Manager has a stable visible state.
+The capture harness normalizes persisted user state before each batch: theme, no background image, fixed volume/playback preferences, a small liked list, a fixed custom playlist, and recent-history entries.
 
-Animations/transitions and the development-only Vue DevTools widget are suppressed during capture. The product source tree itself is not modified for this research run.
+`Dragon Dream` is saved through the app's real **Download for Offline** UI flow when needed so the Download Manager state is reproducible without direct IndexedDB mutation.
+
+Each theme/viewport batch is captured in a fresh Playwright page. `playing-queue` is captured last so playback and `beforeunload` behavior cannot affect other states. Animations/transitions and the development-only Vue DevTools widget are suppressed during capture. The product source tree itself is not modified by the capture process.
 
 ## Files
 
 - `capture-harness.js` — Playwright capture procedure used by the agent-controlled browser.
-- `manifest.json` / `manifest.csv` — exact condition-to-file mapping, dimensions, byte size, and SHA-256.
-- `f10c742/<theme>/<viewport>/<state>.png` — screenshot corpus.
+- `manifest.json` / `manifest.csv` — current (`11c478d`) condition-to-file mapping, dimensions, byte size, and SHA-256.
+- `manifest-f10c742.json` / `manifest-f10c742.csv` — archived manifest for the superseded first capture.
+- `11c478d/<theme>/<viewport>/<state>.png` — current production-build screenshot corpus.
+- `f10c742/<theme>/<viewport>/<state>.png` — superseded first capture retained for historical comparison; it was captured from the Vite development server and is not the current Issue #6 baseline.
 
-The manifest was validated to contain exactly 96 PNGs, all at their requested viewport dimensions, with distinct light/dark images for every matching viewport/state pair.
+## Validation
+
+For `11c478d`:
+
+- exactly 96 PNG files are present;
+- every PNG exactly matches its requested CSS-pixel viewport dimensions;
+- every matching light/dark viewport-state pair has a different SHA-256;
+- the production `dist` contains build hash `11c478d` and does not contain the previous `f10c742` build hash.

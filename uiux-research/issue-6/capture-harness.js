@@ -1,9 +1,14 @@
 async (page) => {
-  const cfg = page.__uiuxBatch
+  const context = page.context()
+  const cfg = context.__uiuxBatch || page.__uiuxBatch
   if (!cfg)
-    throw new Error('Missing page.__uiuxBatch configuration')
+    throw new Error('Missing browser-context UI/UX batch configuration')
 
-  const BASE = 'http://172.19.64.85:5173'
+  // Use a fresh page for every batch so playback/beforeunload state cannot
+  // leak between theme/viewport captures. Storage remains shared by context.
+  page = await context.newPage()
+
+  const BASE = cfg.baseUrl || 'http://172.19.64.85:4173'
   const fixture = {
     preferences: {
       theme: cfg.theme,
@@ -143,16 +148,6 @@ async (page) => {
     await page.getByText('Dragon Dream', { exact: true }).first().waitFor({ state: 'visible', timeout: 5000 })
   })
 
-  await screenshot('playing-queue', async () => {
-    await prepare('/playlists/all')
-    await page.getByRole('button', { name: /#1 Dragon Dream/ }).click()
-    const audio = page.locator('audio')
-    if (await audio.count())
-      await audio.evaluate(el => el.pause())
-    await ensureRightPanel()
-    await page.getByRole('tab', { name: 'Playing Queue', exact: true }).click()
-  })
-
   await screenshot('recent-history', async () => {
     await prepare('/playlists/all')
     await ensureRightPanel()
@@ -224,12 +219,40 @@ async (page) => {
   })
 
   await screenshot('download-manager', async () => {
+    // Make the fixture self-contained across origins by creating the offline
+    // state through the app's real UI instead of mutating IndexedDB directly.
+    await prepare('/playlists/all')
+    const row = page.locator('[data-music-src]').first()
+    await row.hover()
+    const musicMenuTrigger = row.locator('button[aria-haspopup="menu"]')
+    await musicMenuTrigger.click()
+
+    const downloadItem = page.getByRole('menuitem', { name: 'Download for Offline', exact: true })
+    if (await downloadItem.count() > 0 && await downloadItem.isVisible()) {
+      await downloadItem.click()
+      await page.getByRole('menuitem', { name: 'Ready for Offline', exact: true })
+        .waitFor({ state: 'visible', timeout: 30000 })
+    }
+
     await prepare('/playlists')
     const trigger = await topMenuTrigger('left')
     await trigger.click()
     await page.getByText('Dragon Dream', { exact: true }).waitFor({ state: 'visible', timeout: 5000 })
   })
 
+  await screenshot('playing-queue', async () => {
+    await prepare('/playlists/all')
+    await page.getByRole('button', { name: /#1 Dragon Dream/ }).click()
+    // Pause through the real player UI so the app's own isPaused state is
+    // updated as well; newer builds no longer rely on a DOM <audio> element.
+    const pauseButton = page.getByRole('button', { name: 'Pause', exact: true })
+    if (await pauseButton.count() > 0 && await pauseButton.isVisible())
+      await pauseButton.click()
+    await ensureRightPanel()
+    await page.getByRole('tab', { name: 'Playing Queue', exact: true }).click()
+  })
+
   page.off('dialog', dialogHandler)
+  await page.close()
   return { config: cfg, results }
 }

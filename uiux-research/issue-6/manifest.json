@@ -1,6 +1,7 @@
 {
   "issue": 6,
-  "appCommit": "f10c742",
+  "appCommit": "11c478d",
+  "captureMode": "production-build-preview",
   "themes": [
     "light",
     "dark"
@@ -26,966 +27,972 @@
     "download-manager"
   ],
   "count": 96,
+  "validation": {
+    "expectedCount": 96,
+    "dimensionErrors": 0,
+    "missingFiles": 0,
+    "identicalLightDarkPairs": 0
+  },
   "entries": [
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "playlists",
-      "path": "f10c742/light/1920x1080/playlists.png",
+      "path": "11c478d/light/1920x1080/playlists.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 41850,
-      "sha256": "deb92fa4304b494d178e0a150586e4cafff6d18a2383454b3ebc2f4daa889e25"
+      "bytes": 42254,
+      "sha256": "d39af6b39e73cd503db46cc6c3a7675f2cc924be1336269b8d70e4d1d70e7284"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "playlist",
-      "path": "f10c742/light/1920x1080/playlist.png",
+      "path": "11c478d/light/1920x1080/playlist.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 107596,
-      "sha256": "6024f16352eda34191cb051b130e861e7fb59486502339e1f650d2bfd9ca2c09"
+      "bytes": 108063,
+      "sha256": "89cae8c0c8eba0b2a0ed5bcf22abe98de65c2abca25bf94d304784da7fc1ed33"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "playing-queue",
-      "path": "f10c742/light/1920x1080/playing-queue.png",
+      "path": "11c478d/light/1920x1080/playing-queue.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 161825,
-      "sha256": "10e4537924248c380cc92d97ad33e7922eb05f25dc0b02f4fb28032210f883c4"
+      "bytes": 162895,
+      "sha256": "0087f38bbf7328915ffd16ae076d6b3226c249a062249510efa696d70abc08ac"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "recent-history",
-      "path": "f10c742/light/1920x1080/recent-history.png",
+      "path": "11c478d/light/1920x1080/recent-history.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 121150,
-      "sha256": "640625e0c42649603df62b1bf38892bbda602796210b248a7cc9937ec696ed95"
+      "bytes": 121584,
+      "sha256": "111dbd0a1690897be20d94cb9a18006a2c6c16f795d61a9183da30e2f1647e5e"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "settings-menu",
-      "path": "f10c742/light/1920x1080/settings-menu.png",
+      "path": "11c478d/light/1920x1080/settings-menu.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 47924,
-      "sha256": "79bc6b7b41347027717969c65cd883040d7189c64bfc93a55051641b83e0fa44"
+      "bytes": 48331,
+      "sha256": "5a0a2c1ea82dc1f56afe2065dfc937dcaeed42a2e6a6f8131f2341ac2cb8844e"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "background-picker",
-      "path": "f10c742/light/1920x1080/background-picker.png",
+      "path": "11c478d/light/1920x1080/background-picker.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 271476,
-      "sha256": "6ce3893af6d26441c63c0b6ee8cf6da61e3db17a6f87cf7eb6aad393a871af9f"
+      "bytes": 267739,
+      "sha256": "a01f6df48516f5ee3e454b50e32fad75872a085eebb3897e360805ed1d8c6d3e"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "about-dialog",
-      "path": "f10c742/light/1920x1080/about-dialog.png",
+      "path": "11c478d/light/1920x1080/about-dialog.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 129459,
-      "sha256": "5ade1305d48cafa983da97170abc0e239f4774ec7c73f2fa1bfa95c1f7baea80"
+      "bytes": 129598,
+      "sha256": "87903bfd07281f8b8d673b76d50639aeea93d18dfba65b58d653080bf37270a7"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "create-playlist-dialog",
-      "path": "f10c742/light/1920x1080/create-playlist-dialog.png",
+      "path": "11c478d/light/1920x1080/create-playlist-dialog.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 57836,
-      "sha256": "086e5c27af12e85c595050f1e3e2c501ce703ec5d5a3430fbe7b35e6617e0167"
+      "bytes": 58184,
+      "sha256": "9876f75c599afeb9875b3c1ddc01f7802c86de39c5d849ef55f848555dfde113"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "playlist-filter",
-      "path": "f10c742/light/1920x1080/playlist-filter.png",
+      "path": "11c478d/light/1920x1080/playlist-filter.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 253679,
-      "sha256": "7876a1a535341ef895954f42e4adb5c999d66958d7dd2de3556c559911cae2a1"
+      "bytes": 218312,
+      "sha256": "160c17f478d1ce0a4584e1552c443d286715f4c2793107404c1458294b3208ab"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "playlist-actions",
-      "path": "f10c742/light/1920x1080/playlist-actions.png",
+      "path": "11c478d/light/1920x1080/playlist-actions.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 77474,
-      "sha256": "ef63b68ae1e6f1c0169998daa1f42f912e9b493b94f728266bd639897bd285d1"
+      "bytes": 77911,
+      "sha256": "2ac3c085f0c42af5f3602e5862a628746caf211e8fa79aa6ba1343a558f0fc40"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "music-actions",
-      "path": "f10c742/light/1920x1080/music-actions.png",
+      "path": "11c478d/light/1920x1080/music-actions.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 115853,
-      "sha256": "7c90807e788cc6472ecd835b2ddfc6b819e9b7662112204156b789807e3f150e"
+      "bytes": 116328,
+      "sha256": "d61ab211495da1d15c4259eac22f682c02f7b4e8733155b4d63091d6398816e1"
     },
     {
       "theme": "light",
       "viewport": "1920x1080",
       "state": "download-manager",
-      "path": "f10c742/light/1920x1080/download-manager.png",
+      "path": "11c478d/light/1920x1080/download-manager.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 50061,
-      "sha256": "a5787bf8941083bd01e772491f4406c40733fc2862b9895b2beb5391027f8de0"
+      "bytes": 50468,
+      "sha256": "e2d7b8bf77c7f3bde37e364beaccd4123eda924356dcac5f08990c0cc9e21c2b"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "playlists",
-      "path": "f10c742/light/1180x820/playlists.png",
+      "path": "11c478d/light/1180x820/playlists.png",
       "width": 1180,
       "height": 820,
-      "bytes": 36216,
-      "sha256": "021f60398a1e67d170805af2652efde633b53fc74b2f35514fc3cb1ef2132ad9"
+      "bytes": 36573,
+      "sha256": "0c86397fb01f9fb478b615db032bae21e6f4b26ca50d9dd8f08244285aaa8523"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "playlist",
-      "path": "f10c742/light/1180x820/playlist.png",
+      "path": "11c478d/light/1180x820/playlist.png",
       "width": 1180,
       "height": 820,
-      "bytes": 69385,
-      "sha256": "39cbe4732bf495da53468704871269ec5b1b9beac5dcee7bceac6045abff44f7"
+      "bytes": 69840,
+      "sha256": "a74b375748cea3d1acf2939879a93ce839429679100bc7f25a035d7f534196af"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "playing-queue",
-      "path": "f10c742/light/1180x820/playing-queue.png",
+      "path": "11c478d/light/1180x820/playing-queue.png",
       "width": 1180,
       "height": 820,
-      "bytes": 102092,
-      "sha256": "8dc43921104b73342630b92f1a45806886ebcaa4b01b27ddd4f5773520266039"
+      "bytes": 102996,
+      "sha256": "695e209fe7487d4eb4dc46efc4e8a67c2545bdd8869e43bab2ef89fc77b6cadc"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "recent-history",
-      "path": "f10c742/light/1180x820/recent-history.png",
+      "path": "11c478d/light/1180x820/recent-history.png",
       "width": 1180,
       "height": 820,
-      "bytes": 82497,
-      "sha256": "4b3b037b70a690314984fdcb16d98c166fe20b44b7461a1c8a724a2a935275cb"
+      "bytes": 82937,
+      "sha256": "03508f3660bfa324eb1183d9d8dbafd49f4948f007a2971b170e354eb78d9d39"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "settings-menu",
-      "path": "f10c742/light/1180x820/settings-menu.png",
+      "path": "11c478d/light/1180x820/settings-menu.png",
       "width": 1180,
       "height": 820,
-      "bytes": 42023,
-      "sha256": "649939ebcc30d3aebad7e38f44673f7eb662b91291393694babfe446e6007626"
+      "bytes": 42384,
+      "sha256": "e02ca44b38ed41704ed5db8e0aaefdc951bfdee4451296621474e6b5f6678328"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "background-picker",
-      "path": "f10c742/light/1180x820/background-picker.png",
+      "path": "11c478d/light/1180x820/background-picker.png",
       "width": 1180,
       "height": 820,
-      "bytes": 255676,
-      "sha256": "ba36d83022838c98dbdce3178c22bffec2690c991eaffcfeadc97b364337d5dc"
+      "bytes": 259926,
+      "sha256": "a7cfe29ccd6fb0db37e58729a40fece3ebc8bf5577526fb7730cc3d6c116b854"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "about-dialog",
-      "path": "f10c742/light/1180x820/about-dialog.png",
+      "path": "11c478d/light/1180x820/about-dialog.png",
       "width": 1180,
       "height": 820,
-      "bytes": 117886,
-      "sha256": "535d8b54445a81e73b3e39036b7f4beb417498a2a3f500caf9c9b64a16858466"
+      "bytes": 117471,
+      "sha256": "14a5c862104df5f91a637a1f2725d6066bb6a3c30a9e74eb75fae9dc53d520b7"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "create-playlist-dialog",
-      "path": "f10c742/light/1180x820/create-playlist-dialog.png",
+      "path": "11c478d/light/1180x820/create-playlist-dialog.png",
       "width": 1180,
       "height": 820,
-      "bytes": 51649,
-      "sha256": "cee34a3f320d16b22d3401881a9ca04907618d27c4441404657d3474bef57651"
+      "bytes": 52017,
+      "sha256": "86e4d22f6987d21ba55eecdfe208da7e5ba0bb9ff4192148b4a5910979aa95be"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "playlist-filter",
-      "path": "f10c742/light/1180x820/playlist-filter.png",
+      "path": "11c478d/light/1180x820/playlist-filter.png",
       "width": 1180,
       "height": 820,
-      "bytes": 169287,
-      "sha256": "469248a80ce7e4965904ce20a5fc4d075d67f3ef03a65fdcdb324dfb032885cc"
+      "bytes": 178368,
+      "sha256": "8db793f294b4e66e1dde701b98d06ff8c011283e76c0be892b3c1519ff378ac7"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "playlist-actions",
-      "path": "f10c742/light/1180x820/playlist-actions.png",
+      "path": "11c478d/light/1180x820/playlist-actions.png",
       "width": 1180,
       "height": 820,
-      "bytes": 69887,
-      "sha256": "8ba4bafcce6dc4642ea2737e5f5c4290cd49faa2776873b95b158d5c0383f2bd"
+      "bytes": 70319,
+      "sha256": "2d2efb7fdb68c8827f8ba7633f1ebffb044f58435e7c1092a833efb08039aae9"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "music-actions",
-      "path": "f10c742/light/1180x820/music-actions.png",
+      "path": "11c478d/light/1180x820/music-actions.png",
       "width": 1180,
       "height": 820,
-      "bytes": 77192,
-      "sha256": "69759c2f9b62b62efe7ee130cc3c27a5d2d92c1d784d1b9f59eca321f6ac3f81"
+      "bytes": 77650,
+      "sha256": "668bdc58a4c7da88d72386b6c96b71e3b7847bf792ba8db824a510672544097d"
     },
     {
       "theme": "light",
       "viewport": "1180x820",
       "state": "download-manager",
-      "path": "f10c742/light/1180x820/download-manager.png",
+      "path": "11c478d/light/1180x820/download-manager.png",
       "width": 1180,
       "height": 820,
-      "bytes": 44544,
-      "sha256": "0d5c5afcd57cd8c383c54ffba2d478d96c1516212e7129970543d7d5da98d321"
+      "bytes": 44902,
+      "sha256": "7ed21b75048ab459479018e2a2d4c6d8c5d0f4eb69ade339572fee9f02386baf"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "playlists",
-      "path": "f10c742/light/820x1180/playlists.png",
+      "path": "11c478d/light/820x1180/playlists.png",
       "width": 820,
       "height": 1180,
-      "bytes": 36378,
-      "sha256": "2cbe071728fafe244472e15c9b2796fdaba8b8fcb2fc7a84350ca8f0ebdce10b"
+      "bytes": 36720,
+      "sha256": "222e8eb102227191048ae2358ccb32a4485aca227bc3f4994b4e751812d6cfec"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "playlist",
-      "path": "f10c742/light/820x1180/playlist.png",
+      "path": "11c478d/light/820x1180/playlist.png",
       "width": 820,
       "height": 1180,
-      "bytes": 108737,
-      "sha256": "21dba181c9b9c23fba91f42b9419150c6d24b3d6f7ba384ab43bcbdbd9eddccd"
+      "bytes": 109141,
+      "sha256": "ee9a381cb3226235bb62ef5b14d5d2477a1755658913ead0241759acc1c6e2a5"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "playing-queue",
-      "path": "f10c742/light/820x1180/playing-queue.png",
+      "path": "11c478d/light/820x1180/playing-queue.png",
       "width": 820,
       "height": 1180,
-      "bytes": 162705,
-      "sha256": "70a116ac46ec85d3310ff2ad589d84d71b02c3bc36b7039419f8f930afc827d1"
+      "bytes": 163577,
+      "sha256": "c1a86926d02708aeaffe72348fdeb4a8a9aca59d03b4cd1e421d069d7354958b"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "recent-history",
-      "path": "f10c742/light/820x1180/recent-history.png",
+      "path": "11c478d/light/820x1180/recent-history.png",
       "width": 820,
       "height": 1180,
-      "bytes": 121412,
-      "sha256": "3ea477541855c10e700eb26c4a869533727af94fd10c1314ef2f8e4683ec7d11"
+      "bytes": 121804,
+      "sha256": "3fece9dea8e034f23331ffd8c39d9ae68e6b591dd42ae340f55b555e9002e3d7"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "settings-menu",
-      "path": "f10c742/light/820x1180/settings-menu.png",
+      "path": "11c478d/light/820x1180/settings-menu.png",
       "width": 820,
       "height": 1180,
-      "bytes": 41607,
-      "sha256": "f51f0a9d86afa2074f45026fdebf4652f2d601a03f4f8bd7f6899cba9808c5ec"
+      "bytes": 41933,
+      "sha256": "35250dc33ca99993b14243defb4ec6c0fd60a117fe5059f3391e1a3dc0e871ef"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "background-picker",
-      "path": "f10c742/light/820x1180/background-picker.png",
+      "path": "11c478d/light/820x1180/background-picker.png",
       "width": 820,
       "height": 1180,
-      "bytes": 255745,
-      "sha256": "67c8cbd6f27d514aeb7095fe903b435b95a331f698cf3f6631a5b65ede36d39b"
+      "bytes": 260108,
+      "sha256": "919e68c8260d496b165379d9d3af0b0947da4d08e7219c0eb3532d326c301fc8"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "about-dialog",
-      "path": "f10c742/light/820x1180/about-dialog.png",
+      "path": "11c478d/light/820x1180/about-dialog.png",
       "width": 820,
       "height": 1180,
-      "bytes": 114497,
-      "sha256": "c03c6e6b97aed83d98c48b2c6afc02ea49e02b8bcd6acf24ecd8a40432198579"
+      "bytes": 114771,
+      "sha256": "91fa7228158a1c4cd211a95ca5df0895c1251bbce49548c9536bb964343f4665"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "create-playlist-dialog",
-      "path": "f10c742/light/820x1180/create-playlist-dialog.png",
+      "path": "11c478d/light/820x1180/create-playlist-dialog.png",
       "width": 820,
       "height": 1180,
-      "bytes": 51539,
-      "sha256": "6eea288c2ab2c3765bf88095be691e28faa4330529d35200dc140834fb66721b"
+      "bytes": 51879,
+      "sha256": "90e6b18549acc1205f0d8666d792ce78c907c87b1b2282e831d40a5d6a93a793"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "playlist-filter",
-      "path": "f10c742/light/820x1180/playlist-filter.png",
+      "path": "11c478d/light/820x1180/playlist-filter.png",
       "width": 820,
       "height": 1180,
-      "bytes": 239640,
-      "sha256": "1c4d8e768294f8ba5a45b667818e0997ed02074bcfc15fe0cd9a5cdd28fc124a"
+      "bytes": 201040,
+      "sha256": "bbdfdbeb5b8d9082801d49f8796f74fefd3e3fb866e8ff193ce9678956733be5"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "playlist-actions",
-      "path": "f10c742/light/820x1180/playlist-actions.png",
+      "path": "11c478d/light/820x1180/playlist-actions.png",
       "width": 820,
       "height": 1180,
-      "bytes": 67482,
-      "sha256": "f486c9837db509c59a96d9b06c6c4f9e70cc6d6621e5ab0eaea8c30e627c6ec6"
+      "bytes": 67918,
+      "sha256": "a86bcc81a9b2ce434423de477a24b8dbde23ac02481a0f3bd332efb36f854259"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "music-actions",
-      "path": "f10c742/light/820x1180/music-actions.png",
+      "path": "11c478d/light/820x1180/music-actions.png",
       "width": 820,
       "height": 1180,
-      "bytes": 116089,
-      "sha256": "084cf5d0061f5d5bd231e9dcf6410251853beb49efd55e2ce7cfa0f8e6c08dd7"
+      "bytes": 116495,
+      "sha256": "84c9f8f86cca36796a66b984bb44b26c4d40a320757fa9e885dc26049a51f8a2"
     },
     {
       "theme": "light",
       "viewport": "820x1180",
       "state": "download-manager",
-      "path": "f10c742/light/820x1180/download-manager.png",
+      "path": "11c478d/light/820x1180/download-manager.png",
       "width": 820,
       "height": 1180,
-      "bytes": 43890,
-      "sha256": "aa9587261d3c3088a8e024e62533e540a6784026d817024f80025a95cb3a2aec"
+      "bytes": 44225,
+      "sha256": "9f97f723a880e01d1112e42058c461255c84a1ec7aed203828c4edb3aa5a932c"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "playlists",
-      "path": "f10c742/light/393x852/playlists.png",
+      "path": "11c478d/light/393x852/playlists.png",
       "width": 393,
       "height": 852,
-      "bytes": 28924,
-      "sha256": "e4f6acb09a6f5aac4df42ac0b6260b450575ca8d455056060318620e3bd8ac82"
+      "bytes": 29044,
+      "sha256": "2033da4957c2a623f59524b729e0e17d23a822b0749e75badeb90213d4bb3897"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "playlist",
-      "path": "f10c742/light/393x852/playlist.png",
+      "path": "11c478d/light/393x852/playlist.png",
       "width": 393,
       "height": 852,
-      "bytes": 63276,
-      "sha256": "c8e96294ea1a87236984c4d16582e3ef8573d54c42c30a69c9cffcfbe21b65bc"
+      "bytes": 63519,
+      "sha256": "be6f2db71125e57a5a7d21578df1c04d1d8b3b1a8b21e0f0ddbb46b673046be8"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "playing-queue",
-      "path": "f10c742/light/393x852/playing-queue.png",
+      "path": "11c478d/light/393x852/playing-queue.png",
       "width": 393,
       "height": 852,
-      "bytes": 51623,
-      "sha256": "a82b89b49d50a503662fd28b0d2603f4f94e0b52a863442cf978960395f9651e"
+      "bytes": 52568,
+      "sha256": "27d40c5c07d6b5d399195b174e9678d7beed1116480e7c4c2f5509a7afd5f723"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "recent-history",
-      "path": "f10c742/light/393x852/recent-history.png",
+      "path": "11c478d/light/393x852/recent-history.png",
       "width": 393,
       "height": 852,
-      "bytes": 35716,
-      "sha256": "092469625349ce49378e5a00a24137beafc760ca40177d2cbda1c654c67d50d3"
+      "bytes": 35839,
+      "sha256": "501975a32632603332e063ab2ad3a3a0a71d92a27385c1bf9f3e85bc64c12814"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "settings-menu",
-      "path": "f10c742/light/393x852/settings-menu.png",
+      "path": "11c478d/light/393x852/settings-menu.png",
       "width": 393,
       "height": 852,
-      "bytes": 34390,
-      "sha256": "7e564c954c48954d50082548cf0eba38ff13b2956cf1b10f7e26147018950d52"
+      "bytes": 34505,
+      "sha256": "8a6c6163199435892fe2c9b5f3bdbccbe35ff8101bbaaa79348308e9fd6e8744"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "background-picker",
-      "path": "f10c742/light/393x852/background-picker.png",
+      "path": "11c478d/light/393x852/background-picker.png",
       "width": 393,
       "height": 852,
-      "bytes": 233670,
-      "sha256": "76d5da170fcc67e5a408397eeef888b21cdef5306d2d14061a81a0f6f396bcf3"
+      "bytes": 231564,
+      "sha256": "745c86d50c5d2a36b54e846d5aaab4fba0e29d9cd2f57c36dd88a805a3a19584"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "about-dialog",
-      "path": "f10c742/light/393x852/about-dialog.png",
+      "path": "11c478d/light/393x852/about-dialog.png",
       "width": 393,
       "height": 852,
-      "bytes": 89333,
-      "sha256": "7317ac5f787fa9de3b3cb25ce4eda0037ceb63fdecbcca21c51b7d0b2e586801"
+      "bytes": 88044,
+      "sha256": "dbe01021daf6f80e49a5d5b0ea7d793392bcff8795d897b1e16be620c5964b11"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "create-playlist-dialog",
-      "path": "f10c742/light/393x852/create-playlist-dialog.png",
+      "path": "11c478d/light/393x852/create-playlist-dialog.png",
       "width": 393,
       "height": 852,
-      "bytes": 40736,
-      "sha256": "ce08cf31d357ad35fffe52c3610da30fe3eb82b6f9df0b02b0da88f018cd1846"
+      "bytes": 40921,
+      "sha256": "04ab515eb1239881d775b4adb072b65aa487f919fcc633055856c86845d136df"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "playlist-filter",
-      "path": "f10c742/light/393x852/playlist-filter.png",
+      "path": "11c478d/light/393x852/playlist-filter.png",
       "width": 393,
       "height": 852,
-      "bytes": 140224,
-      "sha256": "d12986dc85810694113d98f2eb46de5c9e07ed2c146bb6f838e608ddd1326f79"
+      "bytes": 151068,
+      "sha256": "244aa6bed3f1ded3dc7df5cfc9dc6284785dfa9c717696af372d60c822af93c0"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "playlist-actions",
-      "path": "f10c742/light/393x852/playlist-actions.png",
+      "path": "11c478d/light/393x852/playlist-actions.png",
       "width": 393,
       "height": 852,
-      "bytes": 53881,
-      "sha256": "f362f578044284d845583ca90110fafcc9fc3a9360e26d7dd8d155bbcf10cf36"
+      "bytes": 54058,
+      "sha256": "f6e72f30765fd3b6ad505963d01dbd1a0d50b3dc5e631e270e578fa952d42867"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "music-actions",
-      "path": "f10c742/light/393x852/music-actions.png",
+      "path": "11c478d/light/393x852/music-actions.png",
       "width": 393,
       "height": 852,
-      "bytes": 69005,
-      "sha256": "fb327e3a83816c115fa426de95ee6bb22f8900f19a5777cf51c85651d7b2ee05"
+      "bytes": 69244,
+      "sha256": "264dbbae5436912e90bd5b7ca1789c8384687fa733de8b5ac3e568cbd8c467b0"
     },
     {
       "theme": "light",
       "viewport": "393x852",
       "state": "download-manager",
-      "path": "f10c742/light/393x852/download-manager.png",
+      "path": "11c478d/light/393x852/download-manager.png",
       "width": 393,
       "height": 852,
-      "bytes": 36839,
-      "sha256": "ce84d174d05e3c500dc78c1e39f9d0647e978b49d9a55d8ca03816949d98ddfe"
+      "bytes": 36964,
+      "sha256": "6342a010020d42f6a7f9132ce7c0cfefd27edc88b0e76b7db1dd5add5feb38e5"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "playlists",
-      "path": "f10c742/dark/1920x1080/playlists.png",
+      "path": "11c478d/dark/1920x1080/playlists.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 42083,
-      "sha256": "272de25b5dc857e5365d6d7fd8b30b026d4ace4e25e096551c5a4abbf316bef9"
+      "bytes": 36906,
+      "sha256": "f377dc65dbf57ac6c5d60ff88800a1e7a3eb99ef25568110c694a4447e3eb20d"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "playlist",
-      "path": "f10c742/dark/1920x1080/playlist.png",
+      "path": "11c478d/dark/1920x1080/playlist.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 109517,
-      "sha256": "04bbcbcf7d7565e014f13469a9a23c72d16e8554e1890ba09081827867bc6e51"
+      "bytes": 98547,
+      "sha256": "6da73431fde8e6a0b0a0f366678e33d317de39a6db2a6223f1563aa78ee26518"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "playing-queue",
-      "path": "f10c742/dark/1920x1080/playing-queue.png",
+      "path": "11c478d/dark/1920x1080/playing-queue.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 164480,
-      "sha256": "64eddfea92d1329f678a03738a0f6cf0deb5f212e6da29d1c24f7c86394cf47f"
+      "bytes": 146074,
+      "sha256": "20e5d111b84855796d899648716822bbe40054f0f8cb15f42c6ae137d6dfd06a"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "recent-history",
-      "path": "f10c742/dark/1920x1080/recent-history.png",
+      "path": "11c478d/dark/1920x1080/recent-history.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 123364,
-      "sha256": "6dbcdba76b2b1a44461245782243972041aaf50b6222fd87013feaab35443511"
+      "bytes": 109783,
+      "sha256": "e04da55722c29978fc80a372b5dee3ac224a0e64abdbeb90110e41f64d6697cb"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "settings-menu",
-      "path": "f10c742/dark/1920x1080/settings-menu.png",
+      "path": "11c478d/dark/1920x1080/settings-menu.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 48147,
-      "sha256": "66eb1521eab2097ccef8da279e5d152ca4f55954a6c56bbd72d2c03b3b6dd453"
+      "bytes": 40552,
+      "sha256": "0824cedbd047668b488a73c8bbbd9d6ee0dc79ca3616da7baf1f6cae00b3bcf7"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "background-picker",
-      "path": "f10c742/dark/1920x1080/background-picker.png",
+      "path": "11c478d/dark/1920x1080/background-picker.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 274561,
-      "sha256": "d2894b59f65d36e0a2f0583164da5bf94df7251955fe1dc724fd273ba1d32dd6"
+      "bytes": 258865,
+      "sha256": "2b7cac40af7e2503c8e8d7a75f18309f43322ed4d9aba628dc7dd5f893262cfd"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "about-dialog",
-      "path": "f10c742/dark/1920x1080/about-dialog.png",
+      "path": "11c478d/dark/1920x1080/about-dialog.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 131704,
-      "sha256": "585de61dc40c0c3c40ce0617ed2c5463d034de118fa0e693f180ca8259443d52"
+      "bytes": 80605,
+      "sha256": "7cc66df2ceef9250e55fe661e349f36682905b12a2fc5fd6a6f9c18555a24e03"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "create-playlist-dialog",
-      "path": "f10c742/dark/1920x1080/create-playlist-dialog.png",
+      "path": "11c478d/dark/1920x1080/create-playlist-dialog.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 60009,
-      "sha256": "dd3e0e3e815e41db99ac91506f944c14e01e6f8b8f8c3b9da9bb490cb88770c0"
+      "bytes": 47620,
+      "sha256": "8754a0fa95eb2658239b587e1b3e77f0f679775387b335cc02fcb77d751fc75e"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "playlist-filter",
-      "path": "f10c742/dark/1920x1080/playlist-filter.png",
+      "path": "11c478d/dark/1920x1080/playlist-filter.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 257653,
-      "sha256": "bb29f40a84cc9d5d3c2f707fb905bdd300620334265fc6309ccf0da87dfe2e9e"
+      "bytes": 210100,
+      "sha256": "5a56ed03763518778aacfec6026d7585cd68b0bb132334702429ad63e911e629"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "playlist-actions",
-      "path": "f10c742/dark/1920x1080/playlist-actions.png",
+      "path": "11c478d/dark/1920x1080/playlist-actions.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 78316,
-      "sha256": "24d73de3a1fff9256ae1d155ccab661e4983925845f265c2b5ba12f8b4e9d8ba"
+      "bytes": 66871,
+      "sha256": "fe8472715d5fab111b2818374da10b054e6ec13ac6398b07c3f9438bd3cd7e31"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "music-actions",
-      "path": "f10c742/dark/1920x1080/music-actions.png",
+      "path": "11c478d/dark/1920x1080/music-actions.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 117920,
-      "sha256": "8251a680b7c842c07bf10feedcedd58fd7f41844b6dec8dc727a398d84951be1"
+      "bytes": 102846,
+      "sha256": "cc613a595215cc9a2f952ae9900d61d40333ee1ccbc4fb9f1747932c7ad5e1a7"
     },
     {
       "theme": "dark",
       "viewport": "1920x1080",
       "state": "download-manager",
-      "path": "f10c742/dark/1920x1080/download-manager.png",
+      "path": "11c478d/dark/1920x1080/download-manager.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 50687,
-      "sha256": "00310d9378f28ecb5d7eec7ce44e2dbc016f8714f4c289756ef368086df02dc0"
+      "bytes": 45196,
+      "sha256": "9d473eb071ec66b7a0a4b59f993c18099085709a9490fbc4c415b44a5dae4e85"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "playlists",
-      "path": "f10c742/dark/1180x820/playlists.png",
+      "path": "11c478d/dark/1180x820/playlists.png",
       "width": 1180,
       "height": 820,
-      "bytes": 36461,
-      "sha256": "5334ce43dce3258ff9059f63970fbc2002dfd46b62804432d72776b461b98386"
+      "bytes": 31907,
+      "sha256": "09a3560c5b8b27289075947ef6d4dce9adc022de889518cc6e1574036ab748a4"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "playlist",
-      "path": "f10c742/dark/1180x820/playlist.png",
+      "path": "11c478d/dark/1180x820/playlist.png",
       "width": 1180,
       "height": 820,
-      "bytes": 70779,
-      "sha256": "eedbbb5169565bfaebf52d0db4a4722623876ce1859f4f4f78a13149dc218f53"
+      "bytes": 63692,
+      "sha256": "e0a29f69bd11a1f7248789085e17a8f2bcd20b1e0c5f7b1e9ed418c971fd6804"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "playing-queue",
-      "path": "f10c742/dark/1180x820/playing-queue.png",
+      "path": "11c478d/dark/1180x820/playing-queue.png",
       "width": 1180,
       "height": 820,
-      "bytes": 104060,
-      "sha256": "11cf3f7bc55bde79ee8e02f0c7de0f26663e3b8e55eda141edb3dbfba1c6104f"
+      "bytes": 93757,
+      "sha256": "5d58581cc5d10c8cad8afd0e36fb2701db6592111e345a7a56632bf59ea24d5c"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "recent-history",
-      "path": "f10c742/dark/1180x820/recent-history.png",
+      "path": "11c478d/dark/1180x820/recent-history.png",
       "width": 1180,
       "height": 820,
-      "bytes": 84068,
-      "sha256": "83aeb9407b64a01df398b7f4c1a2082382e93903d676e5eb8d18e28c15c670af"
+      "bytes": 74283,
+      "sha256": "7d1be01f9e9226b056560a88606edb547e270f5339782c4d3fa149cf3a3ea10d"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "settings-menu",
-      "path": "f10c742/dark/1180x820/settings-menu.png",
+      "path": "11c478d/dark/1180x820/settings-menu.png",
       "width": 1180,
       "height": 820,
-      "bytes": 42302,
-      "sha256": "dc645a83e4a6700adc55919706a66826d0e0c6f3292185b18492a5c5b2ad1a5e"
+      "bytes": 35368,
+      "sha256": "23cedb808d490d84d19d10735206bd05ea7cdd76eaaebb303c6b8e8044222d69"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "background-picker",
-      "path": "f10c742/dark/1180x820/background-picker.png",
+      "path": "11c478d/dark/1180x820/background-picker.png",
       "width": 1180,
       "height": 820,
-      "bytes": 257787,
-      "sha256": "2872959787b0cf2c937e211cfcc680e5169dfe3f5ff767d4b66cd70533060f54"
+      "bytes": 247890,
+      "sha256": "03748c0c821a6f9dddd63b1b992c16b62b47122fb999f04042b0038733878099"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "about-dialog",
-      "path": "f10c742/dark/1180x820/about-dialog.png",
+      "path": "11c478d/dark/1180x820/about-dialog.png",
       "width": 1180,
       "height": 820,
-      "bytes": 119862,
-      "sha256": "9e1fecb6de6e1aa717cf15443ecaea21bb995b0ee0ca5d811b3b8834144fbae6"
+      "bytes": 72948,
+      "sha256": "218aaaacd0120e2ca387b7c35a0af9f9d83f338a7d7be9c83323d36bed051b5f"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "create-playlist-dialog",
-      "path": "f10c742/dark/1180x820/create-playlist-dialog.png",
+      "path": "11c478d/dark/1180x820/create-playlist-dialog.png",
       "width": 1180,
       "height": 820,
-      "bytes": 53760,
-      "sha256": "2fcdb077f19f141e9305fc0d0570729e7a159bdf8cd91b182aa916fa90d82092"
+      "bytes": 42491,
+      "sha256": "9c0f40a8217258cc8bbffd6440b3d7119c7ac312499d77981df1a7a1358ded73"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "playlist-filter",
-      "path": "f10c742/dark/1180x820/playlist-filter.png",
+      "path": "11c478d/dark/1180x820/playlist-filter.png",
       "width": 1180,
       "height": 820,
-      "bytes": 172082,
-      "sha256": "066beac44fc1d271e4db1c52a51498b220e6cacac133ee5a478ddcf71939a44d"
+      "bytes": 173371,
+      "sha256": "3f252e3948b66748bc3a738a0ce5f6714772f96060b53fea03579e8287f8a2ed"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "playlist-actions",
-      "path": "f10c742/dark/1180x820/playlist-actions.png",
+      "path": "11c478d/dark/1180x820/playlist-actions.png",
       "width": 1180,
       "height": 820,
-      "bytes": 70740,
-      "sha256": "4bf1484a5f22582a1183a0c5e42bceefb7e3b35bfc16a654c45034833a0ee009"
+      "bytes": 60580,
+      "sha256": "542d7333f5f46209df2fe2ee3059b62362aa68faeb9797327210632c047c5f5a"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "music-actions",
-      "path": "f10c742/dark/1180x820/music-actions.png",
+      "path": "11c478d/dark/1180x820/music-actions.png",
       "width": 1180,
       "height": 820,
-      "bytes": 78690,
-      "sha256": "2de7f7d1fdf90c4cd2afe42da0584a4b65b75fc78d3a02306457df93bc118bdd"
+      "bytes": 67729,
+      "sha256": "52c95ec21e57ab1e4c4dd3b1420aa8fa0e544a1517135bf8034b8e7a612638f7"
     },
     {
       "theme": "dark",
       "viewport": "1180x820",
       "state": "download-manager",
-      "path": "f10c742/dark/1180x820/download-manager.png",
+      "path": "11c478d/dark/1180x820/download-manager.png",
       "width": 1180,
       "height": 820,
-      "bytes": 45249,
-      "sha256": "7f1f7d1ccf195b140040557ff25da4ae537aa6d8450875bcc5925d41aef65e47"
+      "bytes": 39813,
+      "sha256": "af641b9ad8003bed0987212201a0d9c5578e45ae39bba119d698dd6601249694"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "playlists",
-      "path": "f10c742/dark/820x1180/playlists.png",
+      "path": "11c478d/dark/820x1180/playlists.png",
       "width": 820,
       "height": 1180,
-      "bytes": 36691,
-      "sha256": "1299c5906e502f203b8dc478874fef2426a10064c00ec6ad8d475dcec45d8c83"
+      "bytes": 32349,
+      "sha256": "7a512deabdf2c4c7ccc07ed06528f38f8f39e18914689d03fb74c4c8f213d419"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "playlist",
-      "path": "f10c742/dark/820x1180/playlist.png",
+      "path": "11c478d/dark/820x1180/playlist.png",
       "width": 820,
       "height": 1180,
-      "bytes": 110803,
-      "sha256": "c382fb89db2c9246e2b12854d9ee1a17099bdacbdf328678f7ad500279f9a142"
+      "bytes": 99892,
+      "sha256": "f16cd18b09fc06f329a94520a9c0a9de7c3bf2721c2ff9d64ece70b7da05fb41"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "playing-queue",
-      "path": "f10c742/dark/820x1180/playing-queue.png",
+      "path": "11c478d/dark/820x1180/playing-queue.png",
       "width": 820,
       "height": 1180,
-      "bytes": 165557,
-      "sha256": "51b18cb60127182be4da7aaa06a8241b7965866eb9fc7e27cf1a215dcc3f339d"
+      "bytes": 147258,
+      "sha256": "bb831246b0d8134de03558dbc7ba3442e075e8d6176e00440388971039c3303b"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "recent-history",
-      "path": "f10c742/dark/820x1180/recent-history.png",
+      "path": "11c478d/dark/820x1180/recent-history.png",
       "width": 820,
       "height": 1180,
-      "bytes": 123648,
-      "sha256": "f9c4154602a1b7a0b6300ea9f29c42ae04fb2624b6bb54cc0f20a307c8fa0a86"
+      "bytes": 110373,
+      "sha256": "3ffea3d9ef3d9481b9082693f08c63c18f342adf1dd90417e680688e97b6d2c5"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "settings-menu",
-      "path": "f10c742/dark/820x1180/settings-menu.png",
+      "path": "11c478d/dark/820x1180/settings-menu.png",
       "width": 820,
       "height": 1180,
-      "bytes": 41937,
-      "sha256": "44cac6b369356aa9eeca1a8e5b0acfd858dd599e4822070861b18565e05cdfb6"
+      "bytes": 35096,
+      "sha256": "8967a4cb6b6631bde60d9775be4fbdeae29724bb65afa625e5ff6a8addbb264d"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "background-picker",
-      "path": "f10c742/dark/820x1180/background-picker.png",
+      "path": "11c478d/dark/820x1180/background-picker.png",
       "width": 820,
       "height": 1180,
-      "bytes": 256520,
-      "sha256": "ce6d661e3be799b0bb6f23428ce4c86102e9ede70f0c111f5a146398e64eb45a"
+      "bytes": 246393,
+      "sha256": "1e8ffa36bb936b6fdb2ae79b2829cabea600c8999e30f21f59b4bcb1c6cbd46d"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "about-dialog",
-      "path": "f10c742/dark/820x1180/about-dialog.png",
+      "path": "11c478d/dark/820x1180/about-dialog.png",
       "width": 820,
       "height": 1180,
-      "bytes": 116977,
-      "sha256": "ed7847431fede6df9b2d36aa5a190045ee5bac968a920749ca5e2dbee5eb3fe9"
+      "bytes": 71834,
+      "sha256": "3b0eba55a04b37cbca49ff7b83efbe64edae4cc9a5df09bdd72e7ae4bd440b31"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "create-playlist-dialog",
-      "path": "f10c742/dark/820x1180/create-playlist-dialog.png",
+      "path": "11c478d/dark/820x1180/create-playlist-dialog.png",
       "width": 820,
       "height": 1180,
-      "bytes": 53843,
-      "sha256": "cfe8050aca17c54ef26648298443c3cb3aad9a11dad4f3671aafb4e5f2e36064"
+      "bytes": 41603,
+      "sha256": "76be9089ae56a6919c09cec44d1fb032b4f5c586d08c0f8e27f3d8e00d76911a"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "playlist-filter",
-      "path": "f10c742/dark/820x1180/playlist-filter.png",
+      "path": "11c478d/dark/820x1180/playlist-filter.png",
       "width": 820,
       "height": 1180,
-      "bytes": 245343,
-      "sha256": "8181cce695794019fa3e29a396557160556d8936999f4b1f9f943ed3187752b0"
+      "bytes": 189820,
+      "sha256": "8481645e8a8ebea3ac2279b88485422c68f72b6f4ab4b922558db6ae3a14e3b1"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "playlist-actions",
-      "path": "f10c742/dark/820x1180/playlist-actions.png",
+      "path": "11c478d/dark/820x1180/playlist-actions.png",
       "width": 820,
       "height": 1180,
-      "bytes": 68643,
-      "sha256": "8a95f1c584b0108bdea5d2e7df4e72d0ae4f2259b1933a819143121aeab1a558"
+      "bytes": 58124,
+      "sha256": "c3872a222a38de71039c62d6d7fb662772d0671adc238dc55a05f99913ff9eca"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "music-actions",
-      "path": "f10c742/dark/820x1180/music-actions.png",
+      "path": "11c478d/dark/820x1180/music-actions.png",
       "width": 820,
       "height": 1180,
-      "bytes": 118281,
-      "sha256": "e7e0ec00e1269431f1dca8377780c5909d854210868787eacbdf7181bd38a918"
+      "bytes": 103866,
+      "sha256": "7ec634b3a21f6219ac3e4a3836ee09cacb55e5b65c52d56d2afe67acb86f65c2"
     },
     {
       "theme": "dark",
       "viewport": "820x1180",
       "state": "download-manager",
-      "path": "f10c742/dark/820x1180/download-manager.png",
+      "path": "11c478d/dark/820x1180/download-manager.png",
       "width": 820,
       "height": 1180,
-      "bytes": 44789,
-      "sha256": "015ac6a1f917ca58f5f06fcddceef399e54ba1fce4dc0511f5880ec2cbf967cc"
+      "bytes": 39239,
+      "sha256": "a6cc2abc45a0473ef0e6d0e037bb160d3f325a4e60515d844a8d73355861e3cd"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "playlists",
-      "path": "f10c742/dark/393x852/playlists.png",
+      "path": "11c478d/dark/393x852/playlists.png",
       "width": 393,
       "height": 852,
-      "bytes": 28898,
-      "sha256": "32b30406c261cd24572d95132713f7bddfd775bf6e133397a3f2b1fb88400bfe"
+      "bytes": 25608,
+      "sha256": "e996870830dcc14d8caf6480a73011e71097366b50046cce2d51bef86b952fe1"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "playlist",
-      "path": "f10c742/dark/393x852/playlist.png",
+      "path": "11c478d/dark/393x852/playlist.png",
       "width": 393,
       "height": 852,
-      "bytes": 64179,
-      "sha256": "d2810f8bca6ff125d402e413684baf4defe938552499a0daf9d4b6b1b6670091"
+      "bytes": 58820,
+      "sha256": "6a6cd1e539d44bf05ef2434a71d7245b6f1c4ddd5d9d4cd3cd8e81901742c4e2"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "playing-queue",
-      "path": "f10c742/dark/393x852/playing-queue.png",
+      "path": "11c478d/dark/393x852/playing-queue.png",
       "width": 393,
       "height": 852,
-      "bytes": 52583,
-      "sha256": "428af59900f78af18e4ea9274758fe40905e8c73de13874a32172cecbb3bb110"
+      "bytes": 47445,
+      "sha256": "4a6c2f4900033c270e35f1dcc9fe8185ff9c03f4ca3c8c2164d8e3759181531b"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "recent-history",
-      "path": "f10c742/dark/393x852/recent-history.png",
+      "path": "11c478d/dark/393x852/recent-history.png",
       "width": 393,
       "height": 852,
-      "bytes": 36059,
-      "sha256": "068df5f744efa182260e155b9d1224d18671acf673d759dfb224a80e15bd7a67"
+      "bytes": 31818,
+      "sha256": "12b0036e9e737ccd2b0b5326022cb102bb2298ef7200a2d0cfd988d50bec26e7"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "settings-menu",
-      "path": "f10c742/dark/393x852/settings-menu.png",
+      "path": "11c478d/dark/393x852/settings-menu.png",
       "width": 393,
       "height": 852,
-      "bytes": 34245,
-      "sha256": "55796de60cfe95d7adcecffa146c7eeaf0b2696f4a6f986c80be519faa254d11"
+      "bytes": 28675,
+      "sha256": "88d089f7701d8d305a105c83b483f0a1a3eb01aabdd9ce5f0ec8e37da2cf035d"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "background-picker",
-      "path": "f10c742/dark/393x852/background-picker.png",
+      "path": "11c478d/dark/393x852/background-picker.png",
       "width": 393,
       "height": 852,
-      "bytes": 228069,
-      "sha256": "c931ce97f41e204b40f12dbcd672c3c7e02e39a73e931514f7b036e02955acb2"
+      "bytes": 231452,
+      "sha256": "89c9fbab2e537a6bbc336965f753eccf72c94fb225361cad63025a4d38aaab6f"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "about-dialog",
-      "path": "f10c742/dark/393x852/about-dialog.png",
+      "path": "11c478d/dark/393x852/about-dialog.png",
       "width": 393,
       "height": 852,
-      "bytes": 92602,
-      "sha256": "e05704ea30b5b5b4617b4d22c7a94a2fa58a853c60d44d9b13095ec296cba42c"
+      "bytes": 52911,
+      "sha256": "b46ad808a22012d7c32d30ef1fa8ec1845d436514c921ad76142bb8d716ee270"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "create-playlist-dialog",
-      "path": "f10c742/dark/393x852/create-playlist-dialog.png",
+      "path": "11c478d/dark/393x852/create-playlist-dialog.png",
       "width": 393,
       "height": 852,
-      "bytes": 42704,
-      "sha256": "b7046d0f5336ab9fd18e6a1ae91f72384f2eb38d966863b3cb33d068afb91a1b"
+      "bytes": 31918,
+      "sha256": "79bae3672bf51f4f0df6f27be1b8f9be07916845c5a3f618fe83855a6472556a"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "playlist-filter",
-      "path": "f10c742/dark/393x852/playlist-filter.png",
+      "path": "11c478d/dark/393x852/playlist-filter.png",
       "width": 393,
       "height": 852,
-      "bytes": 145611,
-      "sha256": "9b2cfdd94c7ea1287c71c5dc10c3bec6515d8cbf4e354e35d15faf1ee5da9ca8"
+      "bytes": 144538,
+      "sha256": "56ac1079811daad4549d4a8fff638e4e81e262e2cc8745ee4809c3494722105a"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "playlist-actions",
-      "path": "f10c742/dark/393x852/playlist-actions.png",
+      "path": "11c478d/dark/393x852/playlist-actions.png",
       "width": 393,
       "height": 852,
-      "bytes": 56727,
-      "sha256": "7910192c31cc9113542545dabf160d9fcc8310a4c5347fefb7234b230bba5ded"
+      "bytes": 43380,
+      "sha256": "2d12e9ce2da1ee9758fba5500451dd4a78d50c49b5d3b88a5c94b5719b7165d0"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "music-actions",
-      "path": "f10c742/dark/393x852/music-actions.png",
+      "path": "11c478d/dark/393x852/music-actions.png",
       "width": 393,
       "height": 852,
-      "bytes": 70234,
-      "sha256": "0914de970ffe6b837379b797711cd3766edf191e95e46102397fa0d12bb80c51"
+      "bytes": 60966,
+      "sha256": "801ca1be8530917f7bccfd797abc7645c0677fb16fca1691cba3c7fe052c0a77"
     },
     {
       "theme": "dark",
       "viewport": "393x852",
       "state": "download-manager",
-      "path": "f10c742/dark/393x852/download-manager.png",
+      "path": "11c478d/dark/393x852/download-manager.png",
       "width": 393,
       "height": 852,
-      "bytes": 37052,
-      "sha256": "bcf3012cb3223ec9fbca5dfe7903934a494b3964aa6fb5902370df62d1f279df"
+      "bytes": 33127,
+      "sha256": "1602d4834071c88ba0193ef5ffada72702dbea48c79370734e1c320a1099f0f1"
     }
   ]
 }
