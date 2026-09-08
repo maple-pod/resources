@@ -19,7 +19,16 @@ ENV MAPLE_POD_CONTAINER=1
 # 抓的是自帶 Python runtime 的獨立執行檔（yt-dlp_linux*），而不是需要系統 python3
 # 的 zipapp 版本 —— 否則 python3 會變成一條沒寫出來的隱性相依。
 RUN if [ -z "$USER_ID" ] || [ -z "$USERNAME" ]; then echo "Error: USER_ID or USERNAME not set"; exit 1; fi && \
-    useradd -m -u ${USER_ID} -g 100 ${USERNAME} && \
+    EXISTING_USER="$(getent passwd "${USER_ID}" | cut -d: -f1)" && \
+    if [ -n "$EXISTING_USER" ]; then \
+        if [ "$EXISTING_USER" != "$USERNAME" ]; then \
+            usermod -l "$USERNAME" -d "/home/$USERNAME" -m "$EXISTING_USER"; \
+        fi; \
+    elif id "$USERNAME" >/dev/null 2>&1; then \
+        echo "Error: username $USERNAME already exists with a different UID"; exit 1; \
+    else \
+        useradd -m -u "$USER_ID" -g 100 "$USERNAME"; \
+    fi && \
     apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg git curl ca-certificates && \
     case "$(dpkg --print-architecture)" in \

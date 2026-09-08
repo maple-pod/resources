@@ -58,12 +58,13 @@ async function run() {
 		}
 
 		const { files } = await git.status()
-		// Only commit actual content files; skip hidden/state files (e.g. .build-state.json)
-		const jsonFiles = files.filter(f => f.path.endsWith('.json') && !f.path.startsWith('.'))
-		const pngFiles = files.filter(f => f.path.endsWith('.png'))
-		const mp3Files = files.filter(f => f.path.endsWith('.mp3'))
+		// Only publish known resource paths. output/ may also contain ignored POC or
+		// diagnostic artifacts, which must never leak into the gh-pages branch.
+		const jsonFiles = files.filter(f => f.path === 'data.json' || f.path === 'bg/bg.json')
+		const imageFiles = files.filter(f => /^mark\/[^/]+\.png$/.test(f.path) || /^bg\/[^/]+\.jpg$/.test(f.path))
+		const audioFiles = files.filter(f => /^bgm\/[^/]+$/.test(f.path))
 
-		if (jsonFiles.length === 0 && pngFiles.length === 0 && mp3Files.length === 0) {
+		if (jsonFiles.length === 0 && imageFiles.length === 0 && audioFiles.length === 0) {
 			console.log('No files to commit.')
 			return
 		}
@@ -73,22 +74,23 @@ async function run() {
 			.toISOString()
 			.split('T')[0]!
 
-		// Commit JSON + PNG files first
-		if (jsonFiles.length > 0 || pngFiles.length > 0) {
-			const filePaths = [...jsonFiles, ...pngFiles].map(f => f.path)
-			console.log(`Committing ${jsonFiles.length} JSON and ${pngFiles.length} PNG files — Part ${part}...`)
+		// Commit metadata and images first.
+		if (jsonFiles.length > 0 || imageFiles.length > 0) {
+			const filePaths = [...jsonFiles, ...imageFiles].map(f => f.path)
+			console.log(`Committing ${jsonFiles.length} JSON and ${imageFiles.length} image files — Part ${part}...`)
 			await git.add(filePaths)
 			await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
 			part++
 			await pushBranch(git)
 		}
 
-		// Commit MP3 files in batches to avoid oversized commits
-		if (mp3Files.length > 0) {
-			const batches = chunkArray(mp3Files, 100)
+		// Commit source-preserved audio files (and stale representation deletions)
+		// in batches to avoid oversized commits.
+		if (audioFiles.length > 0) {
+			const batches = chunkArray(audioFiles, 100)
 			for (const [batchIdx, batch] of batches.entries()) {
 				const filePaths = batch.map(f => f.path)
-				console.log(`Committing MP3 batch ${batchIdx + 1}/${batches.length} (${filePaths.length} files) — Part ${part}...`)
+				console.log(`Committing audio batch ${batchIdx + 1}/${batches.length} (${filePaths.length} files) — Part ${part}...`)
 				await git.add(filePaths)
 				await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
 				part++

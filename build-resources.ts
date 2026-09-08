@@ -1,8 +1,7 @@
-import type { OptionFormatSortPlus } from 'youtube-dl-exec'
 import { Buffer } from 'node:buffer'
 import { execFile } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import { mkdir as _mkdir, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir as _mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -35,7 +34,14 @@ interface MapleBgmItem {
 }
 
 interface OutputDataItem extends MapleBgmItem {
+	audio: AudioResource | null
 	duration: number
+}
+
+interface AudioResource {
+	file: string
+	codec: string
+	container: string
 }
 
 interface FailedEntry {
@@ -45,12 +51,15 @@ interface FailedEntry {
 }
 
 interface BuildState {
-	downloadedBgms: string[]
+	version: number
+	downloadedBgms: Record<string, AudioResource>
 	downloadedMarks: string[]
 	failedBgms: Record<string, FailedEntry>
 	failedMarks: Record<string, FailedEntry>
 	lastUpdated: number
 }
+
+const BUILD_STATE_VERSION = 2
 
 // ── Paths ──────────────────────────────────────────────────────────────────
 const workspaceDir = fileURLToPath(new URL('.', import.meta.url))
@@ -88,7 +97,8 @@ function toBinaryString(bytes: Uint8Array): string {
 
 // ── Build state ────────────────────────────────────────────────────────────
 let buildState: BuildState = {
-	downloadedBgms: [],
+	version: BUILD_STATE_VERSION,
+	downloadedBgms: {},
 	downloadedMarks: [],
 	failedBgms: {},
 	failedMarks: {},
@@ -99,15 +109,23 @@ async function loadBuildState(): Promise<void> {
 	if (!existsSync(stateFilePath))
 		return
 	try {
-		const parsed = JSON.parse(readFileSync(stateFilePath, 'utf-8')) as BuildState
+		const parsed = JSON.parse(readFileSync(stateFilePath, 'utf-8')) as Partial<BuildState> & { downloadedBgms?: unknown }
+		const canReuseBgmState = parsed.version === BUILD_STATE_VERSION
+			&& parsed.downloadedBgms != null
+			&& typeof parsed.downloadedBgms === 'object'
+			&& !Array.isArray(parsed.downloadedBgms)
 		buildState = {
-			downloadedBgms: parsed.downloadedBgms ?? [],
-			downloadedMarks: parsed.downloadedMarks ?? [],
+			version: BUILD_STATE_VERSION,
+			downloadedBgms: canReuseBgmState ? parsed.downloadedBgms as Record<string, AudioResource> : {},
+			downloadedMarks: Array.isArray(parsed.downloadedMarks) ? parsed.downloadedMarks : [],
 			failedBgms: parsed.failedBgms ?? {},
 			failedMarks: parsed.failedMarks ?? {},
 			lastUpdated: parsed.lastUpdated ?? 0,
 		}
-		console.log(`[STATE] Resumed: ${buildState.downloadedBgms.length} BGMs, ${buildState.downloadedMarks.length} marks already downloaded`)
+		if (!canReuseBgmState && parsed.downloadedBgms != null) {
+			console.log('[STATE] Audio state format changed — legacy MP3 download state will be rebuilt from source.')
+		}
+		console.log(`[STATE] Resumed: ${Object.keys(buildState.downloadedBgms).length} BGMs, ${buildState.downloadedMarks.length} marks already downloaded`)
 		const failedBgms = Object.keys(buildState.failedBgms).length
 		const failedMarks = Object.keys(buildState.failedMarks).length
 		if (failedBgms > 0 || failedMarks > 0) {
@@ -138,20 +156,21 @@ async function prepareDirs(): Promise<void> {
 
 	// Sync state with what is actually on disk
 	const actualMarks = new Set(fg.sync(path.join(markDir, '*.png')).map(f => path.basename(f)))
-	const actualBgms = new Set(fg.sync(path.join(bgmDir, '*.mp3')).map(f => path.basename(f)))
 
-	// Drop state entries whose files have been deleted externally
+	// Drop state entries whose files have been deleted externally. Audio files are
+	// intentionally state-authoritative so legacy MP3s cannot be mistaken for a
+	// source-preserved representation after the state schema migration.
 	buildState.downloadedMarks = buildState.downloadedMarks.filter(f => actualMarks.has(f))
-	buildState.downloadedBgms = buildState.downloadedBgms.filter(f => actualBgms.has(f))
+	for (const [musicId, audio] of Object.entries(buildState.downloadedBgms)) {
+		if (!audio?.file || !existsSync(path.join(bgmDir, audio.file)))
+			delete buildState.downloadedBgms[musicId]
+	}
 
-	// Register files present on disk but missing from state (e.g. manual additions)
+	// Mark images are content-addressed by their stable filename and can still be
+	// recovered from disk if the local state file was lost.
 	for (const f of actualMarks) {
 		if (!buildState.downloadedMarks.includes(f))
 			buildState.downloadedMarks.push(f)
-	}
-	for (const f of actualBgms) {
-		if (!buildState.downloadedBgms.includes(f))
-			buildState.downloadedBgms.push(f)
 	}
 
 	await saveBuildState()
@@ -162,8 +181,8 @@ function getMarkFilename(item: Pick<OutputDataItem, 'mark'>): string {
 	return `${item.mark}.png`
 }
 
-function getBgmFilename(item: Pick<OutputDataItem, 'filename'>): string {
-	return `${item.filename}.mp3`
+function getBgmAudio(item: Pick<OutputDataItem, 'filename'>): AudioResource | undefined {
+	return buildState.downloadedBgms[item.filename]
 }
 
 function isMarkDownloaded(item: OutputDataItem): boolean {
@@ -171,7 +190,8 @@ function isMarkDownloaded(item: OutputDataItem): boolean {
 }
 
 function isBgmDownloaded(item: OutputDataItem): boolean {
-	return buildState.downloadedBgms.includes(getBgmFilename(item))
+	const audio = getBgmAudio(item)
+	return audio != null && existsSync(path.join(bgmDir, audio.file))
 }
 
 // ── File cleanup helper ────────────────────────────────────────────────────
@@ -180,6 +200,34 @@ async function removeIfExists(filePath: string, label?: string): Promise<void> {
 		await rm(filePath, { force: true })
 		console.log(`  [CLEANUP] Removed${label ? ` ${label}` : ''}: ${path.basename(filePath)}`)
 	}
+}
+
+async function removeStaleBgmRepresentations(item: Pick<OutputDataItem, 'filename'>, keepFilename: string): Promise<void> {
+	const files = await readdir(bgmDir)
+	const staleFiles = files.filter((file) => {
+		if (file === keepFilename || file.startsWith('_tmp_'))
+			return false
+		return path.basename(file, path.extname(file)) === item.filename
+	})
+	await Promise.all(staleFiles.map(file => removeIfExists(path.join(bgmDir, file), 'stale BGM representation')))
+}
+
+async function getAudioCodec(filePath: string): Promise<string> {
+	const { stdout } = await execFileAsync('ffprobe', [
+		'-v',
+		'error',
+		'-select_streams',
+		'a:0',
+		'-show_entries',
+		'stream=codec_name',
+		'-of',
+		'default=noprint_wrappers=1:nokey=1',
+		filePath,
+	])
+	const codec = stdout.trim()
+	if (!codec)
+		throw new Error('ffprobe could not determine the audio codec')
+	return codec
 }
 
 // ── Download: mark image ───────────────────────────────────────────────────
@@ -219,11 +267,10 @@ async function downloadMark(item: OutputDataItem): Promise<void> {
 
 // ── Download: BGM via yt-dlp ───────────────────────────────────────────────
 async function downloadBgm(item: OutputDataItem): Promise<void> {
-	const bgmFilename = getBgmFilename(item)
-	const bgmPath = path.join(bgmDir, bgmFilename)
-	// Use a temp base name; yt-dlp appends .%(ext)s → final will be _tmp_<name>.mp3
+	// Use a temp base name and let yt-dlp preserve the selected source representation.
+	// yt-dlp appends the actual source container as .%(ext)s.
 	const tempBase = path.join(bgmDir, `_tmp_${item.filename}`)
-	const expectedTempMp3 = `${tempBase}.mp3`
+	let targetPath: string | null = null
 
 	await delay(2000) // Gentle rate-limit protection between downloads
 
@@ -231,42 +278,60 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 		await ytdlp(`https://www.youtube.com/watch?v=${item.youtube}`, {
 			output: `${tempBase}.%(ext)s`,
 			format: 'bestaudio/best',
-			extractAudio: true,
-			audioFormat: 'mp3',
-			audioQuality: 0, // 0 = best VBR quality
 			noPlaylist: true,
 			retries: 3,
 			// YouTube extraction without a JS runtime is deprecated; yt-dlp only
 			// enables deno by default, so point it at the image's own Node.
 			jsRuntimes: 'node',
-			// The published type only allows bare sort fields, but yt-dlp accepts
-			// the `field:value` preference syntax this build relies on.
-			formatSort: ['acodec:mp3,acodec:aac,acodec:opus'] as unknown as OptionFormatSortPlus[],
 		})
 
-		if (!existsSync(expectedTempMp3)) {
-			throw new Error(`yt-dlp finished but expected output not found: ${path.basename(expectedTempMp3)}`)
+		const tempPrefix = `_tmp_${item.filename}.`
+		const candidates = (await readdir(bgmDir))
+			.filter(file => file.startsWith(tempPrefix) && !file.endsWith('.part') && !file.endsWith('.ytdl'))
+		if (candidates.length !== 1) {
+			throw new Error(`yt-dlp finished with ${candidates.length} candidate output(s), expected exactly one`)
 		}
-		const { size } = await stat(expectedTempMp3)
+
+		const tempFilename = candidates[0]!
+		const tempPath = path.join(bgmDir, tempFilename)
+		const container = path.extname(tempFilename)
+			.slice(1)
+			.toLowerCase()
+		if (!container)
+			throw new Error(`yt-dlp output has no file extension: ${tempFilename}`)
+
+		const { size } = await stat(tempPath)
 		if (size < 4096) {
 			throw new Error(`Output file is suspiciously small (${size} bytes) — likely corrupt`)
 		}
 
-		await rename(expectedTempMp3, bgmPath)
-		if (!buildState.downloadedBgms.includes(bgmFilename))
-			buildState.downloadedBgms.push(bgmFilename)
-		delete buildState.failedBgms[bgmFilename]
+		const codec = await getAudioCodec(tempPath)
+		const bgmFilename = `${item.filename}.${container}`
+		targetPath = path.join(bgmDir, bgmFilename)
+		await rename(tempPath, targetPath)
+		const audio: AudioResource = {
+			file: bgmFilename,
+			codec,
+			container,
+		}
+		await removeStaleBgmRepresentations(item, bgmFilename)
+		buildState.downloadedBgms[item.filename] = audio
+		item.audio = audio
+		delete buildState.failedBgms[item.filename]
 	}
 	catch (error) {
 		// Remove all temp files left by yt-dlp (including .part files)
 		const tempFiles = fg.sync(`${tempBase}*`)
 		await Promise.all(tempFiles.map(f => rm(f, { force: true }).catch(() => {})))
-		// Remove potentially corrupt target file
-		await removeIfExists(bgmPath, 'invalid BGM')
-		buildState.downloadedBgms = buildState.downloadedBgms.filter(f => f !== bgmFilename)
+		// Remove potentially corrupt target file. A legacy representation is left
+		// untouched unless the new source-preserving download has fully succeeded.
+		if (targetPath != null)
+			await removeIfExists(targetPath, 'invalid BGM')
+		delete buildState.downloadedBgms[item.filename]
+		item.audio = null
 
-		const existing = buildState.failedBgms[bgmFilename]
-		buildState.failedBgms[bgmFilename] = {
+		const existing = buildState.failedBgms[item.filename]
+		buildState.failedBgms[item.filename] = {
 			error: error instanceof Error ? error.message : String(error),
 			attempts: (existing?.attempts ?? 0) + 1,
 			lastAttempt: Date.now(),
@@ -277,7 +342,10 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 
 // ── Duration probe via ffprobe ─────────────────────────────────────────────
 async function getBgmDuration(item: OutputDataItem): Promise<number> {
-	const bgmPath = path.join(bgmDir, getBgmFilename(item))
+	const audio = getBgmAudio(item)
+	if (audio == null)
+		throw new Error('No downloaded audio representation found')
+	const bgmPath = path.join(bgmDir, audio.file)
 	const { stdout } = await execFileAsync('ffprobe', [
 		'-v',
 		'error',
@@ -305,7 +373,10 @@ async function main(): Promise<void> {
 		)
 	)
 		.filter(item => item.youtube)
-		.map<OutputDataItem>(item => ({ ...item, duration: 0 }))
+		.map<OutputDataItem>(item => ({ ...item, audio: null, duration: 0 }))
+
+	for (const item of outputData)
+		item.audio = getBgmAudio(item) ?? null
 
 	console.log(`Total items with YouTube source: ${outputData.length}\n`)
 
@@ -362,7 +433,7 @@ async function main(): Promise<void> {
 						type: 'bgm',
 						filename: item.filename,
 						message: msg,
-						attempts: buildState.failedBgms[getBgmFilename(item)]?.attempts ?? 1,
+						attempts: buildState.failedBgms[item.filename]?.attempts ?? 1,
 					})
 				}
 			}

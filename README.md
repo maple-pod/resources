@@ -15,8 +15,8 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 
 | 路徑 | 說明 |
 | --- | --- |
-| `data.json` | 曲目 metadata（含 `duration`）＋ 所有標記圖的 deflate 資料，前端用 fflate 解開 |
-| `bgm/*.mp3` | 音檔，檔名取自 db 的 `filename` 欄位 |
+| `data.json` | 曲目 metadata（含 `duration` 與實際 `audio.file` / codec / container）＋ 所有標記圖的 deflate 資料，前端用 fflate 解開 |
+| `bgm/*` | yt-dlp 選到的最佳可用音源，保留來源 codec/container（例如 WebM/Opus、M4A/AAC），不統一轉 MP3 |
 | `mark/*.png` | 標記圖原檔 |
 | `bg/*.jpg` | 背景圖（1920×1080） |
 | `bg/bg.json` | 背景圖清單＋壓縮過的縮圖預覽（240×135） |
@@ -75,8 +75,8 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 `build` 是增量的，狀態記在 workspace 根目錄的 `.build-state.json`（已被 gitignore）：
 
 - 每完成一個項目就寫入一次，中斷後重跑會從斷點續做。
-- 每次啟動會先跟 `output/` 的實際檔案對帳：檔案被手動刪掉的項目會重新下載，
-  手動放進去的檔案會被登記為已完成。
+- 每次啟動會先跟 `output/` 的實際檔案對帳：state 指向的音檔被手動刪掉時會重新下載。
+  音檔 state 會記錄實際 filename / codec / container；舊版只記 MP3 filename 的 state 會自動失效並重新抓來源。
 - 失敗的項目記在 `failedBgms` / `failedMarks`，下次執行會自動重試。
 - 有任何失敗時會在根目錄產生 `error-<timestamp>.log`，且行程以 exit code 1 結束。
 
@@ -88,7 +88,7 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 
 `deploy` 把 `output/` 當成獨立的 git repo（orphan `gh-pages` 分支）操作：
 
-- JSON 與 PNG 先進一個 commit，MP3 每 100 個一批，避免單一 commit 過大。
+- JSON 與 PNG 先進一個 commit，音檔每 100 個一批，避免單一 commit 過大；音檔副檔名不再限定 MP3。
 - **不使用 `--force`**。若本機 `output/` 的歷史與 `origin/gh-pages` 分歧，推送會直接失敗，
   需要人工判斷後處理，不會靜默覆蓋遠端。
 - `GH_TOKEN` 只在 `git push` 當下以參數傳入，**不會寫進 `output/.git/config`**；
@@ -112,6 +112,10 @@ YTDLP_VERSION=2026.01.15 ./build-env.sh
 
 `build-resources.ts` 以 `jsRuntimes: 'node'` 讓 yt-dlp 使用映像內建的 Node 作為 JS runtime，
 因此不需要另外安裝 deno。
+
+音訊下載使用 `bestaudio/best` 並直接保留 yt-dlp 選中的來源 representation；不使用
+`--extract-audio`、不指定 `--audio-format mp3`，也不再使用 codec format-sort 去偏好某個轉檔格式。
+若 yt-dlp/FFmpeg 只做 container fixup/remux（例如 M4A 修正），音訊 stream 仍不會重新編碼。
 
 **推送被拒（non-fast-forward）**
 
