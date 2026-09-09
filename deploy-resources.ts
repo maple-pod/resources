@@ -60,8 +60,8 @@ async function run() {
 		const { files } = await git.status()
 		// Only publish known resource paths. output/ may also contain ignored POC or
 		// diagnostic artifacts, which must never leak into the gh-pages branch.
-		const jsonFiles = files.filter(f => ['data.json', 'bg/bg.json', 'loudness-analysis.json'].includes(f.path))
-		const imageFiles = files.filter(f => /^mark\/[^/]+\.png$/.test(f.path) || /^bg\/[^/]+\.jpg$/.test(f.path))
+		const jsonFiles = files.filter(f => ['data.json', 'bg/bg.json', 'loudness-analysis.json', 'world-map/world-maps.json', 'world-map/manifest.json'].includes(f.path) || /^world-map\/nodes\/[^/]+\.json$/.test(f.path))
+		const imageFiles = files.filter(f => /^mark\/[^/]+\.png$/.test(f.path) || /^bg\/[^/]+\.jpg$/.test(f.path) || /^world-map\/(?:images\/[^/]+|gms\/\d+\/[^/]+\/(?:base|link)-\d+)\.(?:png|jpg|jpeg|webp)$/.test(f.path))
 		const audioFiles = files.filter(f => /^bgm\/[^/]+$/.test(f.path))
 
 		if (jsonFiles.length === 0 && imageFiles.length === 0 && audioFiles.length === 0) {

@@ -14,7 +14,12 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"typecheck": "tsc --noEmit",
-		"analyze:loudness": "tsx ./analyze-loudness.ts"
+		"analyze:loudness": "tsx ./analyze-loudness.ts",
+		"poc:world-map": "tsx ./world-map-poc.ts",
+		"world-map:generate": "tsx ./world-map/generate.ts --mode=preview",
+		"test": "tsx --test test/*.test.ts",
+		"world-map:generate:preview": "tsx ./world-map/generate.ts --mode=preview",
+		"world-map:generate:full": "tsx ./world-map/generate.ts --mode=full"
 	},
 	"dependencies": {
 		"@deviltea/eslint-config": "^5.0.0",

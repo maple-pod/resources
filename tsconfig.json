@@ -10,7 +10,7 @@
 	},
 	"include": [
 		"eslint.config.*",
-		"./*.ts"
+		"**/*.ts"
 
 	]
 }
