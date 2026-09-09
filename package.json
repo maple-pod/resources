@@ -13,7 +13,8 @@
 		"deploy": "tsx ./deploy-resources.ts",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"analyze:loudness": "tsx ./analyze-loudness.ts"
 	},
 	"dependencies": {
 		"@deviltea/eslint-config": "^5.0.0",
