@@ -1,0 +1,2947 @@
+{
+	"provider": "maplestory-io",
+	"region": "GMS",
+	"version": 270,
+	"apiBase": "https://maplestory.io/api",
+	"worldMaps": [
+		{
+			"id": "WorldMap010",
+			"parentWorld": "WorldMap",
+			"links": [
+				{
+					"toolTip": "Nautilus",
+					"linksTo": "WorldMap011"
+				},
+				{
+					"toolTip": "Sleepywood",
+					"linksTo": "WorldMap012"
+				},
+				{
+					"toolTip": "Ellinel Fairy Academy",
+					"linksTo": "WorldMap017"
+				},
+				{
+					"toolTip": "Gold Beach",
+					"linksTo": "WorldMap018"
+				},
+				{
+					"toolTip": "Mushroom Castle",
+					"linksTo": "WorldMap019"
+				},
+				{
+					"toolTip": "Kerning Tower",
+					"linksTo": "WorldMap0101"
+				},
+				{
+					"toolTip": "Secret Forest of Elodin",
+					"linksTo": "WorldMap0102"
+				},
+				{
+					"toolTip": "Partem",
+					"linksTo": "WorldMap0103"
+				}
+			],
+			"maps": [
+				{
+					"mapNumbers": [
+						"100000000",
+						"100000001",
+						"100000200",
+						"100000201",
+						"100000202",
+						"100000203",
+						"100000204",
+						"100000205",
+						"100000002",
+						"100000003",
+						"100000100",
+						"100000101",
+						"100000102",
+						"100000103",
+						"100000104",
+						"100000105"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101000000",
+						"101000001",
+						"101000002",
+						"101000003",
+						"101000004",
+						"100000005"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104010200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101080000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101080900",
+						"101081000",
+						"101083100",
+						"101083200",
+						"101083300",
+						"101083400",
+						"101084000",
+						"101084100",
+						"101084200",
+						"101084300",
+						"101084400",
+						"101081100",
+						"101081200",
+						"101081300",
+						"101082000",
+						"101082100",
+						"101082200",
+						"101082300",
+						"101083000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051000",
+						"100051010",
+						"100051032",
+						"100051033",
+						"100051034",
+						"100051040",
+						"100051041",
+						"100051042",
+						"100051043",
+						"100051035",
+						"100051036",
+						"100051037",
+						"100051011",
+						"100051050",
+						"100051051",
+						"100051052",
+						"100051060",
+						"100051061",
+						"100051062",
+						"100051070",
+						"100051025",
+						"100051026",
+						"100051027",
+						"100051012",
+						"100051013",
+						"100051020",
+						"100051021",
+						"100051022",
+						"100051030",
+						"100051031"
+					]
+				},
+				{
+					"mapNumbers": [
+						"160070000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100010100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100010000",
+						"100010001"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020101"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020301"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102000000",
+						"102000001",
+						"102000002",
+						"102000003",
+						"102000004",
+						"102000005"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100020401"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100040000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100040100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100040200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100040300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100040400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120010100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120010000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000000",
+						"120000100",
+						"120000202",
+						"120000300",
+						"120000301",
+						"120000101",
+						"120000102",
+						"120000103",
+						"120000104",
+						"120000105",
+						"120000106",
+						"120000200",
+						"120000201"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103000000",
+						"103000001",
+						"103000002",
+						"103000003",
+						"103000004",
+						"103000005",
+						"103000006",
+						"103000007",
+						"103000008"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101010100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101010000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030101"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103050000",
+						"103050100",
+						"103050101",
+						"103050200",
+						"103050300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030201"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101030500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102010100",
+						"910510002"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102010000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102020000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102020100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102020200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102020300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102020400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104000000",
+						"104000001",
+						"104000002",
+						"104000003",
+						"104000004"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102020500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102030000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102030100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102030200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102030300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102030400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040300",
+						"102040301"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104020000",
+						"105000000",
+						"105020100",
+						"105020200",
+						"105020300",
+						"105020400",
+						"105030000",
+						"105030100",
+						"105030200",
+						"105030300",
+						"105030400",
+						"105030500",
+						"105000010",
+						"105100000",
+						"105100100",
+						"105100101",
+						"105100300",
+						"105100301",
+						"105100400",
+						"105100401",
+						"105200000",
+						"105300000",
+						"105300100",
+						"105000011",
+						"105300101",
+						"105300102",
+						"105300103",
+						"105300200",
+						"105300201",
+						"105300202",
+						"105300203",
+						"105300204",
+						"105300205",
+						"105300206",
+						"105000012",
+						"105300207",
+						"105300208",
+						"105300209",
+						"105300210",
+						"105300211",
+						"105300300",
+						"105300301",
+						"105300302",
+						"105300303",
+						"105010000",
+						"105010100",
+						"105010300",
+						"105010301",
+						"105020000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040400",
+						"102040401"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040500",
+						"102040501"
+					]
+				},
+				{
+					"mapNumbers": [
+						"102040600"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103010100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103010000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020310"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104020100",
+						"104020110",
+						"104020111",
+						"104020120"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020320"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020410"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103020420"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103030000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103030100",
+						"103030101"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103030200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103030300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103030400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104020100",
+						"104020110",
+						"104020111",
+						"104020120"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104010000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101050000",
+						"101050010",
+						"101050030",
+						"101050031",
+						"101050032",
+						"101050033"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101050400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101050300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101050200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101050020"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101050100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101070000",
+						"101070001",
+						"101072000",
+						"101072001",
+						"101072002",
+						"101072100",
+						"101072200",
+						"101072300",
+						"101072400",
+						"101072500",
+						"101072600",
+						"101072700",
+						"101070010",
+						"101072800",
+						"101073000",
+						"101073010",
+						"101073011",
+						"101073012",
+						"101073013",
+						"101073014",
+						"101073100",
+						"101073110",
+						"101073111",
+						"101070100",
+						"101073112",
+						"101073113",
+						"101073114",
+						"101073200",
+						"101073201",
+						"101073300",
+						"101073301",
+						"101073302",
+						"101073303",
+						"101073304",
+						"101070200",
+						"101073305",
+						"101073306",
+						"101073307",
+						"101073308",
+						"101073309",
+						"101070300",
+						"101071000",
+						"101071100",
+						"101071200",
+						"101071300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120040000",
+						"120040100",
+						"120041600",
+						"120041700",
+						"120041800",
+						"120041900",
+						"120040200",
+						"120040300",
+						"120041000",
+						"120041100",
+						"120041200",
+						"120041300",
+						"120041400",
+						"120041500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030000",
+						"106030100",
+						"106030401",
+						"106030402",
+						"106030500",
+						"106030501",
+						"106030502",
+						"106030600",
+						"106030700",
+						"106030701",
+						"106030800",
+						"106030801",
+						"106030102",
+						"106030802",
+						"106030803",
+						"106030804",
+						"106030200",
+						"106030201",
+						"106030210",
+						"106030300",
+						"106030301",
+						"106030302",
+						"106030400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100000004",
+						"330000000",
+						"330000400",
+						"330000500",
+						"330001000",
+						"330001100",
+						"330001200",
+						"330001300",
+						"330001400",
+						"330001600",
+						"330001700",
+						"330001800",
+						"330000001",
+						"330001900",
+						"330003000",
+						"330004000",
+						"330004100",
+						"330004200",
+						"330000003",
+						"330000004",
+						"330000005",
+						"330000010",
+						"330000100",
+						"330000200",
+						"330000300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"104010100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020401"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020402"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020403"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020404"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020405"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020406"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101020407"
+					]
+				},
+				{
+					"mapNumbers": [
+						"910240000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041000",
+						"103041001",
+						"103041125",
+						"103041130",
+						"103041135",
+						"103041140",
+						"103041145",
+						"103041150",
+						"103041155",
+						"103041160",
+						"103041165",
+						"103041107",
+						"103041002",
+						"103041117",
+						"103041127",
+						"103041137",
+						"103041147",
+						"103041157",
+						"103041167",
+						"103041119",
+						"103041129",
+						"103041139",
+						"103041149",
+						"103041003",
+						"103041159",
+						"103041170",
+						"103041171",
+						"103041172",
+						"103041173",
+						"103041174",
+						"103041004",
+						"103041100",
+						"103041105",
+						"103041110",
+						"103041115",
+						"103041120"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap011",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"120000100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000101"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000102"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000103"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000104"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000201"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000202"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120000301"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap012",
+			"parentWorld": "WorldMap010",
+			"links": [
+				{
+					"toolTip": "Root Abyss",
+					"linksTo": "WorldMap015"
+				},
+				{
+					"toolTip": "Dark World Tree",
+					"linksTo": "WorldMap0121"
+				}
+			],
+			"maps": [
+				{
+					"mapNumbers": [
+						"105000000",
+						"105000010",
+						"105000011",
+						"105000012"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105010000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105030200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105030300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105030400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105030500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105100000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105100100",
+						"105100101"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105100300",
+						"105100301",
+						"105100400",
+						"105100401"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105200000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105010300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105010301"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105010100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105300000",
+						"105300100",
+						"105300205",
+						"105300206",
+						"105300207",
+						"105300208",
+						"105300209",
+						"105300210",
+						"105300211",
+						"105300300",
+						"105300301",
+						"105300302",
+						"105300101",
+						"105300303",
+						"105300102",
+						"105300103",
+						"105300200",
+						"105300201",
+						"105300202",
+						"105300203",
+						"105300204"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105020000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105020100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105020200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105020300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105020400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105030000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"105030100"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap017",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"101070000",
+						"101070001",
+						"101070010"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101070100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072600"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072700"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072800"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101073000",
+						"101073010",
+						"101073011",
+						"101073012",
+						"101073013",
+						"101073014"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101073100",
+						"101073110",
+						"101073111",
+						"101073112",
+						"101073113",
+						"101073114"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101073200",
+						"101073201"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101070200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101073300",
+						"101073301",
+						"101073302",
+						"101073303",
+						"101073304",
+						"101073305",
+						"101073306",
+						"101073307",
+						"101073308",
+						"101073309"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101070300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101071000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101071100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101071200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101071300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072000",
+						"101072001",
+						"101072002"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101072100"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap018",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"120040000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120040300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041600"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041700"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041800"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041900"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120040200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120040100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"120041500"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap019",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"106030100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030401"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030402"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030102",
+						"106031200",
+						"106031201",
+						"106031202",
+						"106031203",
+						"106031204"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030501"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030502"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030600"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030700"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030701"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030800",
+						"106030801",
+						"106030802",
+						"106030803",
+						"106030804"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030201"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030210"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030211"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030301"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030302"
+					]
+				},
+				{
+					"mapNumbers": [
+						"106030400"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap0101",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"103041000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041135"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041003"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041140"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041145"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041150"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041155"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041004"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041160"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041165"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041167"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041105"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041107"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041117"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041127"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041137"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041147"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041157"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041119"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041129"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041139"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041149"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041001"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041159"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041170"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041171"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041172"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041173"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041174"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041002"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041110"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041115"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041120"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041125"
+					]
+				},
+				{
+					"mapNumbers": [
+						"103041130"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap0102",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"101080900"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101081000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101083100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101083200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101083300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101083400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101084000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101084100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101084200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101084300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101084400"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101081100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101081200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101081300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101082000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101082100"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101082200"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101082300"
+					]
+				},
+				{
+					"mapNumbers": [
+						"101083000"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap0103",
+			"parentWorld": "WorldMap010",
+			"links": [],
+			"maps": [
+				{
+					"mapNumbers": [
+						"100051010"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051011"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051032"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051033"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051034"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051040"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051041"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051042"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051043"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051025"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051026"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051027"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051012"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051035"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051036"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051037"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051050"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051051"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051052"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051060"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051061"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051062"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051070"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051013"
+					]
+				},
+				{
+					"mapNumbers": [
+						"160070000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051020"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051021"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051022"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051030"
+					]
+				},
+				{
+					"mapNumbers": [
+						"100051031"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap230",
+			"parentWorld": "WGWorldMap",
+			"links": [
+				{
+					"toolTip": "Burning Cernium",
+					"linksTo": "WorldMap240"
+				}
+			],
+			"maps": [
+				{
+					"mapNumbers": [
+						"410000500"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000510"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000600"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000610"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000620"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000630"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000640"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000650"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000660"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000670"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000680"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000690"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000520"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000700"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000710"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000720"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000730"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000740"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000750"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000760"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000770"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000530"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000540"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000550"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000560"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000570"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000580"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000590"
+					]
+				}
+			]
+		},
+		{
+			"id": "WorldMap240",
+			"parentWorld": "WGWorldMap",
+			"links": [
+				{
+					"toolTip": "Cernium",
+					"linksTo": "WorldMap230"
+				}
+			],
+			"maps": [
+				{
+					"mapNumbers": [
+						"410000800"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000810"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000920"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000930"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000940"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000950"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000850"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000860"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000960"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000970"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000980"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000990"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000820"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410001000"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410001010"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410001020"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410001030"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000830"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000840"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000870"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000880"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000890"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000900"
+					]
+				},
+				{
+					"mapNumbers": [
+						"410000910"
+					]
+				}
+			]
+		}
+	],
+	"maps": [
+		{
+			"id": "100000000",
+			"mapMark": "Henesys",
+			"name": "Henesys",
+			"streetName": "Henesys",
+			"backgroundMusic": "Bgm00/FloralLife"
+		},
+		{
+			"id": "101000000",
+			"mapMark": "Ellinia",
+			"name": "Ellinia",
+			"streetName": "Ellinia"
+		},
+		{
+			"id": "102000000",
+			"mapMark": "Perion",
+			"name": "Perion",
+			"streetName": "Perion"
+		},
+		{
+			"id": "103000000",
+			"mapMark": "KerningCity",
+			"name": "Kerning City",
+			"streetName": "Kerning City"
+		},
+		{
+			"id": "103050000",
+			"mapMark": "SecretFlower",
+			"name": "Kerning City Back Alley",
+			"streetName": "Victoria Road"
+		},
+		{
+			"id": "104000000",
+			"mapMark": "Rith",
+			"name": "Lith Harbor",
+			"streetName": "Lith Harbor"
+		},
+		{
+			"id": "104020000",
+			"mapMark": "SixPath",
+			"name": "Six Path Crossway",
+			"streetName": "Port Road"
+		},
+		{
+			"id": "104020100",
+			"mapMark": "SixPath",
+			"name": "Victoria Tree Platform",
+			"streetName": "Port Road",
+			"backgroundMusic": "Bgm01/CavaBien"
+		},
+		{
+			"id": "104010000",
+			"mapMark": "Rith",
+			"name": "Right Around Lith Harbor",
+			"streetName": "Port Road"
+		},
+		{
+			"id": "104010100",
+			"mapMark": "Rith",
+			"name": "Forest Trail 1",
+			"streetName": "Port Road"
+		},
+		{
+			"id": "104010200",
+			"mapMark": "Rith",
+			"name": "Forest Trail 2",
+			"streetName": "Port Road"
+		},
+		{
+			"id": "100010100",
+			"mapMark": "Henesys",
+			"name": "Dreamy Forest Trail",
+			"streetName": "Henesys"
+		},
+		{
+			"id": "100010000",
+			"mapMark": "Henesys",
+			"name": "The Hill North of Henesys",
+			"streetName": "Henesys"
+		},
+		{
+			"id": "100020000",
+			"mapMark": "Henesys",
+			"name": "Spore Hill",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020100",
+			"mapMark": "Henesys",
+			"name": "Humming Forest Trail",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020101",
+			"mapMark": "Henesys",
+			"name": "Mushmom Forest Trail",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020200",
+			"mapMark": "Henesys",
+			"name": "Windflower Forest",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020300",
+			"mapMark": "Henesys",
+			"name": "Blue Mushroom Forest",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020301",
+			"mapMark": "Henesys",
+			"name": "Blue Mushmom Forest",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020400",
+			"mapMark": "Henesys",
+			"name": "Blue Mushroom Forest 2",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100020401",
+			"mapMark": "Henesys",
+			"name": "Gentle Breeze Forest",
+			"streetName": "Singing Mushroom Forest"
+		},
+		{
+			"id": "100040000",
+			"mapMark": "Henesys",
+			"name": "Golem's Temple Entrance",
+			"streetName": "Golem's Temple"
+		},
+		{
+			"id": "100040100",
+			"mapMark": "Henesys",
+			"name": "Golem's Temple 1",
+			"streetName": "Golem's Temple"
+		},
+		{
+			"id": "100040200",
+			"mapMark": "Henesys",
+			"name": "Golem's Temple 2",
+			"streetName": "Golem's Temple"
+		},
+		{
+			"id": "100040300",
+			"mapMark": "Henesys",
+			"name": "Golem's Temple 3",
+			"streetName": "Golem's Temple"
+		},
+		{
+			"id": "100040400",
+			"mapMark": "Henesys",
+			"name": "Golem's Temple 4",
+			"streetName": "Golem's Temple"
+		},
+		{
+			"id": "120010100",
+			"mapMark": "Nautilus",
+			"name": "Way to the Beach",
+			"streetName": "Pasture"
+		},
+		{
+			"id": "120010000",
+			"mapMark": "Nautilus",
+			"name": "Pig Pasture",
+			"streetName": "Pasture"
+		},
+		{
+			"id": "120000400",
+			"mapMark": "Nautilus",
+			"name": "Ribbon Pig Beach",
+			"streetName": "Beach"
+		},
+		{
+			"id": "120000000",
+			"mapMark": "Nautilus",
+			"name": "Nautilus Harbor",
+			"streetName": "Nautilus",
+			"backgroundMusic": "Bgm15/Nautilus"
+		},
+		{
+			"id": "101010100",
+			"mapMark": "Ellinia",
+			"name": "Where the Forest Starts",
+			"streetName": "Way to the Forest"
+		},
+		{
+			"id": "101010000",
+			"mapMark": "Ellinia",
+			"name": "Shining Forest Path",
+			"streetName": "Way to the Forest"
+		},
+		{
+			"id": "101020000",
+			"mapMark": "Ellinia",
+			"name": "Close to the Wind",
+			"streetName": "Chimney Tree"
+		},
+		{
+			"id": "101020100",
+			"mapMark": "Ellinia",
+			"name": "Close to the Birds",
+			"streetName": "Chimney Tree"
+		},
+		{
+			"id": "101020200",
+			"mapMark": "Ellinia",
+			"name": "Close to the Sky",
+			"streetName": "Chimney Tree"
+		},
+		{
+			"id": "101020300",
+			"mapMark": "Ellinia",
+			"name": "Chimney Tree Top",
+			"streetName": "Chimney Tree"
+		},
+		{
+			"id": "101030000",
+			"mapMark": "Ellinia",
+			"name": "Giant Tree",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "101030100",
+			"mapMark": "Ellinia",
+			"name": "Green Tree Trunk",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "101030101",
+			"mapMark": "Ellinia",
+			"name": "Tree Trunk Nest 1",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "101030200",
+			"mapMark": "Ellinia",
+			"name": "North Forest Lot",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "101030201",
+			"mapMark": "Ellinia",
+			"name": "Tree Trunk Nest 2",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "101030300",
+			"mapMark": "Ellinia",
+			"name": "Young Tree Forest",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "101030500",
+			"mapMark": "Ellinia",
+			"name": "Where the Forest Ends",
+			"streetName": "North Forest"
+		},
+		{
+			"id": "102010100",
+			"mapMark": "Perion",
+			"name": "Rocky Wasteland",
+			"streetName": "South Rocky Mountain"
+		},
+		{
+			"id": "102010000",
+			"mapMark": "Perion",
+			"name": "Perion Southern Ridge",
+			"streetName": "South Rocky Mountain"
+		},
+		{
+			"id": "102020000",
+			"mapMark": "Perion",
+			"name": "Perion Northern Ridge",
+			"streetName": "North Rocky Mountain"
+		},
+		{
+			"id": "102020100",
+			"mapMark": "Perion",
+			"name": "Dusty Wind Hill",
+			"streetName": "North Rocky Mountain"
+		},
+		{
+			"id": "102020200",
+			"mapMark": "Perion",
+			"name": "Mini Rocky Road",
+			"streetName": "North Rocky Mountain"
+		},
+		{
+			"id": "102020300",
+			"mapMark": "Perion",
+			"name": "Big Rocky Road",
+			"streetName": "North Rocky Mountain"
+		},
+		{
+			"id": "102020400",
+			"mapMark": "Perion",
+			"name": "Rugged Rocky Zone",
+			"streetName": "North Rocky Mountain"
+		},
+		{
+			"id": "102020500",
+			"mapMark": "Perion",
+			"name": "Gusty Peak",
+			"streetName": "North Rocky Mountain"
+		},
+		{
+			"id": "102030000",
+			"mapMark": "Perion",
+			"name": "Wild Boar Land",
+			"streetName": "Burnt Land"
+		},
+		{
+			"id": "102030100",
+			"mapMark": "Perion",
+			"name": "Wild Pig Land",
+			"streetName": "Burnt Land"
+		},
+		{
+			"id": "102030200",
+			"mapMark": "Perion",
+			"name": "Armor Pig Land",
+			"streetName": "Burnt Land"
+		},
+		{
+			"id": "102030300",
+			"mapMark": "Perion",
+			"name": "Burning Heat",
+			"streetName": "Burnt Land"
+		},
+		{
+			"id": "102030400",
+			"mapMark": "Perion",
+			"name": "Ash-Covered Land",
+			"streetName": "Burnt Land"
+		},
+		{
+			"id": "102040000",
+			"mapMark": "Perion",
+			"name": "Initial Excavation Area",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "102040100",
+			"mapMark": "Perion",
+			"name": "Excavation Completion Area",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "102040200",
+			"mapMark": "Perion",
+			"name": "Relic Excavation Camp",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "102040300",
+			"mapMark": "Perion",
+			"name": "Excavation Intermission Area",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "102040400",
+			"mapMark": "Perion",
+			"name": "Excavation Danger Zone",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "102040500",
+			"mapMark": "Perion",
+			"name": "Closed Area",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "102040600",
+			"mapMark": "Perion",
+			"name": "Prohibited Area",
+			"streetName": "Excavation Site"
+		},
+		{
+			"id": "103010100",
+			"mapMark": "KerningCity",
+			"name": "Abandoned Construction Site",
+			"streetName": "Construction Site"
+		},
+		{
+			"id": "103010000",
+			"mapMark": "KerningCity",
+			"name": "Caution Falling Down",
+			"streetName": "Construction Site"
+		},
+		{
+			"id": "103020000",
+			"mapMark": "KerningCity",
+			"name": "Subway Ticketing Booth",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020100",
+			"mapMark": "KerningCity",
+			"name": "Along the Railway",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020200",
+			"mapMark": "KerningCity",
+			"name": "Transfer Area",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020300",
+			"mapMark": "KerningCity",
+			"name": "Line 1 Area 1",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020310",
+			"mapMark": "KerningCity",
+			"name": "Line 1 Area 2",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020320",
+			"mapMark": "KerningCity",
+			"name": "Line 1 Area 3",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020400",
+			"mapMark": "KerningCity",
+			"name": "Line 2 Area 1",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020410",
+			"mapMark": "KerningCity",
+			"name": "Line 2 Area 2",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103020420",
+			"mapMark": "KerningCity",
+			"name": "Line 2 Area 3",
+			"streetName": "Kerning City Subway"
+		},
+		{
+			"id": "103030000",
+			"mapMark": "KerningCity",
+			"name": "The Swamp of Despair",
+			"streetName": "Swamp Region"
+		},
+		{
+			"id": "103030100",
+			"mapMark": "KerningCity",
+			"name": "Wild Crocodile Swamp",
+			"streetName": "Swamp Region"
+		},
+		{
+			"id": "103030200",
+			"mapMark": "KerningCity",
+			"name": "Dangerous Croco",
+			"streetName": "Swamp Region"
+		},
+		{
+			"id": "103030300",
+			"mapMark": "KerningCity",
+			"name": "Unseen Danger",
+			"streetName": "Swamp Region"
+		},
+		{
+			"id": "103030400",
+			"mapMark": "KerningCity",
+			"name": "Deep Mire",
+			"streetName": "Swamp Region"
+		},
+		{
+			"id": "101050000",
+			"mapMark": "Eurel",
+			"name": "Elluel",
+			"streetName": "Fairy Forest"
+		},
+		{
+			"id": "101050400",
+			"mapMark": "Ellinia",
+			"name": "Flowery Forest 3",
+			"streetName": "Fairy Forest"
+		},
+		{
+			"id": "101050300",
+			"mapMark": "Eurel",
+			"name": "Flowery Forest 2",
+			"streetName": "Fairy Forest"
+		},
+		{
+			"id": "101050200",
+			"mapMark": "Eurel",
+			"name": "Flowery Forest 1",
+			"streetName": "Fairy Forest"
+		},
+		{
+			"id": "101050020",
+			"mapMark": "Eurel",
+			"name": "Fairy Fountain",
+			"streetName": "Fairy Forest"
+		},
+		{
+			"id": "101050100",
+			"mapMark": "Eurel",
+			"name": "Dark Cave Path",
+			"streetName": "Fairy Forest"
+		},
+		{
+			"id": "101070010",
+			"mapMark": "fairyAcademy",
+			"name": "Ellinel Lake Shore",
+			"streetName": "Midsummer Night's Forest"
+		},
+		{
+			"id": "120040000",
+			"mapMark": "GoldBeach",
+			"name": "Gold Beach Resort",
+			"streetName": "Gold Beach"
+		},
+		{
+			"id": "106030100",
+			"mapMark": "flowervioleta",
+			"name": "Castle Entrance",
+			"streetName": "Mushroom Castle"
+		},
+		{
+			"id": "100000004",
+			"mapMark": "Henesys",
+			"name": "Closet House",
+			"streetName": "Henesys"
+		},
+		{
+			"id": "101020400",
+			"mapMark": "WizardSociety",
+			"name": "Magician Association",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020401",
+			"mapMark": "WizardSociety",
+			"name": "Windy Place",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020402",
+			"mapMark": "WizardSociety",
+			"name": "Where the Birds Chirp",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020403",
+			"mapMark": "WizardSociety",
+			"name": "Where the Sun Rises",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020404",
+			"mapMark": "WizardSociety",
+			"name": "Where the Forest Sings",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020405",
+			"mapMark": "WizardSociety",
+			"name": "Where Trees Dance",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020406",
+			"mapMark": "WizardSociety",
+			"name": "Where the Soil Sleeps",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "101020407",
+			"mapMark": "WizardSociety",
+			"name": "Where the Sky Smiles",
+			"streetName": "East Forest"
+		},
+		{
+			"id": "103041000",
+			"mapMark": "KerningTower",
+			"name": "Ground Floor",
+			"streetName": "Kerning Tower"
+		},
+		{
+			"id": "101080000",
+			"mapMark": "Ellinia",
+			"name": "Deepening Forest",
+			"streetName": "South Forest"
+		},
+		{
+			"id": "101080900",
+			"mapMark": "Elodin",
+			"name": "Slumbering Forest",
+			"streetName": "Elodin"
+		},
+		{
+			"id": "100051000",
+			"mapMark": "Partem",
+			"name": "Karuppa Town",
+			"streetName": "Partem"
+		},
+		{
+			"id": "410000500",
+			"mapMark": "Cernium",
+			"name": "Cernium Square",
+			"streetName": "Cernium",
+			"backgroundMusic": "Bgm53/TheHolyLand"
+		},
+		{
+			"id": "410000510",
+			"mapMark": "Cernium",
+			"name": "Rocky Overlook Entrance",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000520",
+			"mapMark": "Cernium",
+			"name": "Rocky Overlook 1",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000530",
+			"mapMark": "Cernium",
+			"name": "Rocky Overlook 2",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000540",
+			"mapMark": "Cernium",
+			"name": "Rocky Overlook 3",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000550",
+			"mapMark": "Cernium",
+			"name": "Rocky Overlook 4",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000560",
+			"mapMark": "Cernium",
+			"name": "Holy Land Vantage Point",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000570",
+			"mapMark": "Cernium",
+			"name": "Cernium Western City Gate",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000580",
+			"mapMark": "Cernium",
+			"name": "Cernium Western City Ramparts Entrance",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000590",
+			"mapMark": "Cernium",
+			"name": "Cernium Western City Ramparts 1",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000600",
+			"mapMark": "Cernium",
+			"name": "Cernium Western City Ramparts 2",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000610",
+			"mapMark": "Cernium",
+			"name": "Cernium Western City Ramparts 3",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000620",
+			"mapMark": "Cernium",
+			"name": "Cernium Eastern City Gate",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000630",
+			"mapMark": "Cernium",
+			"name": "Cernium Eastern City Ramparts Entrance",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000640",
+			"mapMark": "Cernium",
+			"name": "Cernium Eastern City Ramparts 1",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000650",
+			"mapMark": "Cernium",
+			"name": "Cernium Eastern City Ramparts 2",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000660",
+			"mapMark": "Cernium",
+			"name": "Cernium Eastern City Ramparts 3",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000670",
+			"mapMark": "Cernium",
+			"name": "Palace Main Hall",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000680",
+			"mapMark": "Cernium",
+			"name": "Chamber of the Holy Sword",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000690",
+			"mapMark": "Cernium",
+			"name": "Royal Library",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000700",
+			"mapMark": "Cernium",
+			"name": "Royal Library Section 1",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000710",
+			"mapMark": "Cernium",
+			"name": "Royal Library Section 2",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000720",
+			"mapMark": "Cernium",
+			"name": "Royal Library Section 3",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000730",
+			"mapMark": "Cernium",
+			"name": "Royal Library Section 4",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000740",
+			"mapMark": "Cernium",
+			"name": "Royal Library Section 5",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000750",
+			"mapMark": "Cernium",
+			"name": "Royal Library Section 6",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000760",
+			"mapMark": "Cernium",
+			"name": "Graveyard of Swords",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "410000770",
+			"mapMark": "Cernium",
+			"name": "Near the Flora Encampment",
+			"streetName": "Cernium"
+		},
+		{
+			"id": "120000100",
+			"mapMark": "Nautilus",
+			"name": "Nautilus",
+			"streetName": "Nautilus"
+		},
+		{
+			"id": "105000000",
+			"mapMark": "Dungeon",
+			"name": "Sleepywood",
+			"streetName": "Sleepywood"
+		},
+		{
+			"id": "101070000",
+			"mapMark": "fairyAcademy",
+			"name": "Ellinel Lake Shore",
+			"streetName": "Midsummer Night's Forest"
+		},
+		{
+			"id": "100051010",
+			"mapMark": "Partem",
+			"name": "Karuppa Forest Entrance",
+			"streetName": "Partem"
+		},
+		{
+			"id": "410000800",
+			"mapMark": "Cernium_After",
+			"name": "Destroyed Cernium Square",
+			"streetName": "Burning Cernium"
+		},
+		{
+			"id": "160070000",
+			"mapMark": "Ramuramu",
+			"name": "Ramuramu Hot Springs",
+			"streetName": "Ramuramu Valley",
+			"backgroundMusic": "Bgm57/Welcome to Ramuramu Valley"
+		}
+	]
+}

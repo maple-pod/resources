@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   check:
-    name: lint & typecheck
+    name: lint, typecheck & offline tests
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -22,16 +22,11 @@ jobs:
       - name: setup pnpm
         uses: pnpm/action-setup@v4
 
-      # No `cache: pnpm` here on purpose: .npmrc points store-dir at a
-      # repo-relative .pnpm-store, which does not play well with the action's
-      # cache resolution.
       - name: setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      # sharp ships prebuilt binaries and youtube-dl-exec has no postinstall
-      # download, so a plain install is enough for static checks.
       - name: install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -40,3 +35,6 @@ jobs:
 
       - name: typecheck
         run: pnpm typecheck
+
+      - name: offline tests
+        run: pnpm test

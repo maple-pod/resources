@@ -1,0 +1,950 @@
+{
+	"samples": [
+		{
+			"id": "victoria-island",
+			"title": "Victoria Island",
+			"pageTitle": "Victoria Island",
+			"worldMapWikitextTitle": "Template:WorldMap Victoria Island",
+			"pageRevisionId": 525981,
+			"mapSourceRevisionId": 480276,
+			"baseImageFile": "WorldMap Victoria Island.png",
+			"markerSizes": {
+				"WorldMapLink (Victoria Island)-(Nautilus).png": {
+					"width": 82,
+					"height": 67
+				},
+				"WorldMapLink (Victoria Island)-(Sleepywood).png": {
+					"width": 89,
+					"height": 79
+				},
+				"WorldMapLink (Victoria Island)-(Ellinel).png": {
+					"width": 73,
+					"height": 62
+				},
+				"WorldMapLink (Victoria Island)-(Gold Beach).png": {
+					"width": 73,
+					"height": 73
+				},
+				"WorldMapLink (Victoria Island)-(Mushroom Castle).png": {
+					"width": 85,
+					"height": 79
+				},
+				"WorldMapLink (Victoria Island)-(Kerning Tower).png": {
+					"width": 69,
+					"height": 78
+				},
+				"WorldMapLink (Victoria Island)-(Elodin).png": {
+					"width": 89,
+					"height": 72
+				},
+				"WorldMapLink (Victoria Island)-(Partem).png": {
+					"width": 81,
+					"height": 81
+				},
+				"Dot0.png": {
+					"width": 20,
+					"height": 20
+				},
+				"Dot3.png": {
+					"width": 13,
+					"height": 13
+				},
+				"Dot2.png": {
+					"width": 20,
+					"height": 20
+				},
+				"Dot1.png": {
+					"width": 14,
+					"height": 14
+				},
+				"Dot5.png": {
+					"width": 65,
+					"height": 33
+				},
+				"Dot12.png": {
+					"width": 23,
+					"height": 23
+				}
+			},
+			"pageRevision": {
+				"revid": 525981,
+				"timestamp": "2026-03-25T22:22:55Z"
+			},
+			"mapSourceRevision": {
+				"revid": 480276,
+				"timestamp": "2026-01-18T06:01:19Z"
+			},
+			"mapSourceWikitext": "<div style=\"position:relative;display:inline-block;\">[[File:WorldMap Victoria Island.png|link=]]\n<div style=\"position:absolute;left:407px;top:336px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Nautilus).png|link=Nautilus]]</span></div>\n<div style=\"position:absolute;left:245px;top:192px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Sleepywood).png|link=Sleepywood]]</span></div>\n<div style=\"position:absolute;left:328px;top:170px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Ellinel).png|link=Ellinel Fairy Academy]]</span></div>\n<div style=\"position:absolute;left:558px;top:262px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Gold Beach).png|link=Gold Beach]]</span></div>\n<div style=\"position:absolute;left:034px;top:343px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Mushroom Castle).png|link=Mushroom Castle]]</span></div>\n<div style=\"position:absolute;left:63px;top:190px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Kerning Tower).png|link=Kerning Tower]]</span></div>\n<div style=\"position:absolute;left:489px;top:310px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Elodin).png|link=Elodin]]</span></div>\n<div style=\"position:absolute;left:301px;top:309px\"><span class=\"hoverimage\">[[File:WorldMapLink (Victoria Island)-(Partem).png|link=Partem]]</span></div>\n<div style=\"position:absolute;left:256px;top:307px\">[[File:Dot0.png|link=Henesys (Map)]]</div>\n<div style=\"position:absolute;left:398px;top:232px\">[[File:Dot0.png|link=Ellinia (Map)]]</div>\n<div style=\"position:absolute;left:293px;top:134px\">[[File:Dot0.png|link=Perion (Map)]]</div>\n<div style=\"position:absolute;left:188px;top:170px\">[[File:Dot0.png|link=Kerning City (Map)]]</div>\n<div style=\"position:absolute;left:206px;top:133px\">[[File:Dot3.png|link=Kerning City Back Alley]]</div>\n<div style=\"position:absolute;left:87px;top:269px\">[[File:Dot0.png|link=Lith Harbor (Map)]]</div>\n<div style=\"position:absolute;left:277px;top:221px\">[[File:Dot2.png|link=Six Path Crossway]]</div>\n<div style=\"position:absolute;left:280px;top:185px\">[[File:Dot3.png|link=Victoria Tree Platform]]</div>\n<div style=\"position:absolute;left:153px;top:263px\">[[File:Dot1.png|link=Right Around Lith Harbor]]</div>\n<div style=\"position:absolute;left:190px;top:255px\">[[File:Dot1.png|link=Forest Trail 1]]</div>\n<div style=\"position:absolute;left:226px;top:248px\">[[File:Dot1.png|link=Forest Trail 2]]</div>\n<div style=\"position:absolute;left:278px;top:259px\">[[File:Dot1.png|link=Dreamy Forest Trail]]</div>\n<div style=\"position:absolute;left:273px;top:279px\">[[File:Dot1.png|link=The Hill North of Henesys]]</div>\n<div style=\"position:absolute;left:243px;top:330px\">[[File:Dot1.png|link=Spore Hill]]</div>\n<div style=\"position:absolute;left:225px;top:345px\">[[File:Dot1.png|link=Humming Forest Trail]]</div>\n<div style=\"position:absolute;left:207px;top:325px\">[[File:Dot1.png|link=Mushmom Forest Trail]]</div>\n<div style=\"position:absolute;left:213px;top:365px\">[[File:Dot1.png|link=Windflower Forest]]</div>\n<div style=\"position:absolute;left:190px;top:369px\">[[File:Dot1.png|link=Blue Mushroom Forest]]</div>\n<div style=\"position:absolute;left:177px;top:349px\">[[File:Dot1.png|link=Blue Mushmom Forest]]</div>\n<div style=\"position:absolute;left:172px;top:372px\">[[File:Dot1.png|link=Blue Mushroom Forest 2]]</div>\n<div style=\"position:absolute;left:195px;top:393px\">[[File:Dot1.png|link=Gentle Breeze Forest]]</div>\n<div style=\"position:absolute;left:244px;top:369px\">[[File:Dot1.png|link=Golem's Temple Entrance]]</div>\n<div style=\"position:absolute;left:232px;top:395px\">[[File:Dot1.png|link=Golem's Temple 1]]</div>\n<div style=\"position:absolute;left:262px;top:396px\">[[File:Dot1.png|link=Golem's Temple 2]]</div>\n<div style=\"position:absolute;left:279px;top:375px\">[[File:Dot1.png|link=Golem's Temple 3]]</div>\n<div style=\"position:absolute;left:272px;top:353px\">[[File:Dot1.png|link=Golem's Temple 4]]</div>\n<div style=\"position:absolute;left:329px;top:280px\">[[File:Dot1.png|link=Way to the Beach]]</div>\n<div style=\"position:absolute;left:346px;top:290px\">[[File:Dot1.png|link=Pig Pasture]]</div>\n<div style=\"position:absolute;left:364px;top:320px\">[[File:Dot1.png|link=Ribbon Pig Beach]]</div>\n<div style=\"position:absolute;left:388px;top:348px\">[[File:Dot0.png|link=Nautilus Harbor]]</div>\n<div style=\"position:absolute;left:342px;top:230px\">[[File:Dot1.png|link=Where the Forest Starts]]</div>\n<div style=\"position:absolute;left:367px;top:230px\">[[File:Dot1.png|link=Shining Forest Path]]</div>\n<div style=\"position:absolute;left:416px;top:204px\">[[File:Dot1.png|link=Close to the Wind]]</div>\n<div style=\"position:absolute;left:427px;top:178px\">[[File:Dot1.png|link=Close to the Birds]]</div>\n<div style=\"position:absolute;left:435px;top:155px\">[[File:Dot1.png|link=Close to the Sky]]</div>\n<div style=\"position:absolute;left:445px;top:139px\">[[File:Dot1.png|link=Chimney Tree Top]]</div>\n<div style=\"position:absolute;left:410px;top:164px\">[[File:Dot1.png|link=Giant Tree]]</div>\n<div style=\"position:absolute;left:393px;top:152px\">[[File:Dot1.png|link=Green Tree Trunk]]</div>\n<div style=\"position:absolute;left:373px;top:162px\">[[File:Dot1.png|link=Tree Trunk Nest 1]]</div>\n<div style=\"position:absolute;left:393px;top:139px\">[[File:Dot1.png|link=North Forest Lot]]</div>\n<div style=\"position:absolute;left:365px;top:142px\">[[File:Dot1.png|link=Tree Trunk Nest 2]]</div>\n<div style=\"position:absolute;left:403px;top:126px\">[[File:Dot1.png|link=Young Tree Forest]]</div>\n<div style=\"position:absolute;left:420px;top:113px\">[[File:Dot1.png|link=Where the Forest Ends]]</div>\n<div style=\"position:absolute;left:313px;top:186px\">[[File:Dot1.png|link=Rocky Wasteland]]</div>\n<div style=\"position:absolute;left:299px;top:166px\">[[File:Dot1.png|link=Perion Southern Ridge]]</div>\n<div style=\"position:absolute;left:296px;top:108px\">[[File:Dot1.png|link=Perion Northern Ridge]]</div>\n<div style=\"position:absolute;left:289px;top:92px\">[[File:Dot1.png|link=Dusty Wind Hill]]</div>\n<div style=\"position:absolute;left:306px;top:80px\">[[File:Dot1.png|link=Mini Rocky Road]]</div>\n<div style=\"position:absolute;left:328px;top:73px\">[[File:Dot1.png|link=Big Rocky Road]]</div>\n<div style=\"position:absolute;left:350px;top:62px\">[[File:Dot1.png|link=Rugged Rocky Zone]]</div>\n<div style=\"position:absolute;left:364px;top:52px\">[[File:Dot1.png|link=Gusty Peak]]</div>\n<div style=\"position:absolute;left:266px;top:92px\">[[File:Dot1.png|link=Wild Boar Land]]</div>\n<div style=\"position:absolute;left:242px;top:80px\">[[File:Dot1.png|link=Wild Pig Land]]</div>\n<div style=\"position:absolute;left:220px;top:69px\">[[File:Dot1.png|link=Armor Pig Land]]</div>\n<div style=\"position:absolute;left:196px;top:65px\">[[File:Dot1.png|link=Burning Heat]]</div>\n<div style=\"position:absolute;left:174px;top:55px\">[[File:Dot1.png|link=Ash-Covered Land]]</div>\n<div style=\"position:absolute;left:366px;top:72px\">[[File:Dot1.png|link=Initial Excavation Area]]</div>\n<div style=\"position:absolute;left:384px;top:77px\">[[File:Dot1.png|link=Excavation Completion Area]]</div>\n<div style=\"position:absolute;left:403px;top:89px\">[[File:Dot1.png|link=Relic Excavation Camp]]</div>\n<div style=\"position:absolute;left:424px;top:96px\">[[File:Dot1.png|link=Excavation Intermission Area]]</div>\n<div style=\"position:absolute;left:443px;top:93px\">[[File:Dot1.png|link=Excavation Danger Zone]]</div>\n<div style=\"position:absolute;left:462px;top:85px\">[[File:Dot1.png|link=Closed Area]]</div>\n<div style=\"position:absolute;left:471px;top:69px\">[[File:Dot1.png|link=Prohibited Area]]</div>\n<div style=\"position:absolute;left:224px;top:220px\">[[File:Dot1.png|link=Abandoned Construction Site]]</div>\n<div style=\"position:absolute;left:204px;top:201px\">[[File:Dot1.png|link=Caution Falling Down]]</div>\n<div style=\"position:absolute;left:143px;top:179px\">[[File:Dot1.png|link=Subway Ticketing Booth]]</div>\n<div style=\"position:absolute;left:129px;top:172px\">[[File:Dot1.png|link=Along the Railway]]</div>\n<div style=\"position:absolute;left:115px;top:167px\">[[File:Dot1.png|link=Transfer Area]]</div>\n<div style=\"position:absolute;left:89px;top:179px\">[[File:Dot1.png|link=Line 1 Area 1]]</div>\n<div style=\"position:absolute;left:73px;top:194px\">[[File:Dot1.png|link=Line 1 Area 2]]</div>\n<div style=\"position:absolute;left:51px;top:204px\">[[File:Dot1.png|link=Line 1 Area 3]]</div>\n<div style=\"position:absolute;left:89px;top:157px\">[[File:Dot1.png|link=Line 2 Area 1]]</div>\n<div style=\"position:absolute;left:67px;top:142px\">[[File:Dot1.png|link=Line 2 Area 2]]</div>\n<div style=\"position:absolute;left:73px;top:111px\">[[File:Dot1.png|link=Line 2 Area 3]]</div>\n<div style=\"position:absolute;left:148px;top:145px\">[[File:Dot1.png|link=The Swamp of Despair]]</div>\n<div style=\"position:absolute;left:156px;top:124px\">[[File:Dot1.png|link=Wild Crocodile Swamp]]</div>\n<div style=\"position:absolute;left:158px;top:102px\">[[File:Dot1.png|link=Dangerous Croco]]</div>\n<div style=\"position:absolute;left:140px;top:88px\">[[File:Dot1.png|link=Unseen Danger]]</div>\n<div style=\"position:absolute;left:116px;top:83px\">[[File:Dot1.png|link=Deep Mire]]</div>\n<div style=\"position:absolute;left:221px;top:164px\">[[File:Dot5.png|link=Victoria Tree Platform]]</div>\n<div style=\"position:absolute;left:490px;top:208px\">[[File:Dot0.png|link=Elluel (Map)]]</div>\n<div style=\"position:absolute;left:458px;top:164px\">[[File:Dot1.png|link=Flowery Forest 3]]</div>\n<div style=\"position:absolute;left:454px;top:190px\">[[File:Dot1.png|link=Flowery Forest 2]]</div>\n<div style=\"position:absolute;left:442px;top:209px\">[[File:Dot1.png|link=Flowery Forest 1]]</div>\n<div style=\"position:absolute;left:481px;top:174px\">[[File:Dot1.png|link=Fairy Fountain]]</div>\n<div style=\"position:absolute;left:461px;top:222px\">[[File:Dot1.png|link=Dark Cave Path]]</div>\n<div style=\"position:absolute;left:393px;top:185px\">[[File:Dot2.png|link=Ellinel Lake Shore]]</div>\n<div style=\"position:absolute;left:557px;top:255px\">[[File:Dot2.png|link=Gold Beach Resort]]</div>\n<div style=\"position:absolute;left:111px;top:376px\">[[File:Dot2.png|link=Castle Entrance (Mushroom Castle)]]</div>\n<div style=\"position:absolute;left:293px;top:315px\">[[File:Dot3.png|link=Closet House]]</div>\n<div style=\"position:absolute;left:458px;top:129px\">[[File:Dot0.png|link=Magician Association (Map)]]</div>\n<div style=\"position:absolute;left:466px;top:112px\">[[File:Dot1.png|link=Windy Place]]</div>\n<div style=\"position:absolute;left:477px;top:103px\">[[File:Dot1.png|link=Where the Birds Chirp]]</div>\n<div style=\"position:absolute;left:494px;top:101px\">[[File:Dot1.png|link=Where the Sun Rises]]</div>\n<div style=\"position:absolute;left:508px;top:113px\">[[File:Dot1.png|link=Where the Forest Sings]]</div>\n<div style=\"position:absolute;left:508px;top:130px\">[[File:Dot1.png|link=Where Trees Dance]]</div>\n<div style=\"position:absolute;left:496px;top:139px\">[[File:Dot1.png|link=Where the Soil Sleeps]]</div>\n<div style=\"position:absolute;left:478px;top:140px\">[[File:Dot1.png|link=Where the Sky Smiles]]</div>\n<div style=\"position:absolute;left:119px;top:218px\">[[File:Dot12.png|link=Ground Floor]]</div>\n<div style=\"position:absolute;left:448px;top:258px\">[[File:Dot1.png|link=Deepening Forest]]</div>\n<div style=\"position:absolute;left:473px;top:303px\">[[File:Dot2.png|link=Slumbering Forest]]</div>\n<div style=\"position:absolute;left:314px;top:385px\">[[File:Dot0.png|link=Karuppa Town]]</div>\n<div style=\"position:absolute;left:358px;top:409px\">[[File:Dot0.png|link=Ramuramu Valley]]</div>",
+			"targetPages": [
+				{
+					"title": "Nautilus",
+					"revid": 524201,
+					"timestamp": "2026-03-20T17:01:11Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon Nautilus.png]] Nautilus"
+				},
+				{
+					"title": "Sleepywood",
+					"revid": 546878,
+					"timestamp": "2026-09-07T23:47:44Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon Dungeon.png]] Sleepywood"
+				},
+				{
+					"title": "Ellinel Fairy Academy",
+					"revid": 524115,
+					"timestamp": "2026-03-20T04:49:51Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon fairyAcademy.png]] Ellinel Fairy Academy"
+				},
+				{
+					"title": "Gold Beach",
+					"revid": 524181,
+					"timestamp": "2026-03-20T16:28:43Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon GoldBeach.png]] Gold Beach"
+				},
+				{
+					"title": "Mushroom Castle",
+					"revid": 546622,
+					"timestamp": "2026-09-03T03:00:37Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon flowervioleta.png]] Mushroom Castle"
+				},
+				{
+					"title": "Kerning Tower",
+					"revid": 533619,
+					"timestamp": "2026-05-30T11:06:15Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon KerningTower.png]] Kerning Tower"
+				},
+				{
+					"title": "Elodin",
+					"revid": 524135,
+					"timestamp": "2026-03-20T05:02:06Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon Elodin.png]] Elodin"
+				},
+				{
+					"title": "Partem",
+					"revid": 524231,
+					"timestamp": "2026-03-20T18:07:48Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon Partem.png]] Partem"
+				},
+				{
+					"title": "Henesys (Map)",
+					"revid": 533841,
+					"timestamp": "2026-06-04T01:14:53Z",
+					"content": "{{Map<!--100000000-->\n|bgm=FloralLife"
+				},
+				{
+					"title": "Ellinia (Map)",
+					"revid": 534363,
+					"timestamp": "2026-06-04T01:24:16Z",
+					"content": "{{Map<!--101000000-->\n|bgm=WhenTheMorningComes"
+				},
+				{
+					"title": "Perion (Map)",
+					"revid": 534884,
+					"timestamp": "2026-06-04T01:33:48Z",
+					"content": "{{Map<!--102000000-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Kerning City (Map)",
+					"revid": 534638,
+					"timestamp": "2026-06-04T01:29:05Z",
+					"content": "{{Map<!--103000000-->\n|bgm=BadGuys"
+				},
+				{
+					"title": "Kerning City Back Alley",
+					"revid": 534639,
+					"timestamp": "2026-06-04T01:29:06Z",
+					"content": "{{Map<!--103050000-->\n|bgm=secretFlower"
+				},
+				{
+					"title": "Lith Harbor (Map)",
+					"revid": 534674,
+					"timestamp": "2026-06-04T01:29:43Z",
+					"content": "{{Map<!--104000000-->\n|bgm=AboveTheTreetops"
+				},
+				{
+					"title": "Six Path Crossway",
+					"revid": 528288,
+					"timestamp": "2026-04-08T14:04:59Z",
+					"content": "{{Map<!--104020000-->\n|bgm=FloralLife"
+				},
+				{
+					"title": "Victoria Tree Platform",
+					"revid": 491725,
+					"timestamp": "2026-02-23T02:15:20Z",
+					"content": "{{Map<!--104020100-->\n|bgm=CavaBien"
+				},
+				{
+					"title": "Right Around Lith Harbor",
+					"revid": 491065,
+					"timestamp": "2026-02-23T02:04:03Z",
+					"content": "{{Map<!--104010000-->\n|bgm=AboveTheTreetops"
+				},
+				{
+					"title": "Forest Trail 1",
+					"revid": 530545,
+					"timestamp": "2026-04-11T23:46:31Z",
+					"content": "{{Map<!--104010100-->\n|bgm=AboveTheTreetops"
+				},
+				{
+					"title": "Forest Trail 2",
+					"revid": 491723,
+					"timestamp": "2026-02-23T02:15:18Z",
+					"content": "{{Map<!--104010200-->\n|bgm=AboveTheTreetops"
+				},
+				{
+					"title": "Dreamy Forest Trail",
+					"revid": 491079,
+					"timestamp": "2026-02-23T02:04:17Z",
+					"content": "{{Map<!--100010100-->\n|bgm=BlueSky"
+				},
+				{
+					"title": "The Hill North of Henesys",
+					"revid": 491078,
+					"timestamp": "2026-02-23T02:04:16Z",
+					"content": "{{Map<!--100010000-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Spore Hill",
+					"revid": 491080,
+					"timestamp": "2026-02-23T02:04:18Z",
+					"content": "{{Map<!--100020000-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Humming Forest Trail",
+					"revid": 491081,
+					"timestamp": "2026-02-23T02:04:19Z",
+					"content": "{{Map<!--100020100-->\n|bgm=FloralLife"
+				},
+				{
+					"title": "Mushmom Forest Trail",
+					"revid": 491729,
+					"timestamp": "2026-02-23T02:15:24Z",
+					"content": "{{Map<!--100020101-->\n|bgm=FloralLife"
+				},
+				{
+					"title": "Windflower Forest",
+					"revid": 491730,
+					"timestamp": "2026-02-23T02:15:25Z",
+					"content": "{{Map<!--100020200-->\n|bgm=CavaBien"
+				},
+				{
+					"title": "Blue Mushroom Forest",
+					"revid": 491735,
+					"timestamp": "2026-02-23T02:15:30Z",
+					"content": "{{Map<!--100020300-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Blue Mushmom Forest",
+					"revid": 491736,
+					"timestamp": "2026-02-23T02:15:31Z",
+					"content": "{{Map<!--100020301-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Blue Mushroom Forest 2",
+					"revid": 491737,
+					"timestamp": "2026-02-23T02:15:32Z",
+					"content": "{{Map<!--100020400-->\n|bgm=FloralLife"
+				},
+				{
+					"title": "Gentle Breeze Forest",
+					"revid": 491738,
+					"timestamp": "2026-02-23T02:15:33Z",
+					"content": "{{Map<!--100020401-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Golem's Temple Entrance",
+					"revid": 491102,
+					"timestamp": "2026-02-23T02:04:41Z",
+					"content": "{{Map<!--100040000-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Golem's Temple 1",
+					"revid": 491103,
+					"timestamp": "2026-02-23T02:04:42Z",
+					"content": "{{Map<!--100040100-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Golem's Temple 2",
+					"revid": 491732,
+					"timestamp": "2026-02-23T02:15:27Z",
+					"content": "{{Map<!--100040200-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Golem's Temple 3",
+					"revid": 491733,
+					"timestamp": "2026-02-23T02:15:28Z",
+					"content": "{{Map<!--100040300-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Golem's Temple 4",
+					"revid": 491734,
+					"timestamp": "2026-02-23T02:15:29Z",
+					"content": "{{Map<!--100040400-->\n|bgm=RestNPeace"
+				},
+				{
+					"title": "Way to the Beach",
+					"revid": 491742,
+					"timestamp": "2026-02-23T02:15:37Z",
+					"content": "{{Map<!--120010100-->\n|bgm=Nautilus"
+				},
+				{
+					"title": "Pig Pasture",
+					"revid": 491094,
+					"timestamp": "2026-02-23T02:04:32Z",
+					"content": "{{Map<!--120010000-->\n|bgm=Nautilus"
+				},
+				{
+					"title": "Ribbon Pig Beach",
+					"revid": 492352,
+					"timestamp": "2026-02-23T02:26:01Z",
+					"content": "{{Map<!--120000400-->\n|bgm=Nautilus"
+				},
+				{
+					"title": "Nautilus Harbor",
+					"revid": 491032,
+					"timestamp": "2026-02-23T02:03:30Z",
+					"content": "{{Map<!--120000000-->\n|bgm=Nautilus"
+				},
+				{
+					"title": "Where the Forest Starts",
+					"revid": 491108,
+					"timestamp": "2026-02-23T02:04:47Z",
+					"content": "{{Map<!--101010100-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Shining Forest Path",
+					"revid": 491107,
+					"timestamp": "2026-02-23T02:04:46Z",
+					"content": "{{Map<!--101010000-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Close to the Wind",
+					"revid": 491109,
+					"timestamp": "2026-02-23T02:04:48Z",
+					"content": "{{Map<!--101020000-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Close to the Birds",
+					"revid": 491743,
+					"timestamp": "2026-02-23T02:15:38Z",
+					"content": "{{Map<!--101020100-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Close to the Sky",
+					"revid": 491744,
+					"timestamp": "2026-02-23T02:15:39Z",
+					"content": "{{Map<!--101020200-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Chimney Tree Top",
+					"revid": 491747,
+					"timestamp": "2026-02-23T02:15:42Z",
+					"content": "{{Map<!--101020300-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Giant Tree",
+					"revid": 491110,
+					"timestamp": "2026-02-23T02:04:49Z",
+					"content": "{{Map<!--101030000-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Green Tree Trunk",
+					"revid": 491111,
+					"timestamp": "2026-02-23T02:04:50Z",
+					"content": "{{Map<!--101030100-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Tree Trunk Nest 1",
+					"revid": 491112,
+					"timestamp": "2026-02-23T02:04:51Z",
+					"content": "{{Map<!--101030101-->\n|bgm=MissingYou"
+				},
+				{
+					"title": "North Forest Lot",
+					"revid": 491113,
+					"timestamp": "2026-02-23T02:04:52Z",
+					"content": "{{Map<!--101030200-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Tree Trunk Nest 2",
+					"revid": 491745,
+					"timestamp": "2026-02-23T02:15:40Z",
+					"content": "{{Map<!--101030201-->\n|bgm=MissingYou"
+				},
+				{
+					"title": "Young Tree Forest",
+					"revid": 491114,
+					"timestamp": "2026-02-23T02:04:53Z",
+					"content": "{{Map<!--101030300-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where the Forest Ends",
+					"revid": 491746,
+					"timestamp": "2026-02-23T02:15:41Z",
+					"content": "{{Map<!--101030500-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Rocky Wasteland",
+					"revid": 491748,
+					"timestamp": "2026-02-23T02:15:44Z",
+					"content": "{{Map<!--102010100-->\n|bgm=HighlandStar"
+				},
+				{
+					"title": "Perion Southern Ridge",
+					"revid": 491117,
+					"timestamp": "2026-02-23T02:04:56Z",
+					"content": "{{Map<!--102010000-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Perion Northern Ridge",
+					"revid": 491118,
+					"timestamp": "2026-02-23T02:04:57Z",
+					"content": "{{Map<!--102020000-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Dusty Wind Hill",
+					"revid": 491119,
+					"timestamp": "2026-02-23T02:04:58Z",
+					"content": "{{Map<!--102020100-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Mini Rocky Road",
+					"revid": 491120,
+					"timestamp": "2026-02-23T02:04:59Z",
+					"content": "{{Map<!--102020200-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Big Rocky Road",
+					"revid": 491121,
+					"timestamp": "2026-02-23T02:05:00Z",
+					"content": "{{Map<!--102020300-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Rugged Rocky Zone",
+					"revid": 491749,
+					"timestamp": "2026-02-23T02:15:45Z",
+					"content": "{{Map<!--102020400-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Gusty Peak",
+					"revid": 491750,
+					"timestamp": "2026-02-23T02:15:46Z",
+					"content": "{{Map<!--102020500-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Wild Boar Land",
+					"revid": 535290,
+					"timestamp": "2026-06-04T01:41:16Z",
+					"content": "{{Map<!--102030000-->\n|bgm=HighlandStar"
+				},
+				{
+					"title": "Wild Pig Land",
+					"revid": 491760,
+					"timestamp": "2026-02-23T02:15:56Z",
+					"content": "{{Map<!--102030100-->\n|bgm=HighlandStar"
+				},
+				{
+					"title": "Armor Pig Land",
+					"revid": 491761,
+					"timestamp": "2026-02-23T02:15:57Z",
+					"content": "{{Map<!--102030200-->\n|bgm=HighlandStar"
+				},
+				{
+					"title": "Burning Heat",
+					"revid": 491762,
+					"timestamp": "2026-02-23T02:15:58Z",
+					"content": "{{Map<!--102030300-->\n|bgm=HighlandStar"
+				},
+				{
+					"title": "Ash-Covered Land",
+					"revid": 491763,
+					"timestamp": "2026-02-23T02:16:00Z",
+					"content": "{{Map<!--102030400-->\n|bgm=HighlandStar"
+				},
+				{
+					"title": "Initial Excavation Area",
+					"revid": 491123,
+					"timestamp": "2026-02-23T02:05:03Z",
+					"content": "{{Map<!--102040000-->\n|bgm=AcientRemain"
+				},
+				{
+					"title": "Excavation Completion Area",
+					"revid": 491751,
+					"timestamp": "2026-02-23T02:15:47Z",
+					"content": "{{Map<!--102040100-->\n|bgm=AcientRemain"
+				},
+				{
+					"title": "Relic Excavation Camp",
+					"revid": 524870,
+					"timestamp": "2026-03-22T18:34:58Z",
+					"content": "{{Map<!--102040200-->\n|bgm=Nightmare"
+				},
+				{
+					"title": "Excavation Intermission Area",
+					"revid": 491753,
+					"timestamp": "2026-02-23T02:15:49Z",
+					"content": "{{Map<!--102040300-->\n|bgm=AcientRemain"
+				},
+				{
+					"title": "Excavation Danger Zone",
+					"revid": 491754,
+					"timestamp": "2026-02-23T02:15:50Z",
+					"content": "{{Map<!--102040400-->\n|bgm=AcientRemain"
+				},
+				{
+					"title": "Closed Area",
+					"revid": 491755,
+					"timestamp": "2026-02-23T02:15:51Z",
+					"content": "{{Map<!--102040500-->\n|bgm=AcientRemain"
+				},
+				{
+					"title": "Prohibited Area",
+					"revid": 491756,
+					"timestamp": "2026-02-23T02:15:52Z",
+					"content": "{{Map<!--102040600-->\n|bgm=AcientRemain"
+				},
+				{
+					"title": "Abandoned Construction Site",
+					"revid": 491764,
+					"timestamp": "2026-02-23T02:16:01Z",
+					"content": "{{Map<!--103010100-->\n|bgm=BadGuys"
+				},
+				{
+					"title": "Caution Falling Down",
+					"revid": 491130,
+					"timestamp": "2026-02-23T02:05:10Z",
+					"content": "{{Map<!--103010000-->\n|bgm=BadGuys"
+				},
+				{
+					"title": "Subway Ticketing Booth",
+					"revid": 491131,
+					"timestamp": "2026-02-23T02:05:11Z",
+					"content": "{{Map<!--103020000-->\n|bgm=Subway"
+				},
+				{
+					"title": "Along the Railway",
+					"revid": 491132,
+					"timestamp": "2026-02-23T02:05:12Z",
+					"content": "{{Map<!--103020100-->\n|bgm=Subway"
+				},
+				{
+					"title": "Transfer Area",
+					"revid": 491133,
+					"timestamp": "2026-02-23T02:05:13Z",
+					"content": "{{Map<!--103020200-->\n|bgm=Subway"
+				},
+				{
+					"title": "Line 1 Area 1",
+					"revid": 491765,
+					"timestamp": "2026-02-23T02:16:02Z",
+					"content": "{{Map<!--103020300-->\n|bgm=Subway"
+				},
+				{
+					"title": "Line 1 Area 2",
+					"revid": 491766,
+					"timestamp": "2026-02-23T02:16:03Z",
+					"content": "{{Map<!--103020310-->\n|bgm=Subway"
+				},
+				{
+					"title": "Line 1 Area 3",
+					"revid": 491767,
+					"timestamp": "2026-02-23T02:16:04Z",
+					"content": "{{Map<!--103020320-->\n|bgm=Subway"
+				},
+				{
+					"title": "Line 2 Area 1",
+					"revid": 491768,
+					"timestamp": "2026-02-23T02:16:05Z",
+					"content": "{{Map<!--103020400-->\n|bgm=Subway"
+				},
+				{
+					"title": "Line 2 Area 2",
+					"revid": 491769,
+					"timestamp": "2026-02-23T02:16:06Z",
+					"content": "{{Map<!--103020410-->\n|bgm=Subway"
+				},
+				{
+					"title": "Line 2 Area 3",
+					"revid": 491770,
+					"timestamp": "2026-02-23T02:16:07Z",
+					"content": "{{Map<!--103020420-->\n|bgm=Subway"
+				},
+				{
+					"title": "The Swamp of Despair",
+					"revid": 491134,
+					"timestamp": "2026-02-23T02:05:14Z",
+					"content": "{{Map<!--103030000-->\n|bgm=JungleBook"
+				},
+				{
+					"title": "Wild Crocodile Swamp",
+					"revid": 491135,
+					"timestamp": "2026-02-23T02:05:15Z",
+					"content": "{{Map<!--103030100-->\n|bgm=JungleBook"
+				},
+				{
+					"title": "Dangerous Croco",
+					"revid": 491136,
+					"timestamp": "2026-02-23T02:05:16Z",
+					"content": "{{Map<!--103030200-->\n|bgm=JungleBook"
+				},
+				{
+					"title": "Unseen Danger",
+					"revid": 491772,
+					"timestamp": "2026-02-23T02:16:09Z",
+					"content": "{{Map<!--103030300-->\n|bgm=JungleBook"
+				},
+				{
+					"title": "Deep Mire",
+					"revid": 491773,
+					"timestamp": "2026-02-23T02:16:10Z",
+					"content": "{{Map<!--103030400-->\n|bgm=JungleBook"
+				},
+				{
+					"title": "Elluel (Map)",
+					"revid": 491922,
+					"timestamp": "2026-02-23T02:18:41Z",
+					"content": "{{Map<!--101050000-->\n|bgm=WindAndFlower"
+				},
+				{
+					"title": "Flowery Forest 3",
+					"revid": 491933,
+					"timestamp": "2026-02-23T02:18:53Z",
+					"content": "{{Map<!--101050400-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Flowery Forest 2",
+					"revid": 491930,
+					"timestamp": "2026-02-23T02:18:50Z",
+					"content": "{{Map<!--101050300-->\n|bgm=WindAndFlower"
+				},
+				{
+					"title": "Flowery Forest 1",
+					"revid": 491928,
+					"timestamp": "2026-02-23T02:18:48Z",
+					"content": "{{Map<!--101050200-->\n|bgm=WindAndFlower"
+				},
+				{
+					"title": "Fairy Fountain",
+					"revid": 491929,
+					"timestamp": "2026-02-23T02:18:49Z",
+					"content": "{{Map<!--101050020-->\n|bgm=WindAndFlower"
+				},
+				{
+					"title": "Dark Cave Path",
+					"revid": 491927,
+					"timestamp": "2026-02-23T02:18:47Z",
+					"content": "{{Map<!--101050100-->\n|bgm=WindAndFlower"
+				},
+				{
+					"title": "Ellinel Lake Shore",
+					"revid": 492245,
+					"timestamp": "2026-02-23T02:24:14Z",
+					"content": "{{Map<!--101070010-->\n|bgm=TheFairyForest"
+				},
+				{
+					"title": "Gold Beach Resort",
+					"revid": 492151,
+					"timestamp": "2026-02-23T02:22:42Z",
+					"content": "{{Map<!--120040000-->\n|bgm=GoldBeach"
+				},
+				{
+					"title": "Castle Entrance (Mushroom Castle)",
+					"revid": 492356,
+					"timestamp": "2026-02-23T02:26:05Z",
+					"content": "{{Map<!--106030100-->\n|bgm=MushroomCastle"
+				},
+				{
+					"title": "Closet House",
+					"revid": 492450,
+					"timestamp": "2026-02-23T02:27:43Z",
+					"content": "{{Map<!--100000004-->\n|bgm=FloralLife"
+				},
+				{
+					"title": "Magician Association (Map)",
+					"revid": 534696,
+					"timestamp": "2026-06-04T01:30:09Z",
+					"content": "{{Map<!--101020400-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Windy Place",
+					"revid": 492568,
+					"timestamp": "2026-02-23T02:29:42Z",
+					"content": "{{Map<!--101020401-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where the Birds Chirp",
+					"revid": 492569,
+					"timestamp": "2026-02-23T02:29:43Z",
+					"content": "{{Map<!--101020402-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where the Sun Rises",
+					"revid": 492570,
+					"timestamp": "2026-02-23T02:29:44Z",
+					"content": "{{Map<!--101020403-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where the Forest Sings",
+					"revid": 492571,
+					"timestamp": "2026-02-23T02:29:45Z",
+					"content": "{{Map<!--101020404-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where Trees Dance",
+					"revid": 492572,
+					"timestamp": "2026-02-23T02:29:46Z",
+					"content": "{{Map<!--101020405-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where the Soil Sleeps",
+					"revid": 492573,
+					"timestamp": "2026-02-23T02:29:47Z",
+					"content": "{{Map<!--101020406-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Where the Sky Smiles",
+					"revid": 492574,
+					"timestamp": "2026-02-23T02:29:48Z",
+					"content": "{{Map<!--101020407-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Ground Floor",
+					"revid": 492723,
+					"timestamp": "2026-02-23T02:32:25Z",
+					"content": "{{Map<!--103041000-->\n|bgm=LoversIntheAfternoon"
+				},
+				{
+					"title": "Deepening Forest",
+					"revid": 493129,
+					"timestamp": "2026-02-23T02:39:22Z",
+					"content": "{{Map<!--101080000-->\n|bgm=MoonlightShadow"
+				},
+				{
+					"title": "Slumbering Forest",
+					"revid": 493130,
+					"timestamp": "2026-02-23T02:39:23Z",
+					"content": "{{Map<!--101080900-->\n|bgm=SecretElodin"
+				},
+				{
+					"title": "Karuppa Town",
+					"revid": 493149,
+					"timestamp": "2026-02-23T02:39:42Z",
+					"content": "{{Map<!--100051000-->\n|bgm=TheVillageOfKarupa"
+				},
+				{
+					"title": "Ramuramu Valley",
+					"revid": 524255,
+					"timestamp": "2026-03-20T19:33:27Z",
+					"content": "{{Infobox location\n|name=[[File:MapIcon Ramuramu.png]] Ramuramu Valley"
+				}
+			]
+		},
+		{
+			"id": "cernium",
+			"title": "Cernium",
+			"pageTitle": "Cernium",
+			"worldMapWikitextTitle": "Cernium",
+			"pageRevisionId": 517210,
+			"mapSourceRevisionId": 517210,
+			"baseImageFile": "WorldMap Cernium.png",
+			"markerSizes": {
+				"WorldMapLink (Cernium)-(Burning Cernium).png": {
+					"width": 96,
+					"height": 97
+				},
+				"Dot49.png": {
+					"width": 19,
+					"height": 19
+				},
+				"Dot48.png": {
+					"width": 14,
+					"height": 15
+				}
+			},
+			"pageRevision": {
+				"revid": 517210,
+				"timestamp": "2026-03-13T01:51:46Z"
+			},
+			"mapSourceRevision": {
+				"revid": 517210,
+				"timestamp": "2026-03-13T01:51:46Z"
+			},
+			"mapSourceWikitext": "<div style=\"position:relative;display:inline-block;\">[[File:WorldMap Cernium.png|link=]]\n<div style=\"position: absolute; left: 527px; top: 16px\"><span class=\"hoverimage\">[[File:WorldMapLink (Cernium)-(Burning Cernium).png|link=Burning Cernium]]</span></div>\n<div style=\"position:absolute;left:310px;top:218px\">[[File:Dot49.png|link=Cernium Square]]</div>\n<div style=\"position:absolute;left:240px;top:415px\">[[File:Dot48.png|link=Rocky Overlook Entrance]]</div>\n<div style=\"position:absolute;left:202px;top:390px\">[[File:Dot48.png|link=Rocky Overlook 1]]</div>\n<div style=\"position:absolute;left:150px;top:401px\">[[File:Dot48.png|link=Rocky Overlook 2]]</div>\n<div style=\"position:absolute;left:110px;top:370px\">[[File:Dot48.png|link=Rocky Overlook 3]]</div>\n<div style=\"position:absolute;left:55px;top:368px\">[[File:Dot48.png|link=Rocky Overlook 4]]</div>\n<div style=\"position:absolute;left:92px;top:328px\">[[File:Dot49.png|link=Holy Land Vantage Point]]</div>\n<div style=\"position:absolute;left:145px;top:237px\">[[File:Dot49.png|link=Cernium Western City Gates]]</div>\n<div style=\"position:absolute;left:105px;top:219px\">[[File:Dot48.png|link=Cernium Western City Ramparts Entrance]]</div>\n<div style=\"position:absolute;left:70px;top:193px\">[[File:Dot48.png|link=Cernium Western City Ramparts 1]]</div>\n<div style=\"position:absolute;left:50px;top:158px\">[[File:Dot48.png|link=Cernium Western City Ramparts 2]]</div>\n<div style=\"position:absolute;left:71px;top:123px\">[[File:Dot48.png|link=Cernium Western City Ramparts 3]]</div>\n<div style=\"position:absolute;left:465px;top:238px\">[[File:Dot49.png|link=Cernium Eastern City Gates]]</div>\n<div style=\"position:absolute;left:515px;top:219px\">[[File:Dot48.png|link=Cernium Eastern City Ramparts Entrance]]</div>\n<div style=\"position:absolute;left:550px;top:193px\">[[File:Dot48.png|link=Cernium Eastern City Ramparts 1]]</div>\n<div style=\"position:absolute;left:570px;top:158px\">[[File:Dot48.png|link=Cernium Eastern City Ramparts 2]]</div>\n<div style=\"position:absolute;left:550px;top:123px\">[[File:Dot48.png|link=Cernium Eastern City Ramparts 3]]</div>\n<div style=\"position:absolute;left:310px;top:163px\">[[File:Dot49.png|link=Palace Main Hall#Cernium|Palace Main Hall]]</div>\n<div style=\"position:absolute;left:310px;top:106px\">[[File:Dot49.png|link=Chamber of the Holy Sword]]</div>\n<div style=\"position:absolute;left:380px;top:131px\">[[File:Dot49.png|link=Royal Library]]</div>\n<div style=\"position:absolute;left:390px;top:68px\">[[File:Dot48.png|link=Royal Library Section 1]]</div>\n<div style=\"position:absolute;left:430px;top:80px\">[[File:Dot48.png|link=Royal Library Section 2]]</div>\n<div style=\"position:absolute;left:470px;top:90px\">[[File:Dot48.png|link=Royal Library Section 3]]</div>\n<div style=\"position:absolute;left:410px;top:43px\">[[File:Dot48.png|link=Royal Library Section 4]]</div>\n<div style=\"position:absolute;left:450px;top:55px\">[[File:Dot48.png|link=Royal Library Section 5]]</div>\n<div style=\"position:absolute;left:490px;top:66px\">[[File:Dot48.png|link=Royal Library Section 6]]</div>\n<div style=\"position:absolute;left:140px;top:51px\">[[File:Dot49.png|link=Graveyard of Swords]]</div>\n<div style=\"position:absolute;left:535px;top:382px\">[[File:Dot49.png|link=Near the Flora Encampment]]</div>",
+			"targetPages": [
+				{
+					"title": "Burning Cernium",
+					"revid": 526547,
+					"timestamp": "2026-03-29T02:37:05Z",
+					"content": "{{Tabs\n|base=Burning Cernium"
+				},
+				{
+					"title": "Cernium Square",
+					"revid": 534187,
+					"timestamp": "2026-06-04T01:21:07Z",
+					"content": "{{Map<!--410000500-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Rocky Overlook Entrance",
+					"revid": 493394,
+					"timestamp": "2026-02-23T02:43:50Z",
+					"content": "{{Map<!--410000510-->\n|bgm=SeaWave"
+				},
+				{
+					"title": "Rocky Overlook 1",
+					"revid": 493395,
+					"timestamp": "2026-02-23T02:43:51Z",
+					"content": "{{Map<!--410000520-->\n|bgm=SeaWave"
+				},
+				{
+					"title": "Rocky Overlook 2",
+					"revid": 493396,
+					"timestamp": "2026-02-23T02:43:52Z",
+					"content": "{{Map<!--410000530-->\n|bgm=SeaWave"
+				},
+				{
+					"title": "Rocky Overlook 3",
+					"revid": 493397,
+					"timestamp": "2026-02-23T02:43:53Z",
+					"content": "{{Map<!--410000540-->\n|bgm=SeaWave"
+				},
+				{
+					"title": "Rocky Overlook 4",
+					"revid": 493398,
+					"timestamp": "2026-02-23T02:43:54Z",
+					"content": "{{Map<!--410000550-->\n|bgm=SeaWave"
+				},
+				{
+					"title": "Holy Land Vantage Point",
+					"revid": 493399,
+					"timestamp": "2026-02-23T02:43:55Z",
+					"content": "{{Map<!--410000560-->\n|bgm=SeaWave"
+				},
+				{
+					"title": "Cernium Western City Gates",
+					"revid": 493400,
+					"timestamp": "2026-02-23T02:43:56Z",
+					"content": "{{Map<!--410000570-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Western City Ramparts Entrance",
+					"revid": 493401,
+					"timestamp": "2026-02-23T02:43:57Z",
+					"content": "{{Map<!--410000580-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Western City Ramparts 1",
+					"revid": 493402,
+					"timestamp": "2026-02-23T02:43:58Z",
+					"content": "{{Map<!--410000590-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Western City Ramparts 2",
+					"revid": 493403,
+					"timestamp": "2026-02-23T02:43:59Z",
+					"content": "{{Map<!--410000600-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Western City Ramparts 3",
+					"revid": 493404,
+					"timestamp": "2026-02-23T02:44:00Z",
+					"content": "{{Map<!--410000610-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Eastern City Gates",
+					"revid": 534186,
+					"timestamp": "2026-06-04T01:21:06Z",
+					"content": "{{Map<!--410000620-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Eastern City Ramparts Entrance",
+					"revid": 493406,
+					"timestamp": "2026-02-23T02:44:02Z",
+					"content": "{{Map<!--410000630-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Eastern City Ramparts 1",
+					"revid": 493407,
+					"timestamp": "2026-02-23T02:44:03Z",
+					"content": "{{Map<!--410000640-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Eastern City Ramparts 2",
+					"revid": 493408,
+					"timestamp": "2026-02-23T02:44:04Z",
+					"content": "{{Map<!--410000650-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Cernium Eastern City Ramparts 3",
+					"revid": 493409,
+					"timestamp": "2026-02-23T02:44:05Z",
+					"content": "{{Map<!--410000660-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Palace Main Hall",
+					"revid": 543603,
+					"timestamp": "2026-07-28T02:46:56Z",
+					"content": "{{Map<!--410000670-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Chamber of the Holy Sword",
+					"revid": 493411,
+					"timestamp": "2026-02-23T02:44:07Z",
+					"content": "{{Map<!--410000680-->\n|bgm=SanctuaryOfMitra"
+				},
+				{
+					"title": "Royal Library",
+					"revid": 493412,
+					"timestamp": "2026-02-23T02:44:08Z",
+					"content": "{{Map<!--410000690-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Royal Library Section 1",
+					"revid": 493413,
+					"timestamp": "2026-02-23T02:44:09Z",
+					"content": "{{Map<!--410000700-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Royal Library Section 2",
+					"revid": 493414,
+					"timestamp": "2026-02-23T02:44:10Z",
+					"content": "{{Map<!--410000710-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Royal Library Section 3",
+					"revid": 493415,
+					"timestamp": "2026-02-23T02:44:11Z",
+					"content": "{{Map<!--410000720-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Royal Library Section 4",
+					"revid": 493416,
+					"timestamp": "2026-02-23T02:44:12Z",
+					"content": "{{Map<!--410000730-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Royal Library Section 5",
+					"revid": 493417,
+					"timestamp": "2026-02-23T02:44:13Z",
+					"content": "{{Map<!--410000740-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Royal Library Section 6",
+					"revid": 493418,
+					"timestamp": "2026-02-23T02:44:14Z",
+					"content": "{{Map<!--410000750-->\n|bgm=TheHolyLand"
+				},
+				{
+					"title": "Graveyard of Swords",
+					"revid": 493419,
+					"timestamp": "2026-02-23T02:44:15Z",
+					"content": "{{Map<!--410000760-->\n|bgm=GraveyardOfSword"
+				},
+				{
+					"title": "Near the Flora Encampment",
+					"revid": 493420,
+					"timestamp": "2026-02-23T02:44:16Z",
+					"content": "{{Map<!--410000770-->\n|bgm=RedMoon"
+				}
+			]
+		}
+	]
+}
