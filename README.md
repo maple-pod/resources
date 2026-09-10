@@ -18,8 +18,8 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 | `data.json` | 曲目 metadata（含 `duration` 與實際 `audio.file` / codec / container）＋ 所有標記圖的 deflate 資料，前端用 fflate 解開 |
 | `bgm/*` | yt-dlp 選到的最佳可用音源，保留來源 codec/container（例如 WebM/Opus、M4A/AAC），不統一轉 MP3 |
 | `mark/*.png` | 標記圖原檔 |
-| `bg/*.jpg` | 背景圖（1920×1080） |
-| `bg/bg.json` | 背景圖清單＋壓縮過的縮圖預覽（240×135） |
+| `bg/*.jpg` | 背景圖（1920×1080），由 master 的 `static/bg/*.jpg` 原樣發布 |
+| `bg.json` | 背景圖清單＋壓縮過的縮圖預覽（240×135），由 master 的 `static/bg.json` 原樣發布 |
 | `world-map/world-maps.json` | canonical GMS-native world-map 合約（schema version 6、`graph.roots`/`graph.nodes` hierarchy、WZ geometry/assets、direct spots、BGM selection、localization 與 provenance；保留 Wiki corroboration 欄位） |
 | `world-map/manifest.json` | runtime world-map manifest（schema version 1、roots、節點索引、來源/資產版本與 graph cache key） |
 | `world-map/nodes/*.json` | 每個 game-native `worldMapId` 一個 runtime chunk；完整 node 與 embedded localization，供前端按需載入 |
@@ -29,7 +29,7 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 
 **所有指令都在容器內執行，不要直接在主機上跑。** 管線依賴 `yt-dlp`、`ffprobe` 與
 能執行 JS 的 runtime，主機上通常沒有這些工具，硬跑只會得到難以診斷的失敗。
-`build` / `process-bgs` / `world-map:generate` / `deploy` 會自行偵測執行環境，在主機上直接被擋下。
+`build` / `world-map:generate` / `deploy` 會自行偵測執行環境，在主機上直接被擋下。
 
 先建立環境映像（只需在 Dockerfile 變動時重做）：
 
@@ -54,15 +54,17 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 ./dev.sh pnpm install           # 第一次使用，或依賴有變動時
 
 ./dev.sh pnpm run build         # 抓取曲目：下載音檔與標記圖、ffprobe 取長度、產生 data.json
-./dev.sh pnpm run process-bgs   # 背景圖：assets/bg/*.png → output/bg/*.jpg + bg.json
 ./dev.sh pnpm run world-map:generate          # preview：bounded 維護/驗證資料
 ./dev.sh pnpm run world-map:generate:full     # full：正式完整 native graph / localization 產物
-./dev.sh pnpm run deploy        # 把 output/ 提交並推送到 gh-pages
+./dev.sh pnpm run deploy        # 同步 static 背景資源後，把 output/ 提交並推送到 gh-pages
 
 ./dev.sh pnpm run lint
 ./dev.sh pnpm run lint:fix
 ./dev.sh pnpm run typecheck
 ```
+
+背景圖不再由 build 流程生成。`static/bg.json` 與 `static/bg/*.jpg` 是 canonical static dataset；
+`deploy` 會先驗證清單、preview 與 JPG 一致，再原樣同步到 `output/bg.json` 與 `output/bg/*.jpg`。
 
 > **一律用 `pnpm run <script>`。** `pnpm deploy` 會被 pnpm 內建的 `deploy` 子命令攔截，
 > 不會執行本專案的腳本。
@@ -94,6 +96,7 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 
 `deploy` 把 `output/` 當成獨立的 git repo（orphan `gh-pages` 分支）操作：
 
+- 每次 deploy 先驗證並同步 master 追蹤的 `static/bg.json` 與 `static/bg/*.jpg`，避免重建 `output/` 或 orphan history 時遺失背景資源。
 - JSON 與 PNG 先進一個 commit，音檔每 100 個一批，避免單一 commit 過大；音檔副檔名不再限定 MP3。
 - **不使用 `--force`**。若本機 `output/` 的歷史與 `origin/gh-pages` 分歧，推送會直接失敗，
   需要人工判斷後處理，不會靜默覆蓋遠端。
