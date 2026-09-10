@@ -9,7 +9,6 @@
 	"keywords": [],
 	"scripts": {
 		"build": "tsx ./build-resources.ts",
-		"process-bgs": "tsx ./processBgs.ts",
 		"deploy": "tsx ./deploy-resources.ts",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
