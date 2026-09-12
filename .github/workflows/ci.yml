@@ -28,7 +28,13 @@ jobs:
           node-version: 24
 
       - name: install 7zip
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends 7zip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends 7zip
+          seven_zip=$(dpkg -L 7zip | grep -E '/(7zz|7zzs|7z)$' | head -n 1)
+          test -n "$seven_zip"
+          sudo ln -sf "$seven_zip" /usr/local/bin/7zz
+          7zz i > /dev/null
 
       - name: install dependencies
         run: pnpm install --frozen-lockfile
