@@ -4,12 +4,14 @@ import { readFile } from 'node:fs/promises'
 import { isAbsolute, relative, resolve } from 'node:path'
 import sharp from 'sharp'
 import { parseGameBgmPath } from './music'
-import { WORLD_MAP_SCHEMA_VERSION } from './schema'
+import { isArchivedWzPublishedProvenance, WORLD_MAP_SCHEMA_VERSION } from './schema'
 
 export interface ValidationOptions {
 	assetRoot: string
 	bgmIds: ReadonlySet<string>
 	requireGraph?: boolean
+	/** Provider-native canonical region. Defaults to GMS for the legacy contract. */
+	canonicalSourceRegion?: string
 }
 
 function fail(message: string): never {
@@ -29,9 +31,17 @@ function validateSource(source: { pageTitle: string, revisionId: number, revisio
 function validateGameDataSource(source: GameDataSource, field: string, allowUnavailable = false): void {
 	const validVersion = source.version === null
 		? allowUnavailable
-		: Number.isSafeInteger(source.version) && source.version > 0
-	if (source.provider !== 'maplestory-io' || !source.region || !validVersion || !/^https?:\/\//.test(source.apiBase))
-		fail(`${field} has invalid MapleStory.IO provenance`)
+		: typeof source.version === 'string' && source.version.length > 0 && source.version !== 'latest'
+	if ((source.provider !== 'maplestory-io' && source.provider !== 'maplearchive' && source.provider !== 'archived-wz') || !source.region || !validVersion || !/^https?:\/\//.test(source.apiBase))
+		fail(`${field} has invalid game-data provenance`)
+	if (source.logicalRegion !== undefined && source.logicalRegion !== 'GMS' && source.logicalRegion !== 'TWMS')
+		fail(`${field}.logicalRegion is invalid`)
+	if (source.provider === 'maplearchive' && (!source.releaseId || typeof source.releaseId !== 'string'))
+		fail(`${field}.releaseId is required for MapleArchive provenance`)
+	if (source.provider === 'archived-wz' && !isArchivedWzPublishedProvenance(source.archivedWz))
+		fail(`${field}.archivedWz is required and invalid`)
+	if (source.provider !== 'archived-wz' && source.archivedWz !== undefined)
+		fail(`${field}.archivedWz is invalid for ${source.provider}`)
 }
 
 async function validateImage(file: string, expectedSha1: string, assetRoot: string): Promise<void> {
@@ -108,7 +118,7 @@ function validateGraphBgm(node: WorldMapNode, map: WorldMapNode['spots'][number]
 		fail(`${node.worldMapId}/${map.mapId} selection references unknown track`)
 	if (map.selection.source === null && map.selection.trackId !== null)
 		fail(`${node.worldMapId}/${map.mapId} has a selection track without a source`)
-	if (map.selection.source === 'gms-map-bgm' && map.selection.trackId !== map.gameBgm?.trackId)
+	if ((map.selection.source === 'gms-map-bgm' || map.selection.source === 'game-map-bgm') && map.selection.trackId !== map.gameBgm?.trackId)
 		fail(`${node.worldMapId}/${map.mapId} selection is not the exact gameBgm catalog match`)
 }
 
@@ -118,9 +128,14 @@ async function validateGraph(graph: WorldMapGraph, options: ValidationOptions): 
 		if (!/^[a-z][a-z0-9]*$/i.test(node.worldMapId) || nodeById.has(node.worldMapId))
 			fail(`invalid or duplicate native worldMapId: ${node.worldMapId}`)
 		nodeById.set(node.worldMapId, node)
+		if (node.canonicalLabelSource !== undefined && node.canonicalLabelSource !== null && node.canonicalLabelSource !== 'string-wz' && node.canonicalLabelSource !== 'inbound-link-tooltip')
+			fail(`${node.worldMapId}.canonicalLabelSource is invalid`)
+		if (node.canonicalLabelSource === 'string-wz' && node.canonicalLabel == null)
+			fail(`${node.worldMapId}.canonicalLabelSource requires a canonicalLabel`)
 		validateGameDataSource(node.provenance, `${node.worldMapId}.provenance`)
-		if (node.provenance.region !== 'GMS')
-			fail(`${node.worldMapId}.provenance must use canonical GMS data`)
+		const canonicalSourceRegion = options.canonicalSourceRegion ?? 'GMS'
+		if (node.provenance.region !== canonicalSourceRegion)
+			fail(`${node.worldMapId}.provenance must use canonical ${canonicalSourceRegion} data`)
 		if (node.baseImages.length === 0)
 			fail(`${node.worldMapId} must have at least one base image`)
 		for (const [index, asset] of node.baseImages.entries())
@@ -199,8 +214,9 @@ export async function validateWorldMapIndex(index: WorldMapIndex, options: Valid
 		if (world.gameData == null)
 			fail(`${world.id}.gameData is required for canonical GMS output`)
 		validateGameDataSource(world.gameData, `${world.id}.gameData`)
-		if (world.gameData.region !== 'GMS')
-			fail(`${world.id}.gameData must use canonical GMS data, got ${world.gameData.region}`)
+		const canonicalSourceRegion = options.canonicalSourceRegion ?? 'GMS'
+		if (world.gameData.region !== canonicalSourceRegion)
+			fail(`${world.id}.gameData must use canonical ${canonicalSourceRegion} data, got ${world.gameData.region}`)
 		await validateImage(world.image.file, world.image.sha1, options.assetRoot)
 
 		const landmarkIds = new Set<string>()

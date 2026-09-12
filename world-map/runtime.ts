@@ -2,9 +2,10 @@ import type { GameDataSource, NormalizedRect, WorldMapAsset, WorldMapGraph, Worl
 import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'pathe'
-import { WORLD_MAP_SCHEMA_VERSION } from './schema'
+import { isArchivedWzPublishedProvenance, WORLD_MAP_SCHEMA_VERSION } from './schema'
+import { gameDataSourceMatches } from './source'
 
-export const WORLD_MAP_RUNTIME_SCHEMA_VERSION = 1 as const
+export const WORLD_MAP_RUNTIME_SCHEMA_VERSION = 2 as const
 
 export interface WorldMapRuntimeNodeIndex {
 	worldMapId: string
@@ -21,11 +22,11 @@ export interface WorldMapRuntimeNodeIndex {
 }
 
 export interface WorldMapRuntimeAssetMetadata {
-	root: 'world-map'
-	canonicalImagePath: 'world-map/images'
+	root: string
+	canonicalImagePath: string
 	nativeWz: {
 		region: string
-		version: number
+		version: string
 		pathPrefix: string
 	}
 }
@@ -61,6 +62,10 @@ export interface WorldMapRuntimeCompilation {
 
 export interface WorldMapRuntimeCompileOptions {
 	bgmIds?: ReadonlySet<string>
+	/** Resource root used by the manifest; preview uses an isolated non-deployable root. */
+	resourceRoot?: string
+	/** Published path prefix for native WZ assets. Defaults to the legacy GMS layout. */
+	nativeAssetPathPrefix?: string
 }
 
 export interface WorldMapRuntimeWriteResult {
@@ -100,13 +105,21 @@ function assertFiniteNumber(value: unknown, field: string): asserts value is num
 function validateSource(source: unknown, field: string, allowUnavailable = false): asserts source is GameDataSource {
 	if (!isRecord(source))
 		fail(`${field} must be an object`)
-	if (source.provider !== 'maplestory-io' || typeof source.region !== 'string' || source.region.length === 0)
+	if ((source.provider !== 'maplestory-io' && source.provider !== 'maplearchive' && source.provider !== 'archived-wz') || typeof source.region !== 'string' || source.region.length === 0)
 		fail(`${field} has invalid provider or region`)
+	if (source.logicalRegion !== undefined && source.logicalRegion !== 'GMS' && source.logicalRegion !== 'TWMS')
+		fail(`${field}.logicalRegion is invalid`)
+	if (source.provider === 'maplearchive' && (typeof source.releaseId !== 'string' || source.releaseId.length === 0))
+		fail(`${field}.releaseId is required for MapleArchive provenance`)
+	if (source.provider === 'archived-wz' && !isArchivedWzPublishedProvenance(source.archivedWz))
+		fail(`${field}.archivedWz is required and invalid`)
+	if (source.provider !== 'archived-wz' && source.archivedWz !== undefined)
+		fail(`${field}.archivedWz is invalid for ${source.provider}`)
 	const validVersion = source.version === null
 		? allowUnavailable
-		: Number.isSafeInteger(source.version) && (source.version as number) > 0
+		: typeof source.version === 'string' && source.version.length > 0 && source.version !== 'latest'
 	if (!validVersion)
-		fail(`${field}.version must be a positive integer`)
+		fail(`${field}.version must be a non-empty string`)
 	assertString(source.apiBase, `${field}.apiBase`)
 	if (!/^https?:\/\//u.test(source.apiBase))
 		fail(`${field}.apiBase must be an HTTP(S) URL`)
@@ -189,7 +202,7 @@ function validateGraphMap(value: unknown, field: string, mapNumbers: readonly st
 	if (!isRecord(value.selection))
 		fail(`${field}.selection must be an object`)
 	assertNullableString(value.selection.trackId, `${field}.selection.trackId`)
-	if (value.selection.source !== null && value.selection.source !== 'gms-map-bgm')
+	if (value.selection.source !== null && value.selection.source !== 'gms-map-bgm' && value.selection.source !== 'game-map-bgm')
 		fail(`${field}.selection.source is invalid`)
 	if (value.selection.trackId !== null && value.selection.source === null)
 		fail(`${field}.selection has a track without a source`)
@@ -205,6 +218,10 @@ function validateRuntimeNode(node: unknown, field: string, bgmIds?: ReadonlySet<
 		fail(`${field}.worldMapId is invalid`)
 	assertString(node.worldMapName, `${field}.worldMapName`, true)
 	assertNullableString(node.canonicalLabel, `${field}.canonicalLabel`)
+	if (node.canonicalLabelSource !== undefined && node.canonicalLabelSource !== null && node.canonicalLabelSource !== 'string-wz' && node.canonicalLabelSource !== 'inbound-link-tooltip')
+		fail(`${field}.canonicalLabelSource is invalid`)
+	if (node.canonicalLabelSource === 'string-wz' && node.canonicalLabel === null)
+		fail(`${field}.canonicalLabelSource requires a canonicalLabel`)
 	validateLocalizedNames(node.localizedNames, `${field}.localizedNames`, 'worldMapId')
 	assertNullableString(node.parentWorldMapId, `${field}.parentWorldMapId`)
 	validateSource(node.provenance, `${field}.provenance`)
@@ -266,7 +283,7 @@ function sameStringArray(actual: readonly string[], expected: readonly string[])
 	return actual.length === expected.length && actual.every((value, index) => value === expected[index])
 }
 
-function graphSource(graph: WorldMapGraph): GameDataSource & { version: number } {
+function graphSource(graph: WorldMapGraph): GameDataSource & { version: string } {
 	const first = graph.nodes[0]?.provenance
 	if (first == null)
 		throw new Error('World-map runtime compilation requires at least one graph node')
@@ -336,12 +353,12 @@ export function compileWorldMapRuntime(index: WorldMapIndex, options: WorldMapRu
 		},
 		source,
 		assets: {
-			root: 'world-map',
-			canonicalImagePath: 'world-map/images',
+			root: options.resourceRoot ?? 'world-map',
+			canonicalImagePath: `${options.resourceRoot ?? 'world-map'}/images`,
 			nativeWz: {
 				region: source.region,
 				version: source.version,
-				pathPrefix: `world-map/gms/${source.version}`,
+				pathPrefix: options.nativeAssetPathPrefix ?? `world-map/gms/${source.version}`,
 			},
 		},
 	}
@@ -372,8 +389,12 @@ export function validateWorldMapRuntime(
 	if (!/^[a-f0-9]{64}$/iu.test(manifest.cacheKey))
 		fail('manifest.cacheKey must be a SHA-256')
 	validateSource(manifest.source, 'manifest.source')
-	if (!isRecord(manifest.assets) || manifest.assets.root !== 'world-map' || manifest.assets.canonicalImagePath !== 'world-map/images')
+	if (!isRecord(manifest.assets))
 		fail('manifest.assets has invalid path metadata')
+	assertString(manifest.assets.root, 'manifest.assets.root')
+	assertString(manifest.assets.canonicalImagePath, 'manifest.assets.canonicalImagePath')
+	if (manifest.assets.canonicalImagePath !== `${manifest.assets.root}/images`)
+		fail('manifest.assets canonical image path does not match root')
 	if (!isRecord(manifest.assets.nativeWz) || manifest.assets.nativeWz.region !== manifest.source.region || manifest.assets.nativeWz.version !== manifest.source.version)
 		fail('manifest.assets.nativeWz does not match manifest.source')
 	assertString(manifest.assets.nativeWz.pathPrefix, 'manifest.assets.nativeWz.pathPrefix')
@@ -444,6 +465,8 @@ export function validateWorldMapRuntime(
 		if (chunk.schemaVersion !== WORLD_MAP_RUNTIME_SCHEMA_VERSION || chunk.canonicalSchemaVersion !== WORLD_MAP_SCHEMA_VERSION)
 			fail(`chunk ${entry.chunk} has an unsupported schema version`)
 		validateRuntimeNode(chunk.node, `chunk ${entry.chunk}.node`, options.bgmIds)
+		if (!gameDataSourceMatches(chunk.node.provenance, manifest.source))
+			fail(`chunk ${entry.chunk}.node provenance does not match manifest.source`)
 		if (chunk.node.worldMapId !== entry.worldMapId)
 			fail(`chunk ${entry.chunk}.node.worldMapId does not match its manifest entry`)
 		if (chunk.node.worldMapName !== entry.worldMapName || chunk.node.canonicalLabel !== entry.canonicalLabel || chunk.node.parentWorldMapId !== entry.parentWorldMapId)
@@ -467,6 +490,34 @@ export function validateWorldMapRuntime(
 		if (!chunkPaths.has(chunkPath))
 			fail(`chunk ${chunkPath} is not indexed by the manifest`)
 	}
+}
+
+export async function validateWorldMapRuntimeOutputAgainstIndex(
+	worldMapDirectory: string,
+	index: WorldMapIndex,
+	options: Pick<WorldMapRuntimeCompileOptions, 'bgmIds'> = {},
+): Promise<WorldMapRuntimeManifest> {
+	const manifest = await validateWorldMapRuntimeOutput(worldMapDirectory, options)
+	const expected = compileWorldMapRuntime(index, {
+		...options,
+		resourceRoot: manifest.assets.root,
+		nativeAssetPathPrefix: manifest.assets.nativeWz.pathPrefix,
+	})
+	if (JSON.stringify(manifest) !== JSON.stringify(expected.manifest))
+		fail('manifest does not match canonical world-maps.json')
+	for (const [chunkPath, expectedChunk] of expected.chunks) {
+		let actualChunk: unknown
+		try {
+			actualChunk = JSON.parse(await readFile(path.join(worldMapDirectory, chunkPath), 'utf8'))
+		}
+		catch (error) {
+			const message = error instanceof Error ? error.message : String(error)
+			throw new Error(`Could not read world-map runtime chunk ${chunkPath}: ${message}`)
+		}
+		if (JSON.stringify(actualChunk) !== JSON.stringify(expectedChunk))
+			fail(`chunk ${chunkPath} does not match canonical world-maps.json`)
+	}
+	return manifest
 }
 
 export async function writeWorldMapRuntime(

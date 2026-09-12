@@ -30,7 +30,7 @@ RUN if [ -z "$USER_ID" ] || [ -z "$USERNAME" ]; then echo "Error: USER_ID or USE
         useradd -m -u "$USER_ID" -g 100 "$USERNAME"; \
     fi && \
     apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg git curl ca-certificates && \
+    apt-get install -y --no-install-recommends ffmpeg git curl ca-certificates 7zip && \
     case "$(dpkg --print-architecture)" in \
         amd64) YTDLP_ASSET="yt-dlp_linux" ;; \
         arm64) YTDLP_ASSET="yt-dlp_linux_aarch64" ;; \
@@ -48,7 +48,7 @@ RUN if [ -z "$USER_ID" ] || [ -z "$USERNAME" ]; then echo "Error: USER_ID or USE
     corepack enable npm
 
 # 3. 建置期驗證：缺任何一個工具都應該現在就失敗，而不是跑到一半才炸
-RUN yt-dlp --version && ffprobe -version > /dev/null && node --version
+RUN yt-dlp --version && ffprobe -version > /dev/null && 7zz i > /dev/null && node --version
 
 # 4. 指定執行身份
 USER ${USERNAME}

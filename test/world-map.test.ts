@@ -1,15 +1,16 @@
 /* eslint-disable test/no-import-node-test */
 import type { AcquiredWorldMapGraph } from '../world-map/acquire'
-import type { AcquiredWorldMapSource, GameWorldMap } from '../world-map/source'
+import type { RawWzImageNode } from '../world-map/raw-wz'
+import type { AcquiredWorldMapSource, GameMapDetail, GameWorldMap } from '../world-map/source'
 import type { WorldMapSampleFixture } from './fixtures/world-map-samples'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
-import { downloadVerifiedImage, MapleStoryIoClient } from '../world-map/acquire'
+import { acquireWorldMapGraph, downloadVerifiedImage, MapleStoryIoClient, MapleStoryIoRequestError, WikiClient, worldMapStringKey } from '../world-map/acquire'
 import { enrichCanonicalMapDetails } from '../world-map/enrich'
-import { acquireLocalizationAttempts, createWorldMapGenerationPlan, parseGenerationMode, validateWorldMapSourceConfigs } from '../world-map/generate'
+import { acquireLocalizationAttempts, createWorldMapGenerationPlan, parseGenerationMode, parseGenerationSnapshot, publishFullSnapshot, resolveWorldMapGenerationSnapshot, runWorldMapGeneration, validateWorldMapSourceConfigs } from '../world-map/generate'
 import { localizeWorldMapGraph, normalizeWorldMapGraph } from '../world-map/graph'
 import { localizeWorldMap } from '../world-map/localize'
 import { buildCatalogIndex, gameBgmCatalogMatch, parseGameBgmPath } from '../world-map/music'
@@ -109,7 +110,7 @@ function graphFixture(): { acquired: AcquiredWorldMapGraph, catalog: Array<{ fil
 		acquired: {
 			provider: 'maplestory-io',
 			region: 'GMS',
-			version: 270,
+			version: '270',
 			apiBase: 'https://maplestory.io/api',
 			roots: ['WorldMap', 'GWorldMap'],
 			nodes,
@@ -139,10 +140,1751 @@ test('separates bounded preview planning from uncapped full planning', () => {
 	assert.equal(parseGenerationMode([]), 'preview')
 	assert.equal(parseGenerationMode(['--mode=full']), 'full')
 	assert.throws(() => parseGenerationMode(['--mode=everything']), /Invalid world-map generation mode/)
+	assert.deepEqual(parseGenerationSnapshot([]), { region: 'GMS', version: '270' })
+	assert.deepEqual(parseGenerationSnapshot(['--snapshot=TWMS/209']), { region: 'TWMS', version: '209' })
+	assert.deepEqual(parseGenerationSnapshot(['--snapshot=GMS/latest']), { region: 'GMS', version: 'latest' })
+})
+
+test('resolves logical snapshots to exact MapleStory.IO provider identities', async () => {
+	const fetcher = (async (url: string) => {
+		assert.ok(url.endsWith('/wz'))
+		return [
+			{ region: 'TMS', mapleVersionId: '209', isReady: true, hasImages: true },
+			{ region: 'TWMS', mapleVersionId: '255', isReady: true, hasImages: true },
+			{ region: 'TWMS', mapleVersionId: '256', isReady: true, hasImages: true },
+		]
+	}) as typeof import('ofetch').ofetch
+	const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0 })
+	assert.deepEqual(await resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '209' }), {
+		id: 'TWMS/209',
+		region: 'TWMS',
+		version: '209',
+		provider: 'maplestory-io',
+		providerRegion: 'TMS',
+	})
+	assert.deepEqual(await resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: 'latest' }), {
+		id: 'TWMS/256',
+		region: 'TWMS',
+		version: '256',
+		provider: 'maplestory-io',
+		providerRegion: 'TWMS',
+	})
+	await assert.rejects(resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '157' }), /archived-WZ provider is required/)
+	await assert.rejects(resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '171' }, undefined, { workspace: '/nonexistent' }), /Archived WZ generation for TWMS\/171 requires cached String\.wz/)
+	assert.deepEqual(await resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '171' }), {
+		id: 'TWMS/171',
+		region: 'TWMS',
+		version: '171',
+		provider: 'archived-wz',
+		providerRegion: 'TWMS',
+	})
+
+	const tmsOnly = new MapleStoryIoClient({
+		delayMs: 0,
+		timeoutMs: 0,
+		fetcher: (async () => [{ region: 'TMS', mapleVersionId: '209', isReady: true, hasImages: true }]) as never,
+	})
+	assert.deepEqual(await resolveWorldMapGenerationSnapshot(tmsOnly, { region: 'TWMS', version: 'latest' }), {
+		id: 'TWMS/209',
+		region: 'TWMS',
+		version: '209',
+		provider: 'maplestory-io',
+		providerRegion: 'TMS',
+	})
+})
+
+test('historical GMS generation defaults to native snapshot data without current Wiki/localization coupling', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class HistoricalClient extends MapleStoryIoClient {
+		override async hasReadyVersion(): Promise<boolean> { return true }
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			assert.equal(id, 'WorldMap')
+			return { id, worldMapName: id, parentWorld: null, links: [], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+		}
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return { WorldMap: 'Maple World' } }
+	}
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-historical-gms-'))
+	try {
+		const catalogSource = path.join(root, 'catalog-source.json')
+		await writeFile(catalogSource, '[]\n')
+		const wiki = new WikiClient({
+			delayMs: 0,
+			fetcher: (async () => { throw new Error('historical GMS preview must not query current Wiki sources by default') }) as never,
+		})
+		const result = await runWorldMapGeneration({
+			mode: 'preview',
+			snapshot: { region: 'GMS', version: '93' },
+			outputDir: root,
+			catalogSource,
+			client: wiki,
+			gameClient: new HistoricalClient({ delayMs: 0 }),
+			generatedAt: '2026-09-10T00:00:00.000Z',
+		})
+		assert.equal(result.snapshotId, 'GMS/93')
+		assert.deepEqual(result.worldSummaries, [])
+		const manifest = JSON.parse(await readFile(path.join(root, 'world-map-preview/snapshots/GMS/93/manifest.json'), 'utf8')) as { source: { region: string, version: string }, nodeCount: number }
+		assert.deepEqual(manifest.source.region, 'GMS')
+		assert.equal(manifest.source.version, '93')
+		assert.equal(manifest.nodeCount, 1)
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('writes exact TWMS snapshot resources without publishing a misleading unversioned alias', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class FixtureClient extends MapleStoryIoClient {
+		override async hasReadyVersion(): Promise<boolean> {
+			return true
+		}
+
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			return {
+				id,
+				worldMapName: id,
+				parentWorld: null,
+				links: [],
+				baseImages: [{ image, origin: { x: 0, y: 0 } }],
+				maps: [],
+				mapNumbers: [],
+			}
+		}
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> {
+			return { WorldMap: '楓之谷' }
+		}
+	}
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-snapshot-generation-'))
+	try {
+		const catalogSource = path.join(root, 'catalog-source.json')
+		await writeFile(catalogSource, '[]\n')
+		const result = await runWorldMapGeneration({
+			mode: 'preview',
+			snapshot: { region: 'TWMS', version: '209' },
+			outputDir: root,
+			catalogSource,
+			gameClient: new FixtureClient({ delayMs: 0 }),
+			generatedAt: '2026-09-10T00:00:00.000Z',
+		})
+		assert.equal(result.snapshotId, 'TWMS/209')
+		const manifest = JSON.parse(await readFile(path.join(root, 'world-map-preview/snapshots/TWMS/209/manifest.json'), 'utf8')) as { source: { region: string, logicalRegion?: string }, assets: { root: string, canonicalImagePath: string, nativeWz: { pathPrefix: string } } }
+		assert.equal(manifest.source.region, 'TMS')
+		assert.equal(manifest.source.logicalRegion, 'TWMS')
+		assert.equal(manifest.assets.root, 'world-map-preview')
+		assert.equal(manifest.assets.canonicalImagePath, 'world-map-preview/images')
+		assert.equal(manifest.assets.nativeWz.pathPrefix, 'world-map-preview/snapshots/TWMS/209/assets')
+		const catalog = JSON.parse(await readFile(path.join(root, 'world-map-preview/catalog.json'), 'utf8')) as { entries: Array<{ id: string, fingerprint: unknown }> }
+		const snapshotEntry = catalog.entries.find(entry => entry.id === 'TWMS/209') as { fingerprint: unknown, selectable?: boolean } | undefined
+		assert.equal(snapshotEntry?.fingerprint, null)
+		assert.equal(snapshotEntry?.selectable, false)
+		await assert.rejects(readFile(path.join(root, 'world-map/manifest.json'), 'utf8'))
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('keeps GMS/270 as the temporary unversioned compatibility alias', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class FixtureClient extends MapleStoryIoClient {
+		override async hasReadyVersion(): Promise<boolean> {
+			return true
+		}
+
+		override async listWorldMapIds(): Promise<string[]> {
+			return ['WorldMap', 'GWorldMap']
+		}
+
+		override async listMaps(): Promise<[]> {
+			return []
+		}
+
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			return { id, worldMapName: id, parentWorld: null, links: [], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+		}
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> {
+			return { WorldMap: 'Maple World' }
+		}
+	}
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-default-generation-'))
+	try {
+		const catalogSource = path.join(root, 'catalog-source.json')
+		await writeFile(catalogSource, '[]\n')
+		await runWorldMapGeneration({
+			mode: 'full',
+			snapshot: { region: 'GMS', version: '270' },
+			outputDir: root,
+			catalogSource,
+			sources: [],
+			localizations: [],
+			gameClient: new FixtureClient({ delayMs: 0 }),
+			generatedAt: '2026-09-10T00:00:00.000Z',
+		})
+		const versioned = JSON.parse(await readFile(path.join(root, 'world-map/snapshots/GMS/270/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string, source: Record<string, unknown> }
+		const compatibility = JSON.parse(await readFile(path.join(root, 'world-map/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string, source: Record<string, unknown>, assets: { nativeWz: { version: unknown } } }
+		assert.equal(versioned.schemaVersion, 2)
+		assert.equal(versioned.canonicalSchemaVersion, 7)
+		assert.equal(compatibility.schemaVersion, 1)
+		assert.equal(compatibility.canonicalSchemaVersion, 6)
+		assert.equal(compatibility.source.provider, 'maplestory-io')
+		assert.equal(compatibility.source.version, 270)
+		assert.equal('logicalRegion' in compatibility.source, false)
+		assert.equal(compatibility.assets.nativeWz.version, 270)
+		assert.notEqual(compatibility.cacheKey, '')
+		const compatibilityIndex = JSON.parse(await readFile(path.join(root, 'world-map/world-maps.json'), 'utf8')) as { schemaVersion: number, graph: { nodes: Array<{ canonicalLabelSource?: unknown, provenance: Record<string, unknown> }> } }
+		assert.equal(compatibilityIndex.schemaVersion, 6)
+		assert.equal(compatibilityIndex.graph.nodes[0]?.canonicalLabelSource, undefined)
+		assert.equal(compatibilityIndex.graph.nodes[0]?.provenance.version, 270)
+		assert.equal('logicalRegion' in compatibilityIndex.graph.nodes[0]!.provenance, false)
+		const beforePreviewCatalog = JSON.parse(await readFile(path.join(root, 'world-map/catalog.json'), 'utf8')) as { entries: Array<{ id: string, fingerprint: unknown, selectable: boolean }> }
+		const beforePreviewEntry = beforePreviewCatalog.entries.find(entry => entry.id === 'GMS/270')!
+		assert.equal(beforePreviewEntry.selectable, true)
+		assert.ok(beforePreviewEntry.fingerprint)
+
+		await runWorldMapGeneration({
+			mode: 'preview',
+			snapshot: { region: 'GMS', version: '270' },
+			outputDir: root,
+			catalogSource,
+			sources: [],
+			localizations: [],
+			gameClient: new FixtureClient({ delayMs: 0 }),
+			generatedAt: '2026-09-10T00:01:00.000Z',
+		})
+		const afterPreviewCatalog = JSON.parse(await readFile(path.join(root, 'world-map/catalog.json'), 'utf8')) as { entries: Array<{ id: string, fingerprint: unknown, selectable: boolean }> }
+		const afterPreviewEntry = afterPreviewCatalog.entries.find(entry => entry.id === 'GMS/270')!
+		assert.equal(afterPreviewEntry.selectable, true)
+		assert.deepEqual(afterPreviewEntry.fingerprint, beforePreviewEntry.fingerprint)
+		const previewManifest = JSON.parse(await readFile(path.join(root, 'world-map-preview/snapshots/GMS/270/manifest.json'), 'utf8')) as { cacheKey: string }
+		assert.notEqual(previewManifest.cacheKey, '')
+		const previewCatalog = JSON.parse(await readFile(path.join(root, 'world-map-preview/catalog.json'), 'utf8')) as { entries: Array<{ id: string, fingerprint: unknown, selectable: boolean }> }
+		const previewEntry = previewCatalog.entries.find(entry => entry.id === 'GMS/270')!
+		assert.equal(previewEntry.selectable, false)
+		assert.equal(previewEntry.fingerprint, null)
+		const compatibilityAfterPreview = JSON.parse(await readFile(path.join(root, 'world-map/manifest.json'), 'utf8')) as { cacheKey: string }
+		assert.equal(compatibilityAfterPreview.cacheKey, compatibility.cacheKey)
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('full MapleStory.IO graph acquisition distinguishes transient failures from deterministic 404s', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const transient = new MapleStoryIoRequestError('fixture', Object.assign(new Error('upstream unavailable'), { status: 503 }))
+	const missing = new MapleStoryIoRequestError('fixture', Object.assign(new Error('not found'), { status: 404 }))
+	const options = { mode: 'full' as const, requests: [], logicalRegion: 'GMS' as const }
+
+	class WorldMapTransientClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async fetchWorldMap(): Promise<GameWorldMap> { throw transient }
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const worldMapFailure = await acquireWorldMapGraph(new WorldMapTransientClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(worldMapFailure.completeness?.complete, false)
+	assert.equal(worldMapFailure.completeness?.worldMapIndexComplete, false)
+	assert.equal(worldMapFailure.completeness?.worldMapIndexFailures.WorldMap, 'transient')
+	assert.equal(worldMapFailure.completeness?.worldMapFailures.WorldMap, 'transient')
+
+	class UnrenderableIndexClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async fetchWorldMap(): Promise<GameWorldMap> {
+			return { id: 'WorldMap', worldMapName: 'WorldMap', parentWorld: null, links: [], baseImages: [], maps: [], mapNumbers: [] }
+		}
+
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const unrenderableIndex = await acquireWorldMapGraph(new UnrenderableIndexClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(unrenderableIndex.completeness?.complete, false)
+	assert.equal(unrenderableIndex.completeness?.worldMapIndexFailures.WorldMap, 'unrenderable')
+	assert.equal(unrenderableIndex.completeness?.worldMapFailures.WorldMap, 'unrenderable')
+
+	class RawControlIndexClient extends UnrenderableIndexClient {
+		override async listRawWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async rawWorldMapHasScreenShape(): Promise<boolean> { return false }
+		override async auditRawWorldMaps(): Promise<{ failures: Record<string, never>, mismatches: Record<string, string[]> }> { return { failures: {}, mismatches: {} } }
+		override async fetchRawMapStringsByMapIds(): Promise<{ values: Record<string, { name: string | null, streetName: string | null }>, failures: Record<string, never> }> { return { values: {}, failures: {} } }
+	}
+	const rawControlIndex = await acquireWorldMapGraph(new RawControlIndexClient({ delayMs: 0 }), 'GMS', '270', { ...options, rawWzAudit: true })
+	assert.equal(rawControlIndex.completeness?.complete, true)
+	assert.equal(rawControlIndex.completeness?.worldMapIndexComplete, true)
+	assert.deepEqual(rawControlIndex.completeness?.worldMapIndexFailures, {})
+	assert.deepEqual(rawControlIndex.completeness?.worldMapFailures, {})
+	assert.match(rawControlIndex.warnings?.join('\n') ?? '', /raw WZ has no screen structure/)
+
+	class DetailTransientClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+
+		override async fetchWorldMap(): Promise<GameWorldMap> {
+			return { id: 'WorldMap', worldMapName: 'WorldMap', parentWorld: null, links: [], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [{ spot: { x: 0, y: 0 }, type: 1, mapNumbers: ['100000000'] }], mapNumbers: ['100000000'] }
+		}
+
+		override async listMaps(): Promise<Array<{ id: string, name: string | null, streetName: string | null }>> { return [{ id: '100000000', name: 'Henesys', streetName: 'Henesys' }] }
+
+		override async fetchMap(): Promise<never> { throw transient }
+
+		override async fetchMapBgmPath(): Promise<string | null> { throw transient }
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const detailFailure = await acquireWorldMapGraph(new DetailTransientClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(detailFailure.completeness?.complete, false)
+	assert.equal(detailFailure.completeness?.mapDetailFailures['100000000'], 'transient')
+
+	class DetailBgmFallbackClient extends DetailTransientClient {
+		override async fetchMapBgmPath(): Promise<string> { return 'Bgm00/FloralLife' }
+	}
+	const detailBgmRecovered = await acquireWorldMapGraph(new DetailBgmFallbackClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(detailBgmRecovered.completeness?.complete, true)
+	assert.deepEqual(detailBgmRecovered.completeness?.mapDetailFailures, {})
+	assert.equal(detailBgmRecovered.maps.find(map => map.id === '100000000')?.backgroundMusic, 'Bgm00/FloralLife')
+	assert.equal(detailBgmRecovered.maps.find(map => map.id === '100000000')?.mapMark, null)
+	assert.match(detailBgmRecovered.warnings?.join('\n') ?? '', /exact map inventory and BGM endpoint used with mapMark unavailable/)
+
+	class DetailRawFallbackClient extends DetailTransientClient {
+		override async listRawWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async auditRawWorldMaps(): Promise<{ failures: Record<string, never>, mismatches: Record<string, string[]> }> { return { failures: {}, mismatches: {} } }
+		override async fetchRawMapStringsByMapIds(): Promise<{ values: Record<string, { name: string | null, streetName: string | null }>, failures: Record<string, never> }> { return { values: {}, failures: {} } }
+		override async fetchRawMapDetail(): Promise<{ mapMark: string, backgroundMusic: string, resolvedMapId: string } | null> {
+			return { mapMark: 'Henesys', backgroundMusic: 'Bgm00/FloralLife', resolvedMapId: '100000000' }
+		}
+	}
+	const detailRecovered = await acquireWorldMapGraph(new DetailRawFallbackClient({ delayMs: 0 }), 'GMS', '270', { ...options, rawWzAudit: true })
+	assert.equal(detailRecovered.completeness?.complete, true)
+	assert.deepEqual(detailRecovered.completeness?.mapDetailFailures, {})
+	assert.equal(detailRecovered.maps.find(map => map.id === '100000000')?.backgroundMusic, 'Bgm00/FloralLife')
+
+	class DetailRawAbsentClient extends DetailRawFallbackClient {
+		override async fetchRawMapDetail(): Promise<null> { return null }
+	}
+	const detailRawAbsent = await acquireWorldMapGraph(new DetailRawAbsentClient({ delayMs: 0 }), 'GMS', '270', { ...options, rawWzAudit: true })
+	assert.equal(detailRawAbsent.completeness?.complete, true)
+	assert.equal(detailRawAbsent.completeness?.mapDetailFailures['100000000'], 'not-found')
+	assert.match(detailRawAbsent.warnings?.join('\n') ?? '', /exact raw WZ map is absent/)
+
+	class DetailMissingClient extends DetailTransientClient {
+		override async fetchMap(): Promise<never> { throw missing }
+	}
+	const detailMissing = await acquireWorldMapGraph(new DetailMissingClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(detailMissing.completeness?.complete, true)
+	assert.equal(detailMissing.completeness?.worldMapIndexComplete, true)
+	assert.equal(detailMissing.completeness?.mapDetailFailures['100000000'], 'not-found')
+
+	class DetailRawMissingClient extends DetailRawFallbackClient {
+		override async fetchMap(): Promise<never> { throw missing }
+		override async fetchRawMapDetail(): Promise<never> { throw new Error('deterministic normalized 404 must not use raw detail fallback') }
+	}
+	const detailRawMissing = await acquireWorldMapGraph(new DetailRawMissingClient({ delayMs: 0 }), 'GMS', '270', { ...options, rawWzAudit: true })
+	assert.equal(detailRawMissing.completeness?.complete, true)
+	assert.equal(detailRawMissing.completeness?.mapDetailFailures['100000000'], 'not-found')
+
+	class MissingClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async fetchWorldMap(): Promise<GameWorldMap> { throw missing }
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const deterministicMissing = await acquireWorldMapGraph(new MissingClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(deterministicMissing.completeness?.complete, false)
+	assert.equal(deterministicMissing.completeness?.worldMapIndexComplete, false)
+	assert.equal(deterministicMissing.completeness?.worldMapIndexFailures.WorldMap, 'not-found')
+	assert.equal(deterministicMissing.completeness?.worldMapFailures.WorldMap, 'not-found')
+
+	class UnindexedLinkedTargetClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			if (id === 'WorldMap')
+				return { id, worldMapName: id, parentWorld: null, links: [{ toolTip: 'Historical target', linksTo: 'WorldMapUnindexed', linkImage: null }], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+			throw missing
+		}
+
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const unindexedLinkedTarget = await acquireWorldMapGraph(new UnindexedLinkedTargetClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(unindexedLinkedTarget.completeness?.complete, true)
+	assert.equal(unindexedLinkedTarget.completeness?.worldMapIndexComplete, true)
+	assert.equal(unindexedLinkedTarget.completeness?.worldMapUnindexedFailures.WorldMapUnindexed, 'not-found')
+	assert.equal(unindexedLinkedTarget.completeness?.worldMapFailures.WorldMapUnindexed, 'not-found')
+	const unresolvedGraph = normalizeWorldMapGraph(
+		unindexedLinkedTarget,
+		{
+			baseImages: new Map([['WorldMap', [{ file: 'world-map/test/WorldMap.png', width: 1, height: 1, sha1: '0'.repeat(40), origin: { x: 0, y: 0 } }]]]),
+			linkImages: new Map([['WorldMap', [null]]]),
+		},
+		[],
+	)
+	assert.equal(unresolvedGraph.nodes[0]!.links[0]!.targetWorldMapId, 'WorldMapUnindexed')
+
+	class UnindexedFailureClient extends MapleStoryIoClient {
+		constructor(private readonly failure: MapleStoryIoRequestError) {
+			super({ delayMs: 0 })
+		}
+
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			if (id === 'WorldMap')
+				return { id, worldMapName: id, parentWorld: null, links: [{ toolTip: 'Historical target', linksTo: 'WorldMapUnindexed', linkImage: null }], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+			throw this.failure
+		}
+
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const unindexedTransient = await acquireWorldMapGraph(new UnindexedFailureClient(transient), 'GMS', '270', options)
+	assert.equal(unindexedTransient.completeness?.complete, false)
+	assert.equal(unindexedTransient.completeness?.worldMapUnindexedFailures.WorldMapUnindexed, 'transient')
+	const unindexedInvalid = await acquireWorldMapGraph(new UnindexedFailureClient(new MapleStoryIoRequestError('fixture', new Error('malformed response'))), 'GMS', '270', options)
+	assert.equal(unindexedInvalid.completeness?.complete, false)
+	assert.equal(unindexedInvalid.completeness?.worldMapUnindexedFailures.WorldMapUnindexed, 'invalid')
+
+	class UnindexedUnrenderableClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			if (id === 'WorldMap')
+				return { id, worldMapName: id, parentWorld: null, links: [{ toolTip: 'Historical target', linksTo: 'WorldMapUnindexed', linkImage: null }], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+			return { id, worldMapName: id, parentWorld: null, links: [], baseImages: [], maps: [], mapNumbers: [] }
+		}
+
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const unindexedUnrenderable = await acquireWorldMapGraph(new UnindexedUnrenderableClient({ delayMs: 0 }), 'GMS', '270', options)
+	assert.equal(unindexedUnrenderable.completeness?.complete, true)
+	assert.equal(unindexedUnrenderable.completeness?.worldMapUnindexedFailures.WorldMapUnindexed, 'unrenderable')
+
+	const nameMissingClient = new (class extends MapleStoryIoClient {
+		constructor() {
+			super({
+				delayMs: 0,
+				fetcher: (async (url: string) => {
+					if (url.endsWith('/String/WorldMap.img'))
+						return { children: ['0', '010'] }
+					if (url.endsWith('/String/WorldMap.img/0/name') || url.endsWith('/String/WorldMap.img/010/name'))
+						throw Object.assign(new Error('historical name key absent'), { status: 404 })
+					throw new Error(`Unexpected String request: ${url}`)
+				}) as never,
+			})
+		}
+
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap', 'WorldMap010'] }
+
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			return {
+				id,
+				worldMapName: id,
+				parentWorld: id === 'WorldMap' ? null : 'WorldMap',
+				links: id === 'WorldMap' ? [{ toolTip: 'Victoria Island', linksTo: 'WorldMap010', linkImage: null }] : [],
+				baseImages: [{ image, origin: { x: 0, y: 0 } }],
+				maps: [],
+				mapNumbers: [],
+			}
+		}
+
+		override async listMaps(): Promise<[]> { return [] }
+	})()
+	const nameMissing = await acquireWorldMapGraph(nameMissingClient, 'GMS', '270', options)
+	assert.equal(nameMissing.completeness?.complete, true)
+	assert.equal(nameMissing.completeness?.worldMapIndexComplete, true)
+	assert.equal(nameMissing.completeness?.worldMapNamesFailure, null)
+	assert.deepEqual(nameMissing.worldMapNames, {})
+	const nameFallbackGraph = normalizeWorldMapGraph(
+		nameMissing,
+		{
+			baseImages: new Map(nameMissing.nodes.map(node => [node.id, [{ file: `world-map/test/${node.id}.png`, width: 1, height: 1, sha1: '0'.repeat(40), origin: { x: 0, y: 0 } }]])),
+			linkImages: new Map([['WorldMap', [null]], ['WorldMap010', []]]),
+		},
+		[],
+	)
+	assert.equal(nameFallbackGraph.nodes.find(node => node.worldMapId === 'WorldMap010')?.canonicalLabel, 'Victoria Island')
+})
+
+test('full generation does not replace a selectable artifact after index-listed WorldMap 404', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class FlakyClient extends MapleStoryIoClient {
+		failWorldMap = false
+		override async hasReadyVersion(): Promise<boolean> { return true }
+
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			if (this.failWorldMap)
+				throw new MapleStoryIoRequestError(`world map ${id}`, Object.assign(new Error('index-listed WorldMap absent'), { status: 404 }))
+			return { id, worldMapName: id, parentWorld: null, links: [], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+		}
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return { WorldMap: 'Maple World' } }
+	}
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-transient-full-'))
+	try {
+		const catalogSource = path.join(root, 'catalog-source.json')
+		await writeFile(catalogSource, '[]\n')
+		const client = new FlakyClient({ delayMs: 0 })
+		await runWorldMapGeneration({ mode: 'full', snapshot: { region: 'GMS', version: '270' }, outputDir: root, catalogSource, sources: [], localizations: [], gameClient: client, generatedAt: '2026-09-10T00:00:00.000Z' })
+		client.failWorldMap = true
+		await assert.rejects(
+			runWorldMapGeneration({ mode: 'full', snapshot: { region: 'GMS', version: '270' }, outputDir: root, catalogSource, sources: [], localizations: [], gameClient: client, generatedAt: '2026-09-10T00:01:00.000Z' }),
+			/incomplete.*not marked selectable/,
+		)
+		const catalog = JSON.parse(await readFile(path.join(root, 'world-map/catalog.json'), 'utf8')) as { entries: Array<{ id: string, selectable: boolean }> }
+		assert.equal(catalog.entries.find(entry => entry.id === 'GMS/270')?.selectable, true)
+		assert.ok((await readFile(path.join(root, 'world-map/snapshots/GMS/270/world-maps.json'))).byteLength > 0)
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('full generation publishes through staging and preserves the old snapshot after a mid-write failure', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class MidWriteFailureClient extends MapleStoryIoClient {
+		failMidWrite = false
+		upstreamUnavailable = false
+		override async hasReadyVersion(region: string): Promise<boolean> {
+			if (this.upstreamUnavailable && region === 'GMS')
+				throw new Error('MapleStory.IO unavailable')
+			return true
+		}
+
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap', 'GWorldMap'] }
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			return {
+				id,
+				worldMapName: id,
+				parentWorld: null,
+				links: [],
+				baseImages: [{ image: this.failMidWrite && id === 'GWorldMap' ? 'not-an-image' : image, origin: { x: 0, y: 0 } }],
+				maps: [],
+				mapNumbers: [],
+			}
+		}
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-transactional-refresh-'))
+	try {
+		const catalogSource = path.join(root, 'catalog-source.json')
+		await writeFile(catalogSource, '[]\n')
+		const client = new MidWriteFailureClient({ delayMs: 0 })
+		await runWorldMapGeneration({ mode: 'full', snapshot: { region: 'GMS', version: '270' }, outputDir: root, catalogSource, sources: [], localizations: [], gameClient: client, generatedAt: '2026-09-10T00:00:00.000Z' })
+		const snapshotFile = path.join(root, 'world-map/snapshots/GMS/270/world-maps.json')
+		const catalogFile = path.join(root, 'world-map/catalog.json')
+		const oldSnapshot = await readFile(snapshotFile)
+
+		client.upstreamUnavailable = true
+		await runWorldMapGeneration({ mode: 'full', snapshot: { region: 'TWMS', version: '209' }, outputDir: root, catalogSource, sources: [], localizations: [], gameClient: client, generatedAt: '2026-09-10T00:01:00.000Z' })
+		const carriedForwardCatalog = await readFile(catalogFile, 'utf8')
+		const carriedForward = JSON.parse(carriedForwardCatalog) as { entries: Array<{ id: string, selectable: boolean }> }
+		assert.equal(carriedForward.entries.find(entry => entry.id === 'GMS/270')?.selectable, true)
+
+		client.failMidWrite = true
+		await assert.rejects(
+			runWorldMapGeneration({ mode: 'full', snapshot: { region: 'TWMS', version: '217' }, outputDir: root, catalogSource, sources: [], localizations: [], gameClient: client, generatedAt: '2026-09-10T00:02:00.000Z' }),
+			/image|unsupported|Input buffer/i,
+		)
+		assert.deepEqual(await readFile(snapshotFile), oldSnapshot)
+		assert.deepEqual(await readFile(catalogFile, 'utf8'), carriedForwardCatalog)
+		const catalog = JSON.parse(carriedForwardCatalog) as { entries: Array<{ id: string, selectable: boolean }> }
+		assert.equal(catalog.entries.find(entry => entry.id === 'GMS/270')?.selectable, true)
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('rolls back the versioned snapshot, images, catalog, and compatibility alias when alias publication fails', async () => {
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-alias-transaction-'))
+	try {
+		const liveWorldMap = path.join(root, 'world-map')
+		const liveSnapshot = path.join(liveWorldMap, 'snapshots/GMS/270')
+		const liveImages = path.join(liveWorldMap, 'images')
+		await mkdir(path.join(liveSnapshot, 'nodes'), { recursive: true })
+		await mkdir(path.join(liveImages, 'old'), { recursive: true })
+		await mkdir(path.join(liveWorldMap, 'nodes'), { recursive: true })
+		await writeFile(path.join(liveSnapshot, 'marker'), 'old-snapshot')
+		await writeFile(path.join(liveImages, 'old/marker'), 'old-images')
+		await writeFile(path.join(liveWorldMap, 'world-maps.json'), 'old-alias-json')
+		await writeFile(path.join(liveWorldMap, 'manifest.json'), 'old-alias-manifest')
+		await writeFile(path.join(liveWorldMap, 'nodes/marker'), 'old-alias-node')
+		await writeFile(path.join(liveWorldMap, 'catalog.json'), 'old-catalog')
+
+		const stagingWorldMap = path.join(root, 'staging/world-map')
+		const stagingSnapshot = path.join(stagingWorldMap, 'snapshots/GMS/270')
+		const stagingImages = path.join(stagingWorldMap, 'images')
+		await mkdir(path.join(stagingSnapshot, 'nodes'), { recursive: true })
+		await mkdir(path.join(stagingImages, 'new'), { recursive: true })
+		await mkdir(path.join(stagingWorldMap, 'nodes'), { recursive: true })
+		await writeFile(path.join(stagingSnapshot, 'marker'), 'new-snapshot')
+		await writeFile(path.join(stagingImages, 'new/marker'), 'new-images')
+		await writeFile(path.join(stagingWorldMap, 'world-maps.json'), 'new-alias-json')
+		await writeFile(path.join(stagingWorldMap, 'manifest.json'), 'new-alias-manifest')
+		await writeFile(path.join(stagingWorldMap, 'nodes/marker'), 'new-alias-node')
+		await writeFile(path.join(stagingWorldMap, 'catalog.json'), 'new-catalog')
+
+		const failingRename = async (source: Parameters<typeof rename>[0], target: Parameters<typeof rename>[1]): Promise<void> => {
+			if (String(source).endsWith('/world-map/manifest.json'))
+				throw new Error('simulated compatibility alias publication failure')
+			await rename(source, target)
+		}
+		await assert.rejects(
+			publishFullSnapshot(
+				stagingSnapshot,
+				path.join(stagingWorldMap, 'catalog.json'),
+				stagingImages,
+				liveSnapshot,
+				path.join(liveWorldMap, 'catalog.json'),
+				liveImages,
+				root,
+				stagingWorldMap,
+				liveWorldMap,
+				{ renamePath: failingRename },
+			),
+			/simulated compatibility alias publication failure/,
+		)
+
+		assert.equal(await readFile(path.join(liveSnapshot, 'marker'), 'utf8'), 'old-snapshot')
+		assert.equal(await readFile(path.join(liveImages, 'old/marker'), 'utf8'), 'old-images')
+		assert.equal(await readFile(path.join(liveWorldMap, 'world-maps.json'), 'utf8'), 'old-alias-json')
+		assert.equal(await readFile(path.join(liveWorldMap, 'manifest.json'), 'utf8'), 'old-alias-manifest')
+		assert.equal(await readFile(path.join(liveWorldMap, 'nodes/marker'), 'utf8'), 'old-alias-node')
+		assert.equal(await readFile(path.join(liveWorldMap, 'catalog.json'), 'utf8'), 'old-catalog')
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('preserves the recovery backup when publication rollback itself fails', async () => {
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-rollback-recovery-'))
+	try {
+		const liveWorldMap = path.join(root, 'world-map')
+		const liveSnapshot = path.join(liveWorldMap, 'snapshots/GMS/270')
+		const stagingWorldMap = path.join(root, 'staging/world-map')
+		const stagingSnapshot = path.join(stagingWorldMap, 'snapshots/GMS/270')
+		await mkdir(liveSnapshot, { recursive: true })
+		await mkdir(stagingSnapshot, { recursive: true })
+		await writeFile(path.join(liveSnapshot, 'marker'), 'old-snapshot')
+		await writeFile(path.join(stagingSnapshot, 'marker'), 'new-snapshot')
+		await writeFile(path.join(liveWorldMap, 'catalog.json'), 'old-catalog')
+		await writeFile(path.join(stagingWorldMap, 'catalog.json'), 'new-catalog')
+
+		const injectedRename = async (source: Parameters<typeof rename>[0], target: Parameters<typeof rename>[1]): Promise<void> => {
+			const sourceText = String(source)
+			if (sourceText === path.join(stagingWorldMap, 'catalog.json'))
+				throw new Error('simulated publication failure')
+			if (sourceText.includes('.world-map-publish-') && sourceText.endsWith('/snapshot') && String(target) === liveSnapshot)
+				throw new Error('simulated rollback restore failure')
+			await rename(source, target)
+		}
+
+		let failure: unknown
+		try {
+			await publishFullSnapshot(
+				stagingSnapshot,
+				path.join(stagingWorldMap, 'catalog.json'),
+				path.join(stagingWorldMap, 'images-does-not-exist'),
+				liveSnapshot,
+				path.join(liveWorldMap, 'catalog.json'),
+				path.join(liveWorldMap, 'images'),
+				root,
+				null,
+				liveWorldMap,
+				{ renamePath: injectedRename },
+			)
+		}
+		catch (error) {
+			failure = error
+		}
+		assert.ok(failure instanceof AggregateError)
+		assert.match(failure.message, /rollback was incomplete; preserved recovery backup at /)
+		const backupDirectory = failure.message.match(/preserved recovery backup at (.+)$/u)?.[1]
+		assert.ok(backupDirectory)
+		assert.equal(await readFile(path.join(backupDirectory, 'snapshot/marker'), 'utf8'), 'old-snapshot')
+		assert.equal(await readFile(path.join(liveWorldMap, 'catalog.json'), 'utf8'), 'old-catalog')
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('full generation refuses an index-listed WorldMap with no renderable base image', async () => {
+	class UnrenderableClient extends MapleStoryIoClient {
+		override async hasReadyVersion(): Promise<boolean> { return true }
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMap(): Promise<GameWorldMap> {
+			return { id: 'WorldMap', worldMapName: 'WorldMap', parentWorld: null, links: [], baseImages: [], maps: [], mapNumbers: [] }
+		}
+
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-unrenderable-full-'))
+	try {
+		const catalogSource = path.join(root, 'catalog-source.json')
+		await writeFile(catalogSource, '[]\n')
+		await assert.rejects(
+			runWorldMapGeneration({ mode: 'full', snapshot: { region: 'GMS', version: '270' }, outputDir: root, catalogSource, sources: [], localizations: [], gameClient: new UnrenderableClient({ delayMs: 0 }), generatedAt: '2026-09-10T00:00:00.000Z' }),
+			/incomplete.*not marked selectable/,
+		)
+	}
+	finally {
+		await rm(root, { recursive: true, force: true })
+	}
+})
+
+test('drops stale selectable snapshots when their full resources no longer verify', async (t) => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class FixtureClient extends MapleStoryIoClient {
+		override async hasReadyVersion(): Promise<boolean> { return true }
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap', 'GWorldMap'] }
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			return { id, worldMapName: id, parentWorld: null, links: [], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+		}
+
+		override async fetchWorldMapNames(_region: string): Promise<Record<string, string>> {
+			return { WorldMap: 'Maple World', GWorldMap: 'Grandis' }
+		}
+	}
+
+	const corruptions: Array<{ name: string, corrupt: (root: string) => Promise<void> }> = [
+		{
+			name: 'missing manifest',
+			corrupt: root => rm(path.join(root, 'world-map/snapshots/GMS/270/manifest.json')),
+		},
+		{
+			name: 'missing runtime chunk',
+			corrupt: root => rm(path.join(root, 'world-map/snapshots/GMS/270/nodes/WorldMap.json')),
+		},
+		{
+			name: 'missing native asset',
+			corrupt: root => rm(path.join(root, 'world-map/snapshots/GMS/270/assets/WorldMap/base-0.png')),
+		},
+		{
+			name: 'canonical graph changed after catalog fingerprinting',
+			async corrupt(root) {
+				const file = path.join(root, 'world-map/snapshots/GMS/270/world-maps.json')
+				const index = JSON.parse(await readFile(file, 'utf8')) as { graph: { nodes: Array<{ canonicalLabel: string | null }> } }
+				index.graph.nodes[0]!.canonicalLabel = 'Corrupted after generation'
+				await writeFile(file, `${JSON.stringify(index, null, 2)}\n`)
+			},
+		},
+		{
+			name: 'canonical graph provider identity changed after catalog fingerprinting',
+			async corrupt(root) {
+				const file = path.join(root, 'world-map/snapshots/GMS/270/world-maps.json')
+				const index = JSON.parse(await readFile(file, 'utf8')) as { graph: { nodes: Array<{ provenance: { apiBase: string } }> } }
+				index.graph.nodes[0]!.provenance.apiBase = 'https://wrong-provider.example/api'
+				await writeFile(file, `${JSON.stringify(index, null, 2)}\n`)
+			},
+		},
+		{
+			name: 'runtime manifest provider identity changed after catalog fingerprinting',
+			async corrupt(root) {
+				const file = path.join(root, 'world-map/snapshots/GMS/270/manifest.json')
+				const manifest = JSON.parse(await readFile(file, 'utf8')) as { source: { apiBase: string } }
+				manifest.source.apiBase = 'https://wrong-provider.example/api'
+				await writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`)
+			},
+		},
+	]
+
+	for (const corruption of corruptions) {
+		await t.test(corruption.name, async () => {
+			const root = await mkdtemp(path.join(tmpdir(), 'world-map-stale-snapshot-'))
+			try {
+				const catalogSource = path.join(root, 'catalog-source.json')
+				await writeFile(catalogSource, '[]\n')
+				const client = new FixtureClient({ delayMs: 0 })
+				await runWorldMapGeneration({
+					mode: 'full',
+					snapshot: { region: 'GMS', version: '270' },
+					outputDir: root,
+					catalogSource,
+					sources: [],
+					localizations: [],
+					gameClient: client,
+					generatedAt: '2026-09-10T00:00:00.000Z',
+				})
+				await corruption.corrupt(root)
+				const result = await runWorldMapGeneration({
+					mode: 'full',
+					snapshot: { region: 'TWMS', version: '209' },
+					outputDir: root,
+					catalogSource,
+					gameClient: client,
+					generatedAt: '2026-09-10T00:01:00.000Z',
+				})
+				assert.ok(result.warnings.some(warning => warning.startsWith('Snapshot GMS/270 is no longer selectable:')))
+				const catalog = JSON.parse(await readFile(path.join(root, 'world-map/catalog.json'), 'utf8')) as {
+					entries: Array<{ id: string, selectable: boolean, fingerprint: unknown }>
+				}
+				const stale = catalog.entries.find(entry => entry.id === 'GMS/270')!
+				const current = catalog.entries.find(entry => entry.id === 'TWMS/209')!
+				assert.equal(stale.selectable, false)
+				assert.equal(stale.fingerprint, null)
+				assert.equal(current.selectable, true)
+				assert.ok(current.fingerprint)
+			}
+			finally {
+				await rm(root, { recursive: true, force: true })
+			}
+		})
+	}
+})
+
+test('maps native WorldMap IDs to exact String/WorldMap.img keys', () => {
+	assert.equal(worldMapStringKey('WorldMap'), '0')
+	assert.equal(worldMapStringKey('WorldMap010'), '010')
+	assert.equal(worldMapStringKey('WorldMap08221'), '08221')
+	assert.equal(worldMapStringKey('GWorldMap'), 'GWorldMap')
+	assert.equal(worldMapStringKey('WorldMapCN'), 'WorldMapCN')
+	assert.equal(worldMapStringKey('../WorldMap'), null)
+})
+
+test('reads exact String/WorldMap.img names and treats missing keys as unavailable', async () => {
+	const calls: string[] = []
+	const fetcher = (async (url: string) => {
+		calls.push(url)
+		if (url.endsWith('/String/WorldMap.img'))
+			return { children: ['0', '010', 'GWorldMap'], type: 1 }
+		if (url.endsWith('/String/WorldMap.img/0/name'))
+			return { children: [], type: 8, value: 'Maple World' }
+		if (url.endsWith('/String/WorldMap.img/010/name'))
+			return { children: [], type: 8, value: 'Victoria Island' }
+		if (url.endsWith('/String/WorldMap.img/GWorldMap/name'))
+			return { children: [], type: 8, value: 'Grandis' }
+		throw new Error(`Unexpected request: ${url}`)
+	}) as typeof import('ofetch').ofetch
+	const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0 })
+	assert.deepEqual(await client.fetchWorldMapNames('GMS', '270', ['WorldMap', 'WorldMap010', 'WorldMap082', 'GWorldMap']), {
+		WorldMap: 'Maple World',
+		WorldMap010: 'Victoria Island',
+		GWorldMap: 'Grandis',
+	})
+	assert.equal(calls.length, 4)
+	assert.equal(await client.fetchWorldMapName('GMS', '270', 'GWorldMap'), 'Grandis')
+})
+
+test('reads raw WZ WorldMap inventory and category-partitioned map strings', async () => {
+	const fetcher = (async (url: string) => {
+		if (url.endsWith('/wz/GMS/270/Map/WorldMap'))
+			return { children: ['WorldMap.img', 'WorldMap010.img', '_Canvas'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000'))
+			return { children: ['mapName', 'streetName'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000/mapName'))
+			return { children: [], type: 8, value: 'Henesys' }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000/streetName'))
+			return { children: [], type: 8, value: 'Victoria Island' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0 })
+	assert.deepEqual(await client.listRawWorldMapIds('GMS', '270'), ['WorldMap', 'WorldMap010'])
+	assert.deepEqual(await client.fetchRawMapStrings('GMS', '270', 'victoria', ['100000000', '200000000']), {
+		100000000: { name: 'Henesys', streetName: 'Victoria Island' },
+	})
+
+	const inventoryCalls: string[] = []
+	const inventoryFetcher = (async (url: string) => {
+		inventoryCalls.push(url)
+		if (url.endsWith('/wz/GMS/270/String/Map.img'))
+			return { children: ['victoria', 'unused'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria'))
+			return { children: ['100000000'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/unused'))
+			return { children: [] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000/mapName'))
+			return { children: [], type: 8, value: 'Henesys raw' }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000/streetName'))
+			return { children: [], type: 8, value: 'Victoria raw' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const auditedClient = new MapleStoryIoClient({ fetcher: inventoryFetcher, delayMs: 0, timeoutMs: 0 })
+	assert.deepEqual(await auditedClient.fetchRawMapStringsByMapIds('GMS', '270', ['100000000', '200000000']), {
+		values: {
+			100000000: { name: 'Henesys raw', streetName: 'Victoria raw' },
+			200000000: { name: null, streetName: null },
+		},
+		failures: {},
+	})
+	await auditedClient.fetchRawMapStringsByMapIds('GMS', '270', ['100000000'])
+	assert.equal(inventoryCalls.filter(url => url.endsWith('/String/Map.img')).length, 1)
+	assert.equal(inventoryCalls.filter(url => url.endsWith('/String/Map.img/victoria')).length, 1)
+})
+
+test('uses bulk raw WorldMap images for scalar audit while retaining exact Canvas leaves', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const scalar = (type: number, value: unknown): RawWzImageNode => ({ type, value, children: {} })
+	const bulkImage: RawWzImageNode = {
+		type: 1,
+		children: {
+			BaseImg: { type: 13, children: { 0: { type: 12, value: '__bulk-canvas__', children: { origin: scalar(9, { x: 320, y: 235, isEmpty: false }) } }, spot: scalar(9, { x: -160, y: 129, isEmpty: false }) } },
+			MapLink: { type: 13, children: { 0: { type: 13, children: { link: { type: 13, children: { linkMap: scalar(6, 'WorldMap011') } }, toolTip: scalar(6, 'Nautilus') } } } },
+			MapList: { type: 13, children: { 95: { type: 13, children: { spot: scalar(9, { x: -195, y: -1, isEmpty: false }), type: scalar(2, 2), mapNo: { type: 13, children: { 0: scalar(2, 100000000) } } } } } },
+		},
+	}
+	const calls: string[] = []
+	const fetcher = (async (url: string) => {
+		calls.push(url)
+		if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+			return new Uint8Array([1, 2, 3])
+		if (url.endsWith('/BaseImg/0'))
+			return { children: ['origin'], type: 12, value: image }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0, rawImageParser: async () => bulkImage })
+	const result = await client.auditRawWorldMaps('GMS', '270', [{
+		id: 'WorldMap010',
+		worldMapName: 'WorldMap010',
+		parentWorld: 'WorldMap',
+		baseImages: [{ image, origin: { x: 320, y: 235 } }],
+		links: [{ toolTip: 'Nautilus', linksTo: 'WorldMap011', linkImage: null }],
+		maps: [{ spot: { x: -195, y: -1 }, type: 2, mapNumbers: ['100000000'] }],
+		mapNumbers: ['100000000'],
+	}])
+	assert.deepEqual(result, { failures: {}, mismatches: {} })
+	assert.equal(calls.length, 2)
+	assert.ok(calls[0]!.includes('/wz/export/GMS/270/Map/WorldMap/WorldMap010.img?rawImage=true'))
+	assert.ok(calls[1]!.endsWith('/Map/WorldMap/WorldMap010.img/BaseImg/0'))
+})
+
+test('publishes only exact BaseImg Canvas values after bulk and truncated raw cache sentinels', async () => {
+	const image = `data:image/png;base64,${'a'.repeat(9000)}`
+	const bulkImage: RawWzImageNode = {
+		type: 1,
+		children: {
+			BaseImg: { type: 13, children: { 0: { type: 12, value: '__bulk-canvas__', children: { origin: { type: 9, value: { x: 320, y: 235, isEmpty: false }, children: {} } } } } },
+		},
+	}
+	const node: GameWorldMap = {
+		id: 'WorldMap010',
+		worldMapName: 'WorldMap010',
+		parentWorld: 'WorldMap',
+		baseImages: [{ image, origin: { x: 320, y: 235 } }],
+		links: [],
+		maps: [],
+		mapNumbers: [],
+	}
+	const cache = await mkdtemp(path.join(tmpdir(), 'world-map-raw-base-fallback-cache-'))
+	try {
+		const firstCalls: string[] = []
+		const makeFetcher = (calls: string[]) => (async (url: string) => {
+			calls.push(url)
+			if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+				return new Uint8Array([1, 2, 3])
+			if (url.endsWith('/BaseImg/0'))
+				return { children: ['origin'], type: 12, value: image }
+			throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+		}) as typeof import('ofetch').ofetch
+		const first = new MapleStoryIoClient({ fetcher: makeFetcher(firstCalls), delayMs: 0, timeoutMs: 0, rawAuditCacheDir: cache, rawImageParser: async () => bulkImage })
+		assert.deepEqual(await first.auditRawWorldMaps('GMS', '270', [node]), { failures: {}, mismatches: {} })
+		assert.equal(firstCalls.length, 2)
+
+		const auditResumeCalls: string[] = []
+		const auditResume = new MapleStoryIoClient({
+			fetcher: makeFetcher(auditResumeCalls),
+			delayMs: 0,
+			timeoutMs: 0,
+			rawAuditCacheDir: cache,
+			rawImageParser: async () => bulkImage,
+		})
+		assert.deepEqual(await auditResume.auditRawWorldMaps('GMS', '270', [node]), { failures: {}, mismatches: {} })
+		assert.equal(auditResumeCalls.length, 0, 'normal audit should reuse the truncated Canvas cache and its exact hash')
+
+		const fallbackCalls: string[] = []
+		const fallback = new MapleStoryIoClient({
+			fetcher: makeFetcher(fallbackCalls),
+			delayMs: 0,
+			timeoutMs: 0,
+			rawAuditCacheDir: cache,
+			rawImageParser: async () => bulkImage,
+		})
+		assert.deepEqual(await fallback.fetchRawWorldMapBaseImages('GMS', '270', 'WorldMap010'), [{ image, origin: { x: 320, y: 235 } }])
+		assert.deepEqual(fallbackCalls.map(url => new URL(url).pathname), ['/api/wz/GMS/270/Map/WorldMap/WorldMap010.img/BaseImg/0'])
+	}
+	finally {
+		await rm(cache, { recursive: true, force: true })
+	}
+})
+
+test('audits MapLink Canvas renderability from the exact raw origin leaf', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const scalar = (type: number, value: unknown): RawWzImageNode => ({ type, value, children: {} })
+	const bulkImage: RawWzImageNode = {
+		type: 1,
+		children: {
+			BaseImg: { type: 13, children: { 0: { type: 12, value: '__bulk-canvas__', children: { origin: scalar(9, { x: 0, y: 0, isEmpty: false }) } } } },
+			MapLink: { type: 13, children: { 0: { type: 13, children: { link: { type: 13, children: { linkMap: scalar(6, 'WorldMap011'), linkImg: { type: 12, value: '__bulk-canvas__', children: { origin: scalar(9, { x: 0, y: 0, isEmpty: false }) } } } }, toolTip: scalar(6, 'Nautilus') } } } },
+		},
+	}
+	const calls: string[] = []
+	const fetcher = (async (url: string) => {
+		calls.push(url)
+		if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+			return new Uint8Array([1, 2, 3])
+		if (url.endsWith('/BaseImg/0') || url.endsWith('/linkImg'))
+			return { children: ['origin'], type: 12, value: image }
+		if (url.endsWith('/linkImg/origin'))
+			return { children: [], type: 9, value: { x: 0, y: 0, isEmpty: true } }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const result = await new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0, rawImageParser: async () => bulkImage }).auditRawWorldMaps('GMS', '270', [{
+		id: 'WorldMap010',
+		worldMapName: 'WorldMap010',
+		parentWorld: 'WorldMap',
+		baseImages: [{ image, origin: { x: 0, y: 0 } }],
+		links: [{ toolTip: 'Nautilus', linksTo: 'WorldMap011', linkImage: null }],
+		maps: [],
+		mapNumbers: [],
+	}])
+	assert.deepEqual(result, { failures: {}, mismatches: {} })
+	assert.ok(calls.some(url => url.endsWith('/MapLink/0/link/linkImg/origin')))
+})
+
+test('pairs duplicate raw MapList entries by semantic spot/type instead of occurrence order', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const scalar = (type: number, value: unknown): RawWzImageNode => ({ type, value, children: {} })
+	const duplicate = (type: number | string): RawWzImageNode => ({
+		type: 13,
+		children: {
+			spot: scalar(9, { x: -34, y: -37, isEmpty: false }),
+			type: scalar(2, type),
+			mapNo: { type: 13, children: { 0: scalar(2, 104020100) } },
+		},
+	})
+	const bulkImage: RawWzImageNode = {
+		type: 1,
+		children: {
+			BaseImg: { type: 13, children: { 0: { type: 12, value: '__bulk-canvas__', children: { origin: scalar(9, { x: 0, y: 0, isEmpty: false }) } } } },
+			MapList: { type: 13, children: { 7: duplicate('3'), 100: duplicate(5) } },
+		},
+	}
+	const client = new MapleStoryIoClient({
+		delayMs: 0,
+		timeoutMs: 0,
+		fetcher: (async (url: string) => {
+			if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+				return new Uint8Array([1])
+			if (url.endsWith('/BaseImg/0'))
+				return { children: ['origin'], type: 12, value: image }
+			throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+		}) as typeof import('ofetch').ofetch,
+		rawImageParser: async () => bulkImage,
+	})
+	const result = await client.auditRawWorldMaps('GMS', '137', [{
+		id: 'WorldMap010',
+		worldMapName: 'WorldMap010',
+		parentWorld: null,
+		baseImages: [{ image, origin: { x: 0, y: 0 } }],
+		links: [],
+		maps: [
+			{ spot: { x: -34, y: -37 }, type: 5, mapNumbers: ['104020100'] },
+			{ spot: { x: -34, y: -37 }, type: 3, mapNumbers: ['104020100'] },
+		],
+		mapNumbers: ['104020100', '104020100'],
+	}])
+	assert.deepEqual(result, { failures: {}, mismatches: {} })
+})
+
+test('uses bulk String/Map.img and falls back to exact leaves for malformed or transient bulk paths', async () => {
+	const bulkImage: RawWzImageNode = {
+		type: 1,
+		children: {
+			victoria: { type: 13, children: { 100000000: { type: 13, children: { mapName: { type: 6, value: 'Henesys', children: {} }, streetName: { type: 6, value: 'Victoria Island', children: {} } } } } },
+		},
+	}
+	const exactResponse = (url: string): unknown => {
+		if (url.endsWith('/String/Map.img'))
+			return { children: ['victoria'] }
+		if (url.endsWith('/String/Map.img/victoria'))
+			return { children: ['100000000'] }
+		if (url.endsWith('/String/Map.img/victoria/100000000/mapName'))
+			return { children: [], type: 8, value: 'Henesys exact' }
+		if (url.endsWith('/String/Map.img/victoria/100000000/streetName'))
+			return { children: [], type: 8, value: 'Victoria exact' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}
+	const bulkCalls: string[] = []
+	const bulkFetcher = (async (url: string) => {
+		bulkCalls.push(url)
+		if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+			return new Uint8Array([1, 2, 3])
+		throw Object.assign(new Error(`unexpected bulk-only request: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const bulkClient = new MapleStoryIoClient({ fetcher: bulkFetcher, delayMs: 0, timeoutMs: 0, rawImageParser: async () => bulkImage })
+	assert.deepEqual(await bulkClient.fetchRawMapStringsByMapIds('GMS', '270', ['100000000', '200000000']), {
+		values: {
+			100000000: { name: 'Henesys', streetName: 'Victoria Island' },
+			200000000: { name: null, streetName: null },
+		},
+		failures: {},
+	})
+	assert.equal(bulkCalls.length, 1)
+	assert.ok(bulkCalls[0]!.includes('/wz/export/GMS/270/String/Map.img?rawImage=true'))
+
+	const garbageCalls: string[] = []
+	const garbageFetcher = (async (url: string) => {
+		garbageCalls.push(url)
+		if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+			return new Uint8Array([1, 2, 3])
+		return exactResponse(url)
+	}) as typeof import('ofetch').ofetch
+	const garbage = { type: 1, children: { metadata: { type: 13, children: { value: { type: 6, value: 'not a map category', children: {} } } } } } satisfies RawWzImageNode
+	const garbageClient = new MapleStoryIoClient({ fetcher: garbageFetcher, delayMs: 0, timeoutMs: 0, rawImageParser: async () => garbage })
+	assert.deepEqual(await garbageClient.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+		values: { 100000000: { name: 'Henesys exact', streetName: 'Victoria exact' } },
+		failures: {},
+	})
+	assert.equal(garbageCalls.length, 5, 'nonempty garbage bulk tree must use exact category/leaf fallback')
+
+	const malformedParser = async () => {
+		throw new Error('malformed raw image')
+	}
+	const unusedParser = async () => {
+		throw new Error('not used')
+	}
+	for (const [label, parser] of [['malformed', malformedParser], ['transient', unusedParser]] as const) {
+		const calls: string[] = []
+		const fetcher = (async (url: string) => {
+			calls.push(url)
+			if (url.includes('/wz/export/') && url.endsWith('?rawImage=true')) {
+				if (label === 'transient')
+					throw Object.assign(new Error('bulk timeout'), { status: 503 })
+				return new Uint8Array([1, 2, 3])
+			}
+			return exactResponse(url)
+		}) as typeof import('ofetch').ofetch
+		const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0, maxRetries: 0, rawImageParser: parser })
+		assert.deepEqual(await client.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+			values: { 100000000: { name: 'Henesys exact', streetName: 'Victoria exact' } },
+			failures: {},
+		}, label)
+		assert.equal(calls.length, 5, `${label} bulk attempt plus four exact fallback requests`)
+	}
+
+	const transientLeafFetcher = (async (url: string) => {
+		if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+			return new Uint8Array([1, 2, 3])
+		if (url.endsWith('/String/Map.img'))
+			return { children: ['victoria'] }
+		if (url.endsWith('/String/Map.img/victoria'))
+			return { children: ['100000000'] }
+		if (url.endsWith('/mapName'))
+			throw Object.assign(new Error('leaf timeout'), { status: 503 })
+		if (url.endsWith('/streetName'))
+			return { children: [], type: 8, value: 'Victoria exact' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const transientLeaf = new MapleStoryIoClient({
+		fetcher: transientLeafFetcher,
+		delayMs: 0,
+		timeoutMs: 0,
+		maxRetries: 0,
+		rawImageParser: async () => { throw new Error('malformed raw image') },
+	})
+	assert.deepEqual(await transientLeaf.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+		values: {},
+		failures: { 100000000: 'transient' },
+	})
+})
+
+test('reuses only an intact persistent bulk raw-image cache entry', async () => {
+	const cache = await mkdtemp(path.join(tmpdir(), 'world-map-raw-image-cache-'))
+	const bulkImage: RawWzImageNode = { type: 1, children: { victoria: { type: 13, children: { 100000000: { type: 13, children: { mapName: { type: 6, value: 'Henesys', children: {} }, streetName: { type: 6, value: 'Victoria Island', children: {} } } } } } } }
+	const makeFetcher = (calls: string[]) => (async (url: string) => {
+		calls.push(url)
+		if (url.includes('/wz/export/') && url.endsWith('?rawImage=true'))
+			return new Uint8Array([1, 2, 3])
+		if (url.endsWith('/String/Map.img'))
+			return { children: ['victoria'] }
+		if (url.endsWith('/String/Map.img/victoria'))
+			return { children: ['100000000'] }
+		if (url.endsWith('/String/Map.img/victoria/100000000/mapName'))
+			return { children: [], type: 8, value: 'Henesys exact' }
+		if (url.endsWith('/String/Map.img/victoria/100000000/streetName'))
+			return { children: [], type: 8, value: 'Victoria exact' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	try {
+		const firstCalls: string[] = []
+		const first = new MapleStoryIoClient({
+			fetcher: makeFetcher(firstCalls),
+			delayMs: 0,
+			timeoutMs: 0,
+			rawAuditCacheDir: cache,
+			rawImageParser: async () => { throw new Error('local parser unavailable') },
+		})
+		assert.deepEqual(await first.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+			values: { 100000000: { name: 'Henesys exact', streetName: 'Victoria exact' } },
+			failures: {},
+		})
+		assert.equal(firstCalls.length, 5)
+		const manifest = JSON.parse(await readFile(path.join(cache, 'GMS', '270', 'manifest.json'), 'utf8')) as { entries: Record<string, { status?: string, rawImageFile?: string }> }
+		assert.equal(manifest.entries['@raw-image/String/Map.img']?.status, 'ok', 'parser failure must not downgrade successful source acquisition')
+		const imageFile = manifest.entries['@raw-image/String/Map.img']?.rawImageFile
+		assert.equal(typeof imageFile, 'string')
+
+		const resumedCalls: string[] = []
+		const resumed = new MapleStoryIoClient({ fetcher: makeFetcher(resumedCalls), delayMs: 0, timeoutMs: 0, rawAuditCacheDir: cache, rawImageParser: async () => bulkImage })
+		assert.deepEqual(await resumed.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+			values: { 100000000: { name: 'Henesys', streetName: 'Victoria Island' } },
+			failures: {},
+		})
+		assert.equal(resumedCalls.length, 0)
+
+		await writeFile(path.join(cache, 'GMS', '270', imageFile!), new Uint8Array([9]))
+		const recoveredCalls: string[] = []
+		const recovered = new MapleStoryIoClient({ fetcher: makeFetcher(recoveredCalls), delayMs: 0, timeoutMs: 0, rawAuditCacheDir: cache, rawImageParser: async () => bulkImage })
+		await recovered.fetchRawMapStringsByMapIds('GMS', '270', ['100000000'])
+		assert.equal(recoveredCalls.length, 1)
+	}
+	finally {
+		await rm(cache, { recursive: true, force: true })
+	}
+})
+
+test('resumes exact raw WZ inventory and map strings from the ignored source-scoped cache', async () => {
+	const cache = await mkdtemp(path.join(tmpdir(), 'world-map-raw-cache-'))
+	const failureCache = await mkdtemp(path.join(tmpdir(), 'world-map-raw-failure-cache-'))
+	let firstRequests = 0
+	const firstFetcher = (async (url: string) => {
+		firstRequests++
+		if (url.endsWith('/wz/GMS/270/Map/WorldMap'))
+			return { children: ['WorldMap.img'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img'))
+			return { children: ['victoria'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria'))
+			return { children: ['100000000'] }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000/mapName'))
+			return { children: [], type: 8, value: 'Henesys raw' }
+		if (url.endsWith('/wz/GMS/270/String/Map.img/victoria/100000000/streetName'))
+			return { children: [], type: 8, value: 'Victoria raw' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	try {
+		const first = new MapleStoryIoClient({ fetcher: firstFetcher, delayMs: 0, timeoutMs: 0, rawAuditCacheDir: cache })
+		assert.deepEqual(await first.listRawWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.deepEqual(await first.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+			values: { 100000000: { name: 'Henesys raw', streetName: 'Victoria raw' } },
+			failures: {},
+		})
+		assert.equal(firstRequests, 6)
+		const manifest = JSON.parse(await readFile(path.join(cache, 'GMS', '270', 'manifest.json'), 'utf8')) as { entries?: Record<string, unknown> }
+		assert.equal(Object.keys(manifest.entries ?? {}).length, 6)
+
+		let resumedRequests = 0
+		const resumedFetcher = (async () => {
+			resumedRequests++
+			throw new Error('network should not be needed for cached raw nodes')
+		}) as unknown as typeof import('ofetch').ofetch
+		const resumed = new MapleStoryIoClient({ fetcher: resumedFetcher, delayMs: 0, timeoutMs: 0, rawAuditCacheDir: cache })
+		assert.deepEqual(await resumed.listRawWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.deepEqual(await resumed.fetchRawMapStringsByMapIds('GMS', '270', ['100000000']), {
+			values: { 100000000: { name: 'Henesys raw', streetName: 'Victoria raw' } },
+			failures: {},
+		})
+		assert.equal(resumedRequests, 0)
+
+		const transientFetcher = (async () => {
+			throw Object.assign(new Error('upstream timeout'), { status: 500 })
+		}) as unknown as typeof import('ofetch').ofetch
+		const failed = new MapleStoryIoClient({ fetcher: transientFetcher, delayMs: 0, timeoutMs: 0, maxRetries: 0, rawAuditCacheDir: failureCache })
+		await assert.rejects(() => failed.listRawWorldMapIds('GMS', '270'))
+		const failureManifest = JSON.parse(await readFile(path.join(failureCache, 'GMS', '270', 'manifest.json'), 'utf8')) as { entries?: Record<string, { status?: string }> }
+		assert.equal(failureManifest.entries?.['Map/WorldMap']?.status, 'transient')
+		let recoveryRequests = 0
+		const recoveryFetcher = (async (url: string) => {
+			recoveryRequests++
+			if (url.endsWith('/wz/GMS/270/Map/WorldMap'))
+				return { children: ['WorldMap.img'] }
+			throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+		}) as typeof import('ofetch').ofetch
+		const recovered = new MapleStoryIoClient({ fetcher: recoveryFetcher, delayMs: 0, timeoutMs: 0, rawAuditCacheDir: failureCache })
+		assert.deepEqual(await recovered.listRawWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.equal(recoveryRequests, 1)
+	}
+	finally {
+		await rm(cache, { recursive: true, force: true })
+		await rm(failureCache, { recursive: true, force: true })
+	}
+})
+
+test('resumes exact normalized MapleStory.IO responses and retries transient cache entries', async () => {
+	const cache = await mkdtemp(path.join(tmpdir(), 'world-map-normalized-cache-'))
+	const partialCache = await mkdtemp(path.join(tmpdir(), 'world-map-normalized-partial-cache-'))
+	const failureCache = await mkdtemp(path.join(tmpdir(), 'world-map-normalized-failure-cache-'))
+	const worldMap = { worldMapName: 'Maple World', parentWorld: null, baseImage: [], links: [], maps: [] }
+	try {
+		let firstRequests = 0
+		const firstFetcher = (async (url: string) => {
+			firstRequests++
+			if (url.endsWith('/map/worldmap'))
+				return ['WorldMap']
+			if (url.endsWith('/map/worldmap/WorldMap'))
+				return worldMap
+			if (url.endsWith('/map'))
+				return [{ id: 100000000, name: 'Henesys', streetName: 'Victoria Island' }]
+			if (url.endsWith('/map/100000000'))
+				return { id: 100000000, mapMark: 'town', name: 'Henesys', streetName: 'Victoria Island', backgroundMusic: null }
+			throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+		}) as typeof import('ofetch').ofetch
+		const first = new MapleStoryIoClient({ fetcher: firstFetcher, delayMs: 0, timeoutMs: 0, normalizedResponseCacheDir: cache })
+		assert.deepEqual(await first.listWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.equal((await first.fetchWorldMap('GMS', '270', 'WorldMap')).id, 'WorldMap')
+		assert.deepEqual(await first.listMaps('GMS', '270'), [{ id: '100000000', name: 'Henesys', streetName: 'Victoria Island' }])
+		assert.deepEqual(await first.fetchMap('GMS', '270', '100000000'), {
+			id: '100000000',
+			mapMark: 'town',
+			name: 'Henesys',
+			streetName: 'Victoria Island',
+			backgroundMusic: null,
+		})
+		assert.equal(firstRequests, 4)
+		const manifest = JSON.parse(await readFile(path.join(cache, 'GMS', '270', 'manifest.json'), 'utf8')) as { entries?: Record<string, unknown> }
+		assert.equal(Object.keys(manifest.entries ?? {}).length, 4)
+		const worldMapEntry = manifest.entries?.['/GMS/270/map/worldmap'] as { response?: unknown } | undefined
+		assert.ok(worldMapEntry)
+		worldMapEntry.response = ['tampered']
+		await writeFile(path.join(cache, 'GMS', '270', 'manifest.json'), `${JSON.stringify(manifest)}\n`, 'utf8')
+		let integrityRequests = 0
+		const integrityClient = new MapleStoryIoClient({
+			fetcher: (async (url: string) => {
+				integrityRequests++
+				assert.ok(url.endsWith('/map/worldmap'))
+				return ['WorldMap']
+			}) as typeof import('ofetch').ofetch,
+			delayMs: 0,
+			timeoutMs: 0,
+			normalizedResponseCacheDir: cache,
+		})
+		assert.deepEqual(await integrityClient.listWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.equal(integrityRequests, 1)
+
+		let resumedRequests = 0
+		const resumedFetcher = (async () => {
+			resumedRequests++
+			throw new Error('network should not be needed for cached normalized responses')
+		}) as unknown as typeof import('ofetch').ofetch
+		const resumed = new MapleStoryIoClient({ fetcher: resumedFetcher, delayMs: 0, timeoutMs: 0, normalizedResponseCacheDir: cache })
+		assert.deepEqual(await resumed.listWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.equal((await resumed.fetchWorldMap('GMS', '270', 'WorldMap')).id, 'WorldMap')
+		assert.deepEqual(await resumed.listMaps('GMS', '270'), [{ id: '100000000', name: 'Henesys', streetName: 'Victoria Island' }])
+		assert.equal((await resumed.fetchMap('GMS', '270', '100000000')).backgroundMusic, null)
+		assert.equal(resumedRequests, 0)
+
+		let partialFirstRequests = 0
+		const partialFirstFetcher = (async (url: string) => {
+			partialFirstRequests++
+			if (url.endsWith('/map/worldmap'))
+				return ['WorldMap']
+			if (url.endsWith('/map/worldmap/WorldMap'))
+				return worldMap
+			throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+		}) as typeof import('ofetch').ofetch
+		const partialFirst = new MapleStoryIoClient({ fetcher: partialFirstFetcher, delayMs: 0, timeoutMs: 0, normalizedResponseCacheDir: partialCache })
+		await partialFirst.listWorldMapIds('GMS', '270')
+		await partialFirst.fetchWorldMap('GMS', '270', 'WorldMap')
+		assert.equal(partialFirstRequests, 2)
+		let partialResumeRequests = 0
+		const partialResumeFetcher = (async (url: string) => {
+			partialResumeRequests++
+			if (url.endsWith('/map'))
+				return [{ id: 100000000, name: 'Henesys', streetName: 'Victoria Island' }]
+			if (url.endsWith('/map/100000000'))
+				return { id: 100000000, mapMark: null, name: 'Henesys', streetName: 'Victoria Island', backgroundMusic: null }
+			throw new Error(`unexpected uncached request: ${url}`)
+		}) as typeof import('ofetch').ofetch
+		const partialResume = new MapleStoryIoClient({ fetcher: partialResumeFetcher, delayMs: 0, timeoutMs: 0, normalizedResponseCacheDir: partialCache })
+		assert.deepEqual(await partialResume.listWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.equal((await partialResume.fetchWorldMap('GMS', '270', 'WorldMap')).id, 'WorldMap')
+		await partialResume.listMaps('GMS', '270')
+		await partialResume.fetchMap('GMS', '270', '100000000')
+		assert.equal(partialResumeRequests, 2)
+
+		const transientFetcher = (async () => {
+			throw Object.assign(new Error('upstream timeout'), { status: 500 })
+		}) as unknown as typeof import('ofetch').ofetch
+		const failed = new MapleStoryIoClient({ fetcher: transientFetcher, delayMs: 0, timeoutMs: 0, maxRetries: 0, normalizedResponseCacheDir: failureCache })
+		await assert.rejects(() => failed.listWorldMapIds('GMS', '270'))
+		const failureManifest = JSON.parse(await readFile(path.join(failureCache, 'GMS', '270', 'manifest.json'), 'utf8')) as { entries?: Record<string, { status?: string }> }
+		assert.equal(failureManifest.entries?.['/GMS/270/map/worldmap']?.status, 'transient')
+		let recoveryRequests = 0
+		const recoveryFetcher = (async (url: string) => {
+			recoveryRequests++
+			if (url.endsWith('/map/worldmap'))
+				return ['WorldMap']
+			throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+		}) as typeof import('ofetch').ofetch
+		const recovered = new MapleStoryIoClient({ fetcher: recoveryFetcher, delayMs: 0, timeoutMs: 0, maxRetries: 0, normalizedResponseCacheDir: failureCache })
+		assert.deepEqual(await recovered.listWorldMapIds('GMS', '270'), ['WorldMap'])
+		assert.equal(recoveryRequests, 1)
+
+		let notFoundRequests = 0
+		const notFoundFetcher = (async () => {
+			notFoundRequests++
+			throw Object.assign(new Error('missing map'), { status: 404 })
+		}) as unknown as typeof import('ofetch').ofetch
+		const notFound = new MapleStoryIoClient({ fetcher: notFoundFetcher, delayMs: 0, timeoutMs: 0, normalizedResponseCacheDir: failureCache })
+		await assert.rejects(() => notFound.fetchMap('GMS', '270', '999999999'))
+		const notFoundResume = new MapleStoryIoClient({
+			fetcher: (async () => { throw new Error('404 should be resumed from cache') }) as unknown as typeof import('ofetch').ofetch,
+			delayMs: 0,
+			timeoutMs: 0,
+			normalizedResponseCacheDir: failureCache,
+		})
+		await assert.rejects(() => notFoundResume.fetchMap('GMS', '270', '999999999'), /HTTP 404/)
+		assert.equal(notFoundRequests, 1)
+	}
+	finally {
+		await rm(cache, { recursive: true, force: true })
+		await rm(partialCache, { recursive: true, force: true })
+		await rm(failureCache, { recursive: true, force: true })
+	}
+})
+
+test('audits raw WorldMap BaseImg, MapLink, and MapList against normalized fields', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const fetcher = (async (url: string) => {
+		if (url.endsWith('/Map/WorldMap/WorldMap.img'))
+			return { children: ['BaseImg', 'MapLink', 'MapList'], type: 1 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg/0'))
+			return { children: ['origin'], type: 12, value: image }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg/0/origin'))
+			return { children: [], type: 9, value: { x: 0, y: 0, isEmpty: false } }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0'))
+			return { children: ['link', 'toolTip'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0/toolTip'))
+			return { children: [], type: 8, value: 'Grandis' }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0/link/linkMap'))
+			return { children: [], type: 8, value: 'GWorldMap' }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0/link/linkImg'))
+			return { children: [], type: 12, value: image }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0/link/linkImg/origin'))
+			return { children: [], type: 9, value: { x: 0, y: 0, isEmpty: false } }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0'))
+			return { children: ['mapNo', 'spot', 'type'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/spot'))
+			return { children: [], type: 9, value: { x: 15, y: 25, isEmpty: false } }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/type'))
+			return { children: [], type: 4, value: 1 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/mapNo'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/mapNo/0'))
+			return { children: [], type: 4, value: 100000000 }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const node: GameWorldMap = {
+		id: 'WorldMap',
+		worldMapName: 'WorldMap',
+		parentWorld: null,
+		baseImages: [{ image, origin: { x: 0, y: 0 } }],
+		links: [{ toolTip: 'Grandis', linksTo: 'GWorldMap', linkImage: { image, origin: { x: 0, y: 0 } } }],
+		maps: [{ spot: { x: 15, y: 25 }, type: 1, mapNumbers: ['100000000'] }],
+		mapNumbers: ['100000000'],
+	}
+	const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0 })
+	assert.deepEqual(await client.auditRawWorldMaps('GMS', '270', [node]), { failures: {}, mismatches: {} })
+
+	const reorderedFetcher = (async (url: string) => {
+		if (url.endsWith('/Map/WorldMap/WorldMap.img'))
+			return { children: ['BaseImg', 'MapLink', 'MapList'], type: 1 }
+		if (url.endsWith('/BaseImg'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/BaseImg/0'))
+			return { children: ['origin'], type: 12, value: image }
+		if (url.endsWith('/BaseImg/0/origin'))
+			return { children: [], type: 9, value: { x: 0, y: 0, isEmpty: false } }
+		if (url.endsWith('/MapLink'))
+			return { children: ['0', '1'], type: 13 }
+		if (url.endsWith('/MapLink/0'))
+			return { children: ['link', 'toolTip'], type: 13 }
+		if (url.endsWith('/MapLink/0/toolTip'))
+			return { children: [], type: 8, value: 'Second' }
+		if (url.endsWith('/MapLink/0/link/linkMap'))
+			return { children: [], type: 8, value: 'WorldMap020' }
+		if (url.endsWith('/MapLink/0/link/linkImg'))
+			return null
+		if (url.endsWith('/MapLink/1'))
+			return { children: ['link', 'toolTip'], type: 13 }
+		if (url.endsWith('/MapLink/1/toolTip'))
+			return { children: [], type: 8, value: 'First' }
+		if (url.endsWith('/MapLink/1/link/linkMap'))
+			return { children: [], type: 8, value: 'WorldMap010' }
+		if (url.endsWith('/MapLink/1/link/linkImg'))
+			return null
+		if (url.endsWith('/MapList'))
+			return { children: ['0', '1'], type: 13 }
+		if (url.endsWith('/MapList/0'))
+			return { children: ['mapNo', 'spot', 'type'], type: 13 }
+		if (url.endsWith('/MapList/0/spot'))
+			return { children: [], type: 9, value: { x: 20, y: 20, isEmpty: false } }
+		if (url.endsWith('/MapList/0/type'))
+			return { children: [], type: 4, value: 1 }
+		if (url.endsWith('/MapList/0/mapNo'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/MapList/0/mapNo/0'))
+			return { children: [], type: 4, value: 200000000 }
+		if (url.endsWith('/MapList/1'))
+			return { children: ['mapNo', 'spot', 'type'], type: 13 }
+		if (url.endsWith('/MapList/1/spot'))
+			return { children: [], type: 9, value: { x: 10, y: 10, isEmpty: false } }
+		if (url.endsWith('/MapList/1/type'))
+			return { children: [], type: 4, value: 1 }
+		if (url.endsWith('/MapList/1/mapNo'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/MapList/1/mapNo/0'))
+			return { children: [], type: 4, value: 100000000 }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const reordered = await new MapleStoryIoClient({ fetcher: reorderedFetcher, delayMs: 0, timeoutMs: 0 }).auditRawWorldMaps('GMS', '270', [{
+		...node,
+		links: [
+			{ toolTip: 'First', linksTo: 'WorldMap010', linkImage: null },
+			{ toolTip: 'Second', linksTo: 'WorldMap020', linkImage: null },
+		],
+		maps: [
+			{ spot: { x: 10, y: 10 }, type: 1, mapNumbers: ['100000000'] },
+			{ spot: { x: 20, y: 20 }, type: 1, mapNumbers: ['200000000'] },
+		],
+	}])
+	assert.deepEqual(reordered, { failures: {}, mismatches: {} })
+
+	const mismatchClient = new MapleStoryIoClient({
+		fetcher: (async (url: string) => url.endsWith('/BaseImg')
+			? { children: [], type: 13 }
+			: fetcher(url)) as typeof import('ofetch').ofetch,
+		delayMs: 0,
+		timeoutMs: 0,
+	})
+	const mismatch = await mismatchClient.auditRawWorldMaps('GMS', '270', [node])
+	assert.deepEqual(mismatch.failures, {})
+	assert.deepEqual(mismatch.mismatches, { WorldMap: ['raw BaseImg has no Canvas'] })
+
+	const assetMismatchClient = new MapleStoryIoClient({
+		fetcher: (async (url: string) => {
+			if (url.endsWith('/BaseImg/0') && !url.endsWith('/BaseImg/0/origin'))
+				return { children: ['origin'], type: 12, value: `${image}changed` }
+			return fetcher(url)
+		}) as typeof import('ofetch').ofetch,
+		delayMs: 0,
+		timeoutMs: 0,
+	})
+	const assetMismatch = await assetMismatchClient.auditRawWorldMaps('GMS', '270', [node])
+	assert.deepEqual(assetMismatch.failures, {})
+	assert.deepEqual(assetMismatch.mismatches, { WorldMap: ['raw BaseImg Canvas bytes differ from normalized at index 0'] })
+})
+
+test('continues raw WorldMap audit after independent leaf failures and resumes cached siblings', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const cache = await mkdtemp(path.join(tmpdir(), 'world-map-raw-audit-sibling-cache-'))
+	const node: GameWorldMap = {
+		id: 'WorldMap',
+		worldMapName: 'WorldMap',
+		parentWorld: null,
+		baseImages: [{ image, origin: { x: 0, y: 0 } }, { image, origin: { x: 1, y: 1 } }],
+		links: [{ toolTip: 'Grandis', linksTo: 'GWorldMap', linkImage: null }],
+		maps: [{ spot: { x: 15, y: 25 }, type: 1, mapNumbers: ['100000000'] }],
+		mapNumbers: ['100000000'],
+	}
+	const transientPaths = new Set([
+		'/Map/WorldMap/WorldMap.img/BaseImg/0/origin',
+		'/Map/WorldMap/WorldMap.img/MapLink/0/toolTip',
+	])
+	const response = (url: string): unknown => {
+		if (url.endsWith('/Map/WorldMap/WorldMap.img'))
+			return { children: ['BaseImg', 'MapLink', 'MapList'], type: 1 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg'))
+			return { children: ['0', '1'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg/0') || url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg/1'))
+			return { children: ['origin'], type: 12, value: image }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/BaseImg/1/origin'))
+			return { children: [], type: 9, value: { x: 1, y: 1, isEmpty: false } }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0'))
+			return { children: ['link', 'toolTip'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0/link/linkMap'))
+			return { children: [], type: 8, value: 'GWorldMap' }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapLink/0/link/linkImg'))
+			throw Object.assign(new Error('missing link image'), { status: 404 })
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0'))
+			return { children: ['mapNo', 'spot', 'type'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/spot'))
+			return { children: [], type: 9, value: { x: 15, y: 25, isEmpty: false } }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/type'))
+			return { children: [], type: 4, value: 1 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/mapNo'))
+			return { children: ['0'], type: 13 }
+		if (url.endsWith('/Map/WorldMap/WorldMap.img/MapList/0/mapNo/0'))
+			return { children: [], type: 4, value: 100000000 }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}
+	try {
+		const firstCalls: string[] = []
+		const firstFetcher = (async (url: string) => {
+			firstCalls.push(url)
+			const pathname = new URL(url).pathname.replace('/api/wz/GMS/270', '')
+			if (transientPaths.has(pathname))
+				throw Object.assign(new Error(`timeout: ${pathname}`), { status: 500 })
+			return response(url)
+		}) as typeof import('ofetch').ofetch
+		const first = new MapleStoryIoClient({ fetcher: firstFetcher, delayMs: 0, timeoutMs: 0, maxRetries: 0, rawAuditCacheDir: cache })
+		const incomplete = await first.auditRawWorldMaps('GMS', '270', [node])
+		assert.deepEqual(incomplete.failures, { WorldMap: 'transient' })
+		assert.deepEqual(incomplete.mismatches, {})
+		assert.ok(firstCalls.some(url => url.endsWith('/MapList/0/spot')))
+		assert.ok(!firstCalls.some(url => url.endsWith('/MapList/0')), 'MapList child container should not be fetched separately')
+		assert.ok(firstCalls.some(url => url.endsWith('/MapLink/0/link/linkMap')))
+
+		const recoveryCalls: string[] = []
+		const recoveryFetcher = (async (url: string) => {
+			recoveryCalls.push(url)
+			const pathname = new URL(url).pathname.replace('/api/wz/GMS/270', '')
+			if (pathname.endsWith('/BaseImg/0/origin'))
+				return { children: [], type: 9, value: { x: 0, y: 0, isEmpty: false } }
+			if (pathname.endsWith('/MapLink/0/toolTip'))
+				return { children: [], type: 8, value: 'Grandis' }
+			throw new Error(`successful raw sibling was not cached: ${url}`)
+		}) as typeof import('ofetch').ofetch
+		const recovered = new MapleStoryIoClient({ fetcher: recoveryFetcher, delayMs: 0, timeoutMs: 0, maxRetries: 0, rawAuditCacheDir: cache })
+		assert.deepEqual(await recovered.auditRawWorldMaps('GMS', '270', [node]), { failures: {}, mismatches: {} })
+		assert.deepEqual(recoveryCalls.map(url => new URL(url).pathname), [
+			'/api/wz/GMS/270/Map/WorldMap/WorldMap.img/BaseImg/0/origin',
+			'/api/wz/GMS/270/Map/WorldMap/WorldMap.img/MapLink/0/toolTip',
+		])
+	}
+	finally {
+		await rm(cache, { recursive: true, force: true })
+	}
+})
+
+test('records the exact raw WorldMap inventory during full graph acquisition without replacing normalized transport', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	class RawAuditClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async listRawWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async auditRawWorldMaps(): Promise<{ failures: Record<string, 'not-found' | 'transient' | 'invalid'>, mismatches: Record<string, string[]> }> { return { failures: {}, mismatches: {} } }
+		override async fetchRawMapStringsByMapIds(): Promise<{ values: Record<string, { name: string | null, streetName: string | null }>, failures: Record<string, 'not-found' | 'transient' | 'invalid'> }> { return { values: {}, failures: {} } }
+
+		override async fetchWorldMap(): Promise<GameWorldMap> {
+			return { id: 'WorldMap', worldMapName: 'WorldMap', parentWorld: null, links: [], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [], mapNumbers: [] }
+		}
+
+		override async listMaps(): Promise<[]> { return [] }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const acquired = await acquireWorldMapGraph(new RawAuditClient({ delayMs: 0 }), 'GMS', '270', {
+		mode: 'full',
+		requests: [],
+		logicalRegion: 'GMS',
+		rawWzAudit: true,
+	})
+	assert.deepEqual(acquired.rawWzWorldMapIds, ['WorldMap'])
+	assert.equal(acquired.nodes[0]?.id, 'WorldMap')
+})
+
+test('raw WZ inventory makes an unindexed normalized 500 target explicitly unresolved without blocking full completeness', async () => {
+	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
+	const attempted: string[] = []
+	const transient = new MapleStoryIoRequestError('fixture', Object.assign(new Error('normalized endpoint failed'), { status: 500 }))
+	class RawAuthoritativeClient extends MapleStoryIoClient {
+		override async listWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async listRawWorldMapIds(): Promise<string[]> { return ['WorldMap'] }
+		override async auditRawWorldMaps(): Promise<{ failures: Record<string, 'not-found' | 'transient' | 'invalid'>, mismatches: Record<string, string[]> }> { return { failures: {}, mismatches: {} } }
+		override async fetchRawMapStringsByMapIds(): Promise<{ values: Record<string, { name: string | null, streetName: string | null }>, failures: Record<string, 'not-found' | 'transient' | 'invalid'> }> {
+			return { values: { 100000000: { name: 'Henesys raw', streetName: 'Victoria raw' } }, failures: {} }
+		}
+
+		override async fetchWorldMap(_region: string, _version: string, id: string): Promise<GameWorldMap> {
+			attempted.push(id)
+			if (id === 'GWorldMap')
+				throw transient
+			return { id, worldMapName: id, parentWorld: null, links: [{ toolTip: 'Grandis', linksTo: 'GWorldMap', linkImage: null }], baseImages: [{ image, origin: { x: 0, y: 0 } }], maps: [{ spot: { x: 0, y: 0 }, type: 1, mapNumbers: ['100000000'] }], mapNumbers: ['100000000'] }
+		}
+
+		override async listMaps(): Promise<Array<{ id: string, name: string | null, streetName: string | null }>> { return [{ id: '100000000', name: 'Henesys normalized', streetName: 'Victoria normalized' }] }
+		override async fetchMap(): Promise<GameMapDetail> { return { id: '100000000', name: 'Henesys detail', streetName: 'Victoria detail', mapMark: null, backgroundMusic: null } }
+		override async fetchWorldMapNames(): Promise<Record<string, string>> { return {} }
+	}
+	const acquired = await acquireWorldMapGraph(new RawAuthoritativeClient({ delayMs: 0 }), 'GMS', '93', {
+		mode: 'full',
+		requests: [],
+		logicalRegion: 'GMS',
+		rawWzAudit: true,
+	})
+	assert.equal(acquired.completeness?.complete, true)
+	assert.deepEqual(acquired.completeness?.rawWzAbsentWorldMapIds, ['GWorldMap'])
+	assert.deepEqual(acquired.completeness?.worldMapUnindexedFailures, {})
+	assert.deepEqual(attempted, ['WorldMap'])
+	assert.deepEqual(acquired.maps[0], { id: '100000000', name: 'Henesys raw', streetName: 'Victoria raw', mapMark: null, backgroundMusic: null })
+	const graph = normalizeWorldMapGraph(acquired, {
+		baseImages: new Map([['WorldMap', [{ file: 'world-map/test/WorldMap.png', width: 1, height: 1, sha1: '0'.repeat(40), origin: { x: 0, y: 0 } }]]]),
+		linkImages: new Map([['WorldMap', [null]]]),
+	}, [])
+	assert.equal(graph.nodes[0]!.links[0]!.targetWorldMapId, 'GWorldMap')
+
+	class RawPresentFailureClient extends RawAuthoritativeClient {
+		override async listRawWorldMapIds(): Promise<string[]> { return ['WorldMap', 'GWorldMap'] }
+	}
+	const rawPresentFailure = await acquireWorldMapGraph(new RawPresentFailureClient({ delayMs: 0 }), 'GMS', '93', {
+		mode: 'full',
+		requests: [],
+		logicalRegion: 'GMS',
+		rawWzAudit: true,
+	})
+	assert.equal(rawPresentFailure.completeness?.complete, false)
+	assert.equal(rawPresentFailure.completeness?.worldMapUnindexedFailures.GWorldMap, 'transient')
+	assert.deepEqual(rawPresentFailure.completeness?.rawWzUnindexedWorldMapIds, ['GWorldMap'])
+	assert.deepEqual(rawPresentFailure.completeness?.rawWzAbsentWorldMapIds, [])
+
+	class RawInventoryUnavailableClient extends RawAuthoritativeClient {
+		override async listRawWorldMapIds(): Promise<string[]> { throw transient }
+	}
+	const rawInventoryUnavailable = await acquireWorldMapGraph(new RawInventoryUnavailableClient({ delayMs: 0 }), 'GMS', '93', {
+		mode: 'full',
+		requests: [],
+		logicalRegion: 'GMS',
+		rawWzAudit: true,
+	})
+	assert.equal(rawInventoryUnavailable.completeness?.complete, false)
+	assert.equal(rawInventoryUnavailable.completeness?.rawWzInventoryComplete, false)
+	assert.equal(rawInventoryUnavailable.completeness?.rawWzInventoryFailure, 'transient')
+
+	class RawMapStringFailureClient extends RawAuthoritativeClient {
+		override async fetchRawMapStringsByMapIds(): Promise<{ values: Record<string, { name: string | null, streetName: string | null }>, failures: Record<string, 'not-found' | 'transient' | 'invalid'> }> {
+			return { values: {}, failures: { 100000000: 'transient' } }
+		}
+	}
+	const rawMapStringFailure = await acquireWorldMapGraph(new RawMapStringFailureClient({ delayMs: 0 }), 'GMS', '93', {
+		mode: 'full',
+		requests: [],
+		logicalRegion: 'GMS',
+		rawWzAudit: true,
+	})
+	assert.equal(rawMapStringFailure.completeness?.complete, false)
+	assert.equal(rawMapStringFailure.completeness?.rawWzMapStringFailures['100000000'], 'transient')
 })
 
 test('parses the sampled world-map source shape', () => {
-	assert.equal(WORLD_MAP_SCHEMA_VERSION, 6)
+	assert.equal(WORLD_MAP_SCHEMA_VERSION, 7)
 	const wikitext = VICTORIA_ISLAND_FIXTURE.mapSourceWikitext
 	assert.equal(parseBaseImage(wikitext), 'WorldMap Victoria Island.png')
 	assert.equal(parsePoints(wikitext).length, 111)
@@ -187,7 +1929,7 @@ test('normalizes and validates Victoria Island baseline', async () => {
 		assert.equal(ramuramu.target.worldMapId, null)
 		assert.equal(ramuramu.target.mapMark, 'Ramuramu')
 		assert.equal(ramuramu.identity, 'unresolved')
-		assert.equal(result.normalized.world.gameData?.version, 270)
+		assert.equal(result.normalized.world.gameData?.version, '270')
 		assert.equal(result.normalized.world.source.revisionId, 480276)
 		assert.equal(result.normalized.world.source.revisionTimestamp, '2026-01-18T06:01:19Z')
 		assert.equal(result.normalized.warnings.length, 0)
@@ -355,7 +2097,7 @@ function enrichmentClient(
 	search: (token: string) => Promise<Array<{ id: string, name: string | null, streetName: string | null }>>,
 	fetchMap: (id: string) => Promise<{ id: string, mapMark: string | null, name: string | null, streetName: string | null }>,
 ): MapleStoryIoClient {
-	return { searchMaps: async (_region: string, _version: number, token: string) => search(token), fetchMap: async (_region: string, _version: number, id: string) => fetchMap(id) } as unknown as MapleStoryIoClient
+	return { searchMaps: async (_region: string, _version: string, token: string) => search(token), fetchMap: async (_region: string, _version: string, id: string) => fetchMap(id) } as unknown as MapleStoryIoClient
 }
 
 test('enriches Ramuramu mapMark only from unique GMS search/topology/detail evidence', async () => {
@@ -546,7 +2288,7 @@ test('rejects duplicate locale and conflicting localization joins safely', () =>
 	const nautilus = localized.landmarks.find(landmark => landmark.target.pageTitle === 'Nautilus')!
 	assert.equal(henesys.target.localizedNames['ko-KR-map-conflict']?.name, null)
 	assert.equal(henesys.target.localizedNames['ko-KR-map-conflict']?.join, null)
-	assert.equal(henesys.target.localizedNames['ko-KR-map-conflict']?.source.version, 389)
+	assert.equal(henesys.target.localizedNames['ko-KR-map-conflict']?.source.version, '389')
 	assert.equal(nautilus.target.localizedNames['ko-KR-link-conflict']?.name, null)
 	assert.equal(nautilus.target.localizedNames['ko-KR-link-conflict']?.join, null)
 })
@@ -600,8 +2342,105 @@ test('resolves only latest ready numeric versions and reports missing regions', 
 		]) as never,
 	})
 	assert.equal(client.apiBase, 'https://fixture.example/api')
-	assert.equal(await client.resolveLatestReadyVersion('GMS'), 270)
+	assert.equal(await client.hasReadyVersion('GMS', '270'), true)
+	assert.equal(await client.hasReadyVersion('GMS', '268'), false)
+	assert.equal(await client.resolveLatestReadyVersion('GMS'), '270')
 	await assert.rejects(client.resolveLatestReadyVersion('EMS'), /no ready numeric EMS version/)
+})
+
+test('accepts historical MapleStory.IO WorldMap payloads that omit worldMapName', async () => {
+	const client = new MapleStoryIoClient({
+		delayMs: 0,
+		apiBase: 'https://fixture.example/api',
+		fetcher: (async () => ({
+			baseImage: [{ image: 'fixture', origin: { x: 0, y: 0 } }],
+			links: [],
+			maps: [],
+		})) as never,
+	})
+	const worldMap = await client.fetchWorldMap('GMS', '93', 'WorldMap')
+	assert.equal(worldMap.id, 'WorldMap')
+	assert.equal(worldMap.worldMapName, 'WorldMap')
+})
+
+test('preserves requested WorldMap identity when MapleStory.IO resolves an aliased WZ screen name', async () => {
+	const client = new MapleStoryIoClient({
+		delayMs: 0,
+		apiBase: 'https://fixture.example/api',
+		fetcher: (async () => ({
+			worldMapName: 'WorldMap000',
+			parentWorld: 'WorldMap',
+			baseImage: [{ image: 'fixture', origin: { x: 0, y: 0 } }],
+			links: [],
+			maps: [],
+		})) as never,
+	})
+	const worldMap = await client.fetchWorldMap('TMS', '209', 'WorldMap167')
+	assert.equal(worldMap.id, 'WorldMap167')
+	assert.equal(worldMap.worldMapName, 'WorldMap000')
+})
+
+test('supports exact non-numeric version strings on MapleStory.IO client', async () => {
+	const requestedUrls: string[] = []
+	const client = new MapleStoryIoClient({
+		delayMs: 0,
+		apiBase: 'https://fixture.example/api',
+		fetcher: (async (url: string) => {
+			requestedUrls.push(url)
+			if (url.endsWith('/wz')) {
+				return [
+					{ region: 'GMS', mapleVersionId: '40B', isReady: true, hasImages: true },
+				]
+			}
+			if (url.includes('/map/worldmap/WorldMap000')) {
+				return {
+					worldMapName: 'WorldMap000',
+					baseImage: [{ image: 'fixture', origin: { x: 0, y: 0 } }],
+					links: [],
+					maps: [],
+				}
+			}
+			if (url.includes('/map/100000000')) {
+				return {
+					id: 100000000,
+					name: 'Henesys',
+				}
+			}
+			return []
+		}) as never,
+	})
+	assert.equal(await client.hasReadyVersion('GMS', '40B'), true)
+	const worldMap = await client.fetchWorldMap('GMS', '40B', 'WorldMap000')
+	assert.equal(worldMap.id, 'WorldMap000')
+	const map = await client.fetchMap('GMS', '40B', '100000000')
+	assert.equal(map.name, 'Henesys')
+	assert.ok(requestedUrls.some(u => u.includes('/api/GMS/40B/map/worldmap/WorldMap000')))
+	assert.ok(requestedUrls.some(u => u.includes('/api/GMS/40B/map/100000000')))
+})
+
+test('reads exact raw map detail info and follows same-snapshot map links', async () => {
+	const calls: string[] = []
+	const fetcher = (async (url: string) => {
+		calls.push(url)
+		if (url.endsWith('/Map/Map/Map1/100000000.img/info'))
+			return { children: ['link'] }
+		if (url.endsWith('/Map/Map/Map1/100000000.img/info/link'))
+			return { children: [], type: 2, value: 100000001 }
+		if (url.endsWith('/Map/Map/Map1/100000001.img/info'))
+			return { children: ['bgm', 'mapMark'] }
+		if (url.endsWith('/Map/Map/Map1/100000001.img/info/bgm'))
+			return { children: [], type: 8, value: 'Bgm00/FloralLife' }
+		if (url.endsWith('/Map/Map/Map1/100000001.img/info/mapMark'))
+			return { children: [], type: 8, value: 'Henesys' }
+		throw Object.assign(new Error(`not found: ${url}`), { status: 404 })
+	}) as typeof import('ofetch').ofetch
+	const client = new MapleStoryIoClient({ fetcher, delayMs: 0, timeoutMs: 0 })
+	assert.deepEqual(await client.fetchRawMapDetail('GMS', '270', '100000000'), {
+		backgroundMusic: 'Bgm00/FloralLife',
+		mapMark: 'Henesys',
+		resolvedMapId: '100000001',
+	})
+	assert.equal(calls.length, 5)
 })
 
 test('captures game-native backgroundMusic from map detail responses', async () => {
@@ -616,13 +2455,126 @@ test('captures game-native backgroundMusic from map detail responses', async () 
 			backgroundMusic: 'Bgm00/FloralLife',
 		})) as never,
 	})
-	assert.deepEqual(await client.fetchMap('GMS', 270, '100000000'), {
+	assert.deepEqual(await client.fetchMap('GMS', '270', '100000000'), {
 		id: '100000000',
 		mapMark: 'Henesys',
 		name: 'Henesys',
 		streetName: 'Henesys',
 		backgroundMusic: 'Bgm00/FloralLife',
 	})
+})
+
+test('bounds and phase-shifts full map-detail batches while preserving fetchMap results and failures', async () => {
+	const sleepCalls: number[] = []
+	let active = 0
+	let maxActive = 0
+	const releases: Array<() => void> = []
+	class BatchClient extends MapleStoryIoClient {
+		override async fetchMap(_region: string, _version: string, id: string): Promise<GameMapDetail> {
+			active++
+			maxActive = Math.max(maxActive, active)
+			await new Promise<void>(resolve => releases.push(resolve))
+			active--
+			if (id === '5')
+				throw Object.assign(new Error('detail timeout'), { status: 503 })
+			return { id, mapMark: null, name: id, streetName: null, backgroundMusic: null }
+		}
+	}
+	const client = new BatchClient({
+		delayMs: 1000,
+		sleep: async (ms) => {
+			sleepCalls.push(ms)
+		},
+	})
+	const pending = client.fetchMapsBounded('GMS', '270', ['1', '2', '3', '4', '5'], 4)
+	await new Promise<void>(resolve => setImmediate(resolve))
+	assert.equal(active, 4)
+	assert.equal(maxActive, 4)
+	assert.deepEqual(sleepCalls.sort((a, b) => a - b), [250, 500, 750])
+	while (releases.length > 0)
+		releases.shift()!()
+	await new Promise<void>(resolve => setImmediate(resolve))
+	while (releases.length > 0)
+		releases.shift()!()
+	const results = await pending
+	assert.equal(results.length, 5)
+	assert.equal(results[0]?.status, 'fulfilled')
+	assert.equal(results[4]?.status, 'rejected')
+})
+
+test('spaces concurrent normalized map-detail starts at the bounded aggregate rate', async () => {
+	const sleepCalls: number[] = []
+	const releases: Array<() => void> = []
+	const started: string[] = []
+	const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+	const client = new MapleStoryIoClient({
+		delayMs: 25,
+		timeoutMs: 0,
+		maxRetries: 0,
+		sleep: async (ms) => {
+			sleepCalls.push(ms)
+			await new Promise<void>(resolve => releases.push(resolve))
+		},
+		fetcher: (async (url: string) => {
+			started.push(url)
+			const id = url.split('/').at(-1)!
+			return { id: Number(id), mapMark: null, name: id, streetName: null, backgroundMusic: null }
+		}) as never,
+	})
+
+	const pending = Promise.all([
+		client.fetchMap('GMS', '270', '1'),
+		client.fetchMap('GMS', '270', '2'),
+	])
+	await flush()
+	assert.deepEqual(sleepCalls, [7])
+	assert.deepEqual(started, [])
+
+	releases.shift()!()
+	await flush()
+	assert.equal(started.length, 1)
+	assert.deepEqual(sleepCalls, [7, 7])
+
+	releases.shift()!()
+	await pending
+	assert.equal(started.length, 2)
+})
+
+test('spaces concurrent raw MapleStory.IO request starts without reducing aggregate audit rate', async () => {
+	const sleepCalls: number[] = []
+	const releases: Array<() => void> = []
+	const started: string[] = []
+	const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+	const client = new MapleStoryIoClient({
+		delayMs: 25,
+		timeoutMs: 0,
+		maxRetries: 0,
+		sleep: async (ms) => {
+			sleepCalls.push(ms)
+			await new Promise<void>(resolve => releases.push(resolve))
+		},
+		fetcher: (async (url: string) => {
+			started.push(url)
+			return { children: [] }
+		}) as never,
+	})
+
+	const pending = Promise.all([
+		client.listRawWorldMapIds('GMS', '270'),
+		client.listRawWorldMapIds('GMS', '269'),
+	])
+	await flush()
+	assert.deepEqual(sleepCalls, [7])
+	assert.deepEqual(started, [])
+
+	releases.shift()!()
+	await flush()
+	assert.equal(started.length, 1)
+	assert.deepEqual(sleepCalls, [7, 7])
+
+	releases.shift()!()
+	await pending
+	assert.equal(started.length, 2)
 })
 
 test('retries transient MapleStory.IO failures but not malformed successful payloads', async () => {
@@ -640,7 +2592,7 @@ test('retries transient MapleStory.IO failures but not malformed successful payl
 			return [{ region: 'GMS', mapleVersionId: '270', isReady: true, hasImages: true }]
 		}) as never,
 	})
-	assert.equal(await transientClient.resolveLatestReadyVersion('GMS'), 270)
+	assert.equal(await transientClient.resolveLatestReadyVersion('GMS'), '270')
 	assert.equal(transientCalls, 3)
 
 	let malformedCalls = 0
@@ -654,7 +2606,7 @@ test('retries transient MapleStory.IO failures but not malformed successful payl
 			return { worldMapName: 'WorldMap010', maps: 'not-an-array' }
 		}) as never,
 	})
-	await assert.rejects(malformedClient.fetchWorldMap('GMS', 270, 'WorldMap010'), /malformed world map/)
+	await assert.rejects(malformedClient.fetchWorldMap('GMS', '270', 'WorldMap010'), /malformed world map/)
 	assert.equal(malformedCalls, 1)
 })
 
@@ -766,6 +2718,42 @@ test('rejects contradictory singular music provenance', async () => {
 	}
 })
 
+test('validates archived-WZ provenance without requiring cache paths or packed offsets', async () => {
+	const result = await normalizeAndValidate(CERNIUM_FIXTURE)
+	try {
+		const archivedWz = {
+			providerRegion: 'TWMS',
+			providerVersion: '158',
+			archiveItem: 'synthetic-archive',
+			archiveFile: 'v158.7z',
+			archiveSha1: '1'.repeat(40),
+			members: {
+				stringWz: { name: 'String.wz' as const, sha256: '2'.repeat(64) },
+				mapWz: { name: 'Map.wz' as const, sha256: '3'.repeat(64) },
+			},
+		}
+		const valid = structuredClone(result.index)
+		valid.worlds[0]!.gameData = {
+			provider: 'archived-wz',
+			region: 'TWMS',
+			logicalRegion: 'TWMS',
+			version: '158',
+			apiBase: 'https://archive.org/download/synthetic-archive',
+			archivedWz,
+		}
+		await validateWorldMapIndex(valid, { assetRoot: result.assetRoot, bgmIds: new Set(CERNIUM_FIXTURE.catalog.map(item => item.filename)), canonicalSourceRegion: 'TWMS' })
+		const invalid = structuredClone(valid)
+		invalid.worlds[0]!.gameData!.archivedWz!.archiveSha1 = 'bad'
+		await assert.rejects(
+			validateWorldMapIndex(invalid, { assetRoot: result.assetRoot, bgmIds: new Set(CERNIUM_FIXTURE.catalog.map(item => item.filename)), canonicalSourceRegion: 'TWMS' }),
+			/archivedWz is (?:required and )?invalid/,
+		)
+	}
+	finally {
+		await rm(result.assetRoot, { recursive: true, force: true })
+	}
+})
+
 test('normalizes all Victoria WZ link origins without collapsing visual links', () => {
 	const fixture = graphFixture()
 	const graph = normalizeWorldMapGraph(fixture.acquired, graphAssets(fixture.acquired), fixture.catalog)
@@ -816,4 +2804,18 @@ test('keeps multiple native roots and prevents localization from changing topolo
 	assert.equal(duplicateLinks[1]!.canonicalLabel, null)
 	assert.equal(duplicateLinks[1]!.id, 'link-3')
 	assert.equal(localized.nodes.find(node => node.worldMapId === 'WorldMap230')!.spots[0]!.maps[0]!.localizedNames['ko-KR']?.name, '세르니움 광장')
+})
+
+test('prefers same-snapshot String/WorldMap names over inbound link tooltips', () => {
+	const fixture = graphFixture()
+	fixture.acquired.worldMapNames = { WorldMap: 'Maple World', WorldMap010: 'Victoria Island' }
+	fixture.acquired.nodes[0]!.links[0]!.toolTip = 'Not the canonical child title'
+	const graph = normalizeWorldMapGraph(fixture.acquired, graphAssets(fixture.acquired), fixture.catalog)
+	const root = graph.nodes.find(node => node.worldMapId === 'WorldMap')!
+	const victoria = graph.nodes.find(node => node.worldMapId === 'WorldMap010')!
+	assert.equal(root.canonicalLabel, 'Maple World')
+	assert.equal(root.canonicalLabelSource, 'string-wz')
+	assert.equal(victoria.canonicalLabel, 'Victoria Island')
+	assert.equal(victoria.canonicalLabelSource, 'string-wz')
+	assert.equal(root.links[0]!.canonicalLabel, 'Not the canonical child title')
 })

@@ -10,7 +10,7 @@ const SNAPSHOT = JSON.parse(readFileSync(new URL('./world-map-samples.json', imp
 const GAME_DATA_SOURCE = JSON.parse(readFileSync(new URL('./maplestory-io-gms-270.json', import.meta.url), 'utf8')) as {
 	provider: 'maplestory-io'
 	region: string
-	version: number
+	version: string
 	apiBase: string
 	worldMaps: Array<{ id: string, parentWorld: string, links: Array<{ toolTip: string, linksTo: string }>, maps: Array<{ mapNumbers: string[] }> }>
 	maps: GameDataSnapshot['maps']
