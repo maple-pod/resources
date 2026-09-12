@@ -171,7 +171,10 @@ test('resolves logical snapshots to exact MapleStory.IO provider identities', as
 	})
 	await assert.rejects(resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '157' }), /archived-WZ provider is required/)
 	await assert.rejects(resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '171' }, undefined, { workspace: '/nonexistent' }), /Archived WZ generation for TWMS\/171 requires cached String\.wz/)
-	assert.deepEqual(await resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '171' }), {
+	assert.deepEqual(await resolveWorldMapGenerationSnapshot(client, { region: 'TWMS', version: '171' }, undefined, {
+		workspace: '/nonexistent',
+		archivedWzPaths: { stringWzFile: '/fixture/String.wz', mapWzFile: '/fixture/Map.wz' },
+	}), {
 		id: 'TWMS/171',
 		region: 'TWMS',
 		version: '171',

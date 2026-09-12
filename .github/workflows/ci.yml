@@ -27,6 +27,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: install 7zip
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends 7zip
+
       - name: install dependencies
         run: pnpm install --frozen-lockfile
 

@@ -50,7 +50,10 @@ test('uses MapleArchive only when the exact release has imported game data', asy
 		resolveWorldMapGenerationSnapshot(mio, { region: 'TWMS', version: '124' }, archive, { workspace: '/nonexistent' }),
 		/Archived WZ generation for TWMS\/124 requires cached String\.wz/,
 	)
-	assert.deepEqual(await resolveWorldMapGenerationSnapshot(mio, { region: 'TWMS', version: '124' }, archive), {
+	assert.deepEqual(await resolveWorldMapGenerationSnapshot(mio, { region: 'TWMS', version: '124' }, archive, {
+		workspace: '/nonexistent',
+		archivedWzPaths: { stringWzFile: '/fixture/String.wz', mapWzFile: '/fixture/Map.wz' },
+	}), {
 		id: 'TWMS/124',
 		region: 'TWMS',
 		version: '124',
