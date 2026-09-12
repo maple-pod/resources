@@ -70,6 +70,7 @@ function fixtureIndex() {
 		linkImage: null,
 		screenOrigin: { x: 10, y: 20 },
 		hitRect: null,
+		hitPath: null,
 	})
 	const graph: WorldMapGraph = {
 		roots: ['WorldMap'],

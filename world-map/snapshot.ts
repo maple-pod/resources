@@ -229,7 +229,7 @@ export function fingerprintWorldMapGraph(graph: WorldMapGraph): WorldMapSnapshot
 	const geometry = sha256(nodes.map(node => ({
 		id: node.worldMapId,
 		baseImages: node.baseImages.map(asset => ({ width: asset.width, height: asset.height, origin: asset.origin })),
-		links: node.links.map(link => ({ target: link.targetWorldMapId, screenOrigin: link.screenOrigin, hitRect: link.hitRect })),
+		links: node.links.map(link => ({ target: link.targetWorldMapId, screenOrigin: link.screenOrigin, hitRect: link.hitRect, hitPath: link.hitPath })),
 		spots: node.spots.map(spot => ({ spot: spot.spot, point: spot.point, hitRect: spot.hitRect })),
 	})))
 	const assets = sha256(nodes.map(node => ({

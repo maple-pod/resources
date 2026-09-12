@@ -326,8 +326,8 @@ test('keeps GMS/270 as the temporary unversioned compatibility alias', async () 
 		})
 		const versioned = JSON.parse(await readFile(path.join(root, 'world-map/snapshots/GMS/270/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string, source: Record<string, unknown> }
 		const compatibility = JSON.parse(await readFile(path.join(root, 'world-map/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string, source: Record<string, unknown>, assets: { nativeWz: { version: unknown } } }
-		assert.equal(versioned.schemaVersion, 2)
-		assert.equal(versioned.canonicalSchemaVersion, 7)
+		assert.equal(versioned.schemaVersion, 3)
+		assert.equal(versioned.canonicalSchemaVersion, 8)
 		assert.equal(compatibility.schemaVersion, 1)
 		assert.equal(compatibility.canonicalSchemaVersion, 6)
 		assert.equal(compatibility.source.provider, 'maplestory-io')
@@ -1884,7 +1884,7 @@ test('raw WZ inventory makes an unindexed normalized 500 target explicitly unres
 })
 
 test('parses the sampled world-map source shape', () => {
-	assert.equal(WORLD_MAP_SCHEMA_VERSION, 7)
+	assert.equal(WORLD_MAP_SCHEMA_VERSION, 8)
 	const wikitext = VICTORIA_ISLAND_FIXTURE.mapSourceWikitext
 	assert.equal(parseBaseImage(wikitext), 'WorldMap Victoria Island.png')
 	assert.equal(parsePoints(wikitext).length, 111)

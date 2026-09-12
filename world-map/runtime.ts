@@ -2,10 +2,11 @@ import type { GameDataSource, NormalizedRect, WorldMapAsset, WorldMapGraph, Worl
 import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'pathe'
+import { isValidSvgHitPathString } from './hit-path'
 import { isArchivedWzPublishedProvenance, WORLD_MAP_SCHEMA_VERSION } from './schema'
 import { gameDataSourceMatches } from './source'
 
-export const WORLD_MAP_RUNTIME_SCHEMA_VERSION = 2 as const
+export const WORLD_MAP_RUNTIME_SCHEMA_VERSION = 3 as const
 
 export interface WorldMapRuntimeNodeIndex {
 	worldMapId: string
@@ -248,6 +249,16 @@ function validateRuntimeNode(node: unknown, field: string, bgmIds?: ReadonlySet<
 		assertInteger(link.screenOrigin.y, `${linkField}.screenOrigin.y`)
 		validateAsset(link.linkImage, `${linkField}.linkImage`, true)
 		validateRect(link.hitRect, `${linkField}.hitRect`)
+		if (link.hitPath !== null && !isRecord(link.hitPath))
+			fail(`${linkField}.hitPath must be an object or null`)
+		if (link.linkImage === null && link.hitPath !== null)
+			fail(`${linkField}.hitPath must be null when linkImage is null`)
+		if (link.hitPath !== null) {
+			if (link.hitPath.fillRule !== 'evenodd')
+				fail(`${linkField}.hitPath.fillRule must be 'evenodd'`)
+			if (typeof link.hitPath.d !== 'string' || !isValidSvgHitPathString(link.hitPath.d))
+				fail(`${linkField}.hitPath.d is not a valid SVG path`)
+		}
 	}
 	if (!Array.isArray(node.spots))
 		fail(`${field}.spots must be an array`)

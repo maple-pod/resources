@@ -1,5 +1,5 @@
 import type { AcquiredWorldMapGraph } from './acquire'
-import type { LocalizedName, WorldMapAsset, WorldMapGraph, WorldMapGraphLink, WorldMapGraphMap, WorldMapGraphSpot } from './schema'
+import type { LocalizedName, WorldMapAsset, WorldMapGraph, WorldMapGraphLink, WorldMapGraphMap, WorldMapGraphSpot, WorldMapHitPath } from './schema'
 import type { GameMapDetail, LocalizationAttempt, LocalizedGameDataSnapshot, MapleBgmCatalogItem } from './source'
 import { buildCatalogIndex, gameBgmCatalogMatch, parseGameBgmPath } from './music'
 
@@ -99,6 +99,7 @@ function graphMap(mapId: string, detail: GameMapDetail | null, catalog: ReturnTy
 export interface GraphAssets {
 	baseImages: ReadonlyMap<string, WorldMapAsset[]>
 	linkImages: ReadonlyMap<string, ReadonlyArray<WorldMapAsset | null>>
+	linkHitPaths?: ReadonlyMap<string, ReadonlyArray<WorldMapHitPath | null>>
 }
 
 export function normalizeWorldMapGraph(
@@ -122,6 +123,7 @@ export function normalizeWorldMapGraph(
 		if (firstBase == null)
 			throw new Error(`Missing verified WZ base image assets for ${node.id}`)
 		const linkAssets = assets.linkImages.get(node.id) ?? []
+		const linkHitPaths = assets.linkHitPaths?.get(node.id) ?? []
 		const links: WorldMapGraphLink[] = node.links.map((link, index) => {
 			const linkImage = linkAssets[index] ?? null
 			const screenOrigin = {
@@ -136,6 +138,7 @@ export function normalizeWorldMapGraph(
 				linkImage,
 				screenOrigin,
 				hitRect: linkAssetRect(linkImage, screenOrigin, firstBase),
+				hitPath: linkImage == null ? null : (linkHitPaths[index] ?? null),
 			}
 		})
 		const spots: WorldMapGraphSpot[] = node.maps.map((spot, index) => ({

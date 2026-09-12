@@ -1,4 +1,4 @@
-import type { ArchivedWzPublishedProvenance, GameDataSource, WorldMapIndex } from './schema'
+import type { ArchivedWzPublishedProvenance, GameDataSource, WorldMapHitPath, WorldMapIndex } from './schema'
 import type { WorldMapSnapshotFingerprint, WorldMapSnapshotId, WorldMapSnapshotRequest } from './snapshot'
 import type { LocalizationAttempt, MapleBgmCatalogItem, WorldMapLocalizationConfig, WorldMapSourceConfig } from './source'
 import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
@@ -11,6 +11,7 @@ import { acquireGameData, acquireLocalizedGameData, acquireWorldMapGraph, acquir
 import { acquireArchivedWzWorldMapGraph, archivedMapWzSource, archivedStringWzCacheDirectory, archivedStringWzSource, configuredArchivedWzPublishedProvenance, findCachedArchivedWzMember, readCachedArchivedWzProvenance, verifyArchivedWzPublishedProvenance } from './archived-wz'
 import { enrichCanonicalMapDetails } from './enrich'
 import { localizeWorldMapGraph, normalizeWorldMapGraph } from './graph'
+import { deriveHitPathFromPng } from './hit-path'
 import { writeLegacyWorldMapCompatibility } from './legacy'
 import { localizeWorldMap } from './localize'
 import { acquireMapleArchiveWorldMapGraph, MAPLEARCHIVE_API, MapleArchiveClient } from './maplearchive'
@@ -762,20 +763,37 @@ export async function runWorldMapGeneration(options: WorldMapGenerationOptions =
 		const nativeAssetPathPrefix = `${resourceRoot}/snapshots/${snapshot.region}/${snapshot.version}/assets`
 		const baseImages = new Map<string, Awaited<ReturnType<typeof writeVerifiedWzImage>>[]>()
 		const linkImages = new Map<string, Array<Awaited<ReturnType<typeof writeVerifiedWzImage>> | null>>()
+		const linkHitPaths = new Map<string, Array<WorldMapHitPath | null>>()
 		for (const node of acquiredGraph.nodes) {
 			const nodeBaseImages: Awaited<ReturnType<typeof writeVerifiedWzImage>>[] = []
 			for (const [index, image] of node.baseImages.entries())
 				nodeBaseImages.push(await writeVerifiedWzImage(image, generationOutputDir, `${nativeAssetPathPrefix}/${node.id}/base-${index}.png`))
 			baseImages.set(node.id, nodeBaseImages)
+			const firstBase = nodeBaseImages[0]
 			const nodeLinkImages: Array<Awaited<ReturnType<typeof writeVerifiedWzImage>> | null> = []
+			const nodeLinkHitPaths: Array<WorldMapHitPath | null> = []
 			for (const [index, link] of node.links.entries()) {
-				nodeLinkImages.push(link.linkImage == null
-					? null
-					: await writeVerifiedWzImage(link.linkImage, generationOutputDir, `${nativeAssetPathPrefix}/${node.id}/link-${index}.png`))
+				if (link.linkImage == null) {
+					nodeLinkImages.push(null)
+					nodeLinkHitPaths.push(null)
+				}
+				else {
+					const publishedLinkImage = await writeVerifiedWzImage(link.linkImage, generationOutputDir, `${nativeAssetPathPrefix}/${node.id}/link-${index}.png`)
+					nodeLinkImages.push(publishedLinkImage)
+					const screenOrigin = {
+						x: (firstBase?.origin.x ?? 0) - link.linkImage.origin.x,
+						y: (firstBase?.origin.y ?? 0) - link.linkImage.origin.y,
+					}
+					const publishedFile = path.join(generationOutputDir, publishedLinkImage.file)
+					const publishedBytes = await readFile(publishedFile)
+					const hitPath = await deriveHitPathFromPng(publishedBytes, screenOrigin)
+					nodeLinkHitPaths.push(hitPath)
+				}
 			}
 			linkImages.set(node.id, nodeLinkImages)
+			linkHitPaths.set(node.id, nodeLinkHitPaths)
 		}
-		const graph = normalizeWorldMapGraph(acquiredGraph, { baseImages, linkImages }, catalog)
+		const graph = normalizeWorldMapGraph(acquiredGraph, { baseImages, linkImages, linkHitPaths }, catalog)
 		if (plan.mode === 'full') {
 			const publishedSource = graph.nodes[0]?.provenance
 			if (publishedSource == null)

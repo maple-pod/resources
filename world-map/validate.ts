@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { isAbsolute, relative, resolve } from 'node:path'
 import sharp from 'sharp'
+import { isValidSvgHitPathString } from './hit-path'
 import { parseGameBgmPath } from './music'
 import { isArchivedWzPublishedProvenance, WORLD_MAP_SCHEMA_VERSION } from './schema'
 
@@ -155,6 +156,14 @@ async function validateGraph(graph: WorldMapGraph, options: ValidationOptions): 
 				if (link.hitRect.width <= 0 || link.hitRect.height <= 0)
 					fail(`${node.worldMapId}/${link.id} has a non-positive hit rectangle`)
 			}
+			if (link.hitPath === undefined)
+				fail(`${node.worldMapId}/${link.id} is missing hitPath`)
+			if (link.hitPath !== null) {
+				if (typeof link.hitPath !== 'object' || link.hitPath === null || link.hitPath.fillRule !== 'evenodd' || typeof link.hitPath.d !== 'string' || !isValidSvgHitPathString(link.hitPath.d))
+					fail(`${node.worldMapId}/${link.id} has invalid hitPath`)
+			}
+			if (link.linkImage == null && link.hitPath !== null)
+				fail(`${node.worldMapId}/${link.id} has hitPath without linkImage`)
 			if (link.linkImage != null)
 				await validateGraphAsset(link.linkImage, options.assetRoot, `${node.worldMapId}/${link.id}.linkImage`)
 			validateLocalizedNames(link.localizedNames, `${node.worldMapId}/${link.id}.localizedNames`, 'worldMapId')

@@ -41,7 +41,7 @@ function legacyValue(value: unknown): unknown {
 		return legacySource(value as unknown as GameDataSource)
 	const result: Record<string, unknown> = {}
 	for (const [key, child] of Object.entries(value)) {
-		if (key === 'canonicalLabelSource')
+		if (key === 'canonicalLabelSource' || key === 'hitPath')
 			continue
 		result[key] = legacyValue(child)
 	}

@@ -31,7 +31,7 @@ export const PUBLIC_BASELINE_SNAPSHOT_IDS = [
 
 // Bump when verification semantics change; old success records must not be
 // trusted after completeness or artifact-validation rules change.
-export const BASELINE_VERIFIER_SCHEMA_VERSION = 15 as const
+export const BASELINE_VERIFIER_SCHEMA_VERSION = 16 as const
 export const DEFAULT_BASELINE_VERIFIER_CONCURRENCY = 2
 const MAX_BASELINE_VERIFIER_CONCURRENCY = 3
 

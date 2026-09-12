@@ -49,7 +49,7 @@ function linkMap(graph: WorldMapGraph): Map<string, unknown> {
 	const result = new Map<string, unknown>()
 	for (const node of graph.nodes) {
 		for (const link of node.links)
-			result.set(`${node.worldMapId}/${link.id}`, { target: link.targetWorldMapId, canonicalLabel: link.canonicalLabel, screenOrigin: link.screenOrigin, hitRect: link.hitRect })
+			result.set(`${node.worldMapId}/${link.id}`, { target: link.targetWorldMapId, canonicalLabel: link.canonicalLabel, screenOrigin: link.screenOrigin, hitRect: link.hitRect, hitPath: link.hitPath })
 	}
 	return result
 }

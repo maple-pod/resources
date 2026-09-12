@@ -1,4 +1,4 @@
-export const WORLD_MAP_SCHEMA_VERSION = 7 as const
+export const WORLD_MAP_SCHEMA_VERSION = 8 as const
 
 export type WorldMapLandmarkKind = 'map' | 'region'
 
@@ -61,6 +61,11 @@ export interface WorldMapGraphSpot {
 	maps: WorldMapGraphMap[]
 }
 
+export interface WorldMapHitPath {
+	d: string
+	fillRule: 'evenodd'
+}
+
 export interface WorldMapGraphLink {
 	id: string
 	canonicalLabel: string | null
@@ -71,6 +76,8 @@ export interface WorldMapGraphLink {
 	screenOrigin: WorldMapOrigin
 	/** Normalized link-image rectangle in the first base image's coordinate space. */
 	hitRect: NormalizedRect | null
+	/** Precise derived SVG path in base-image coordinates. */
+	hitPath: WorldMapHitPath | null
 }
 
 export interface WorldMapNode {
