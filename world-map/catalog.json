@@ -1,0 +1,843 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-12T05:58:13.275Z",
+  "defaultSnapshot": "GMS/270",
+  "entries": [
+    {
+      "id": "GMS/92",
+      "label": "GMS v92 — pre-Big Bang",
+      "region": "GMS",
+      "version": "92",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "92"
+      },
+      "mapleArchive": {
+        "provider": "maplearchive",
+        "regionSlug": "gms",
+        "versionLabel": "92"
+      },
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Pre-Big-Bang comparison baseline."
+      ]
+    },
+    {
+      "id": "GMS/93",
+      "label": "GMS v93 — Big Bang",
+      "region": "GMS",
+      "version": "93",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/92",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "93"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "865107b8dd7418897cffcd2a0ae7df230fdaec6b55f77afc8cd3910c62e0f900",
+        "geometry": "f9bcadb47bc90e5e1cede402e5b07ed958bced164e280460e1d1d03b0fbe1587",
+        "assets": "c11c57f5722f0b6c184d18255e4067e02b6b9e8f3f6287f23086ee9bb1712518",
+        "worldMapNames": "f5f88de2a66243fd4f514326e207a858c85f9d5b955205feb0c49f0e66cd64bb",
+        "mapDetails": "e6a63db79f6a6e1d9d57c32e4e716bb623bb5604c17269c5f0fd2813c3ebffec",
+        "combined": "157e8d35d450763baf670a942835eaac1d3e28ec9fb2d8c1eb3f2e9d6a00f896"
+      },
+      "dataRef": null,
+      "notes": [
+        "Big Bang World Map milestone."
+      ]
+    },
+    {
+      "id": "GMS/137",
+      "label": "GMS v137 — Unleashed",
+      "region": "GMS",
+      "version": "137",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/93",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "137"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "9ed75385ae1a9afefce701ef04487285d0c73aa19c139080701d4a852dec8261",
+        "geometry": "974674c54bb217c700517c779a32af5e4ce99df1548a050e35055f5aa476fbe0",
+        "assets": "2f0873ff423fafba6769463543302bfe82478959f655fca6a9884c8a88034c3d",
+        "worldMapNames": "781bafe9ecfd560e58ffabdc0ff7b38121c0964e53c061a0f390aae75adb7b9d",
+        "mapDetails": "2e5207e04c502e6f1375287ea5abf6f74d760a1408857c4cd3222f8d6c48c607",
+        "combined": "07fa55c42097c114f37f2bea58c78156f452742eda4fb743305ae9ca67ad0182"
+      },
+      "dataRef": null,
+      "notes": [
+        "Unleashed World Map redesign milestone."
+      ]
+    },
+    {
+      "id": "GMS/177",
+      "label": "GMS v177 — pre-Limitless comparison",
+      "region": "GMS",
+      "version": "177",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "177"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline for the v178 World Map payload."
+      ]
+    },
+    {
+      "id": "GMS/178",
+      "label": "GMS v178 — V: Limitless",
+      "region": "GMS",
+      "version": "178",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": false,
+      "worldMapComparedTo": "GMS/177",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "178"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "V: Limitless UI milestone retained as historical metadata; direct MapleStory.IO comparison against GMS/177 found identical WorldMap topology, geometry, base/link image payloads, link tooltips, and String/WorldMap names (UI change is outside WZ map payload; Arcane River appears in v179). Serves as historical metadata with eventual dataRef; not recommended as a distinct world-map data revision."
+      ]
+    },
+    {
+      "id": "GMS/179",
+      "label": "GMS v179 — Arcane River topology",
+      "region": "GMS",
+      "version": "179",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/178",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "179"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "b3cb8c5e9b3f89c8b21ed0684b2ff32f52b80a02a89bc61617d9cd55e7905627",
+        "geometry": "2ead107642cb8babac1b5fd7b93e7c3316da21b3b24ffe825190ee3ed6df20c4",
+        "assets": "62bfa352a075dcb6951ce7c7b498d113d4ff7c817d5527e5d60cc879177c8f7d",
+        "worldMapNames": "91a2c8351e372c44eb343365ee4cf7bcae205b8e3473a4c3d745b0adf72e1601",
+        "mapDetails": "92130c136550c4c2e124f7cdd8c804435658db64d963899646d3a86128dc856c",
+        "combined": "4973f34019c6dc7849407f49fca5ef6d27f2a4cb3cfd106eb2023e4d49a37e58"
+      },
+      "dataRef": null,
+      "notes": [
+        "Arcane River WorldMap nodes first observed after v178."
+      ]
+    },
+    {
+      "id": "GMS/202",
+      "label": "GMS v202",
+      "region": "GMS",
+      "version": "202",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/179",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "202"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Candidate modern topology checkpoint."
+      ]
+    },
+    {
+      "id": "GMS/223",
+      "label": "GMS v223",
+      "region": "GMS",
+      "version": "223",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/202",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "223"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Candidate NEO/Cernium topology checkpoint."
+      ]
+    },
+    {
+      "id": "GMS/224",
+      "label": "GMS v224",
+      "region": "GMS",
+      "version": "224",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/223",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "224"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "World Map hover behavior changed; node inventory matches v223.",
+        "Direct MapleStory.IO comparison against GMS/223 found WorldMap topology changes in GWorldMap/WorldMap, GWorldMap geometry changes, asset changes in GWorldMap/WorldMap060/WorldMap0826/WorldMap082a, and tooltip changes; String/WorldMap names were unchanged."
+      ]
+    },
+    {
+      "id": "GMS/233",
+      "label": "GMS v233 — comparison baseline",
+      "region": "GMS",
+      "version": "233",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/224",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "233"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Observed World Map inventory grows from 91 IDs at v224 to 93 IDs at v233."
+      ]
+    },
+    {
+      "id": "GMS/246",
+      "label": "GMS v246 — New Age candidate",
+      "region": "GMS",
+      "version": "246",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/233",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "246"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "a42f5bc47f7c41ed2a626339a010712b149f61ff90294a79cc37c01c12d6086b",
+        "geometry": "517847989bc147a91ba5d6ba4a7d3d94016386e1a691c68db8b26c0b8e5c3551",
+        "assets": "45d87c15c86d6242654f83b069c93721c736cf28802ccd045c1be3817342b853",
+        "worldMapNames": "7312ab62229f5d770ab6e7ff818f6f37edeb01e1ce3fb0aad9897feb21d06a75",
+        "mapDetails": "728a07b47ed0c7a5eef39108fc24b255d65d85d9f153938d82168556c74593e3",
+        "combined": "a49cdb89e88f0d7327c47c899d211ce383e58c54889ba10039a0057affd22db4"
+      },
+      "dataRef": null,
+      "notes": [
+        "New Age / Grandis reorganization candidate baseline."
+      ]
+    },
+    {
+      "id": "GMS/247",
+      "label": "GMS v247",
+      "region": "GMS",
+      "version": "247",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/246",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "247"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Adds WorldMap177, WorldMap300 and WorldMap310 in observed topology."
+      ]
+    },
+    {
+      "id": "GMS/263",
+      "label": "GMS v263",
+      "region": "GMS",
+      "version": "263",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/247",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "263"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Adds EGWorldMap/WGWorldMap and later Grandis nodes in observed topology."
+      ]
+    },
+    {
+      "id": "GMS/270",
+      "label": "GMS v270",
+      "region": "GMS",
+      "version": "270",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "GMS/263",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "GMS",
+        "version": "270"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "17aa9c95d16acb16788cd5b7cce033624aa78091acceea2cfac9a29f9647c86c",
+        "geometry": "5f4c15a2c9ac33f044933e410973a7f340118e694b5084cd73e1dad7ff8c8358",
+        "assets": "a169d74bd2aed1bdf4413aa15a7355cf5883b3a63990d37faeafc4543ee1d973",
+        "worldMapNames": "995d8b1a1f82fc9b3ae64259f7588fe0598e9b52c45d339d1a6af265b07c9920",
+        "mapDetails": "a4efcda281c0f74d516a6922783fcdb76712ec4ae7a2b0ce8c82e381873b8330",
+        "combined": "c5900c3193fa8bf85d7490b569c8bf399e67f9c9e83da6cbf5cded9554b78a0c"
+      },
+      "dataRef": null,
+      "notes": [
+        "Current MapleStory.IO GMS archive baseline used by existing resources."
+      ]
+    },
+    {
+      "id": "TWMS/122",
+      "label": "TWMS v122 — pre-Big Bang",
+      "region": "TWMS",
+      "version": "122",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": null,
+      "mapleArchive": {
+        "provider": "maplearchive",
+        "regionSlug": "twms",
+        "versionLabel": "122"
+      },
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Last currently imported pre-Big-Bang TWMS build in MapleArchive; useful as a source-boundary comparison baseline."
+      ]
+    },
+    {
+      "id": "TWMS/124",
+      "label": "TWMS v124 — Big Bang",
+      "region": "TWMS",
+      "version": "124",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": null,
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "a9c623c80bbbb0dba7d43cf7d8b83caba47568607f5a8afbb86f2a3dd37abbf5",
+        "geometry": "a080960910b3dae655163b3a157412e3177176b7cde388a298d71a20b6b32aae",
+        "assets": "3f78a4d49672507f74a746dce2a14cae9f9224eb744d81859957a4e489ce9213",
+        "worldMapNames": "306a73c7ba3ce17ee45d6777de8fc3166b16985343570599ab1e6cb3dbfd0996",
+        "mapDetails": "4e1a6600cd7999756f006c28657a268f4dc035e6f21012b4d90202d2196ee440",
+        "combined": "35bb17bb76469b027bac12ae48486a788915b54ebab98cf91de83b040843831f"
+      },
+      "dataRef": null,
+      "notes": [
+        "Big Bang World Map milestone. Historical archived WZ snapshot."
+      ]
+    },
+    {
+      "id": "TWMS/158",
+      "label": "TWMS v158",
+      "region": "TWMS",
+      "version": "158",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/124",
+      "mapleStoryIo": null,
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "72e67e207640cbc4ac707d83e0ce139990a634bb1c0e6d0f08f282ef61e97479",
+        "geometry": "b976e3a4ce6471e5c0dc6563b03f993aceafddd6fc777e07a889d540691d2e02",
+        "assets": "dc3a8fcc60d13d2b8fca2ae496eb0f1e4c0c671d50a035519aa8c17f96c3bb5c",
+        "worldMapNames": "611e1f68d1eb25e520de91da6bdc51e8b695a1a7d1cd5a01b21d05cf22e0727a",
+        "mapDetails": "53de87940d82fa65c73be8da30db1fe8170540053f35f176114382c06982c0e4",
+        "combined": "90be34d762dd560c7933fe480b5c22119d98c9b19b7a2f0ea319a3c1cbe84656"
+      },
+      "dataRef": null,
+      "notes": [
+        "First tested archived TWMS snapshot in this research with String/WorldMap.img present.",
+        "Direct full comparison against TWMS/124 proves distinct WorldMap topology (43 nodes vs 27), geometry, assets, and newly added String/WorldMap.img labels."
+      ]
+    },
+    {
+      "id": "TWMS/171",
+      "label": "TWMS v171 — YOU&i",
+      "region": "TWMS",
+      "version": "171",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": true,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/158",
+      "mapleStoryIo": null,
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "73f25a4fbca7d0dc851273259195bd1bb5686826b9b931e7c36319320322d0d3",
+        "geometry": "0362ee05c970089c1b2659abecf8e8e163cdac2ffcbe590ddc30593841e9316d",
+        "assets": "5dd71e5501f3d2c8a5159a7f1277ebe549cbabcf2a9b5b10d0b86e5fb371a42c",
+        "worldMapNames": "f09139971f4545efd8681c618d4317ff0c513004f3f998f272c35769ba31be8a",
+        "mapDetails": "0820ec7309986f229028412897c8dbcd0c6424d0e310b7b43fb20363897b2c1f",
+        "combined": "192db2d97f613450f3dd0227a5923eabd58e690a87e63166694f4b3ff2630373"
+      },
+      "dataRef": null,
+      "notes": [
+        "YOU&i release notes explicitly mention World Map UI optimization.",
+        "Direct full comparison against TWMS/158 proves distinct WorldMap topology (55 nodes vs 43, adding roots BWorldMap and MWorldMap), geometry, assets, and labels."
+      ]
+    },
+    {
+      "id": "TWMS/209",
+      "label": "TWMS v209",
+      "region": "TWMS",
+      "version": "209",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/217",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TMS",
+        "version": "209"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "d98105fc34f663899b4fe4b25f807d58798b3f0a35c7f8a57ae0f92e92744f64",
+        "geometry": "24f34ed7cbddd3b35c447ebb07244500839e69578a7217ee97d21a5230867a15",
+        "assets": "40126574c7805696c1c1491c1e8184d33baf99a653b166b336913acfb760fd5a",
+        "worldMapNames": "89b288c7bd1bd695d15746ebe434556be1f1986d9ee12ef2d7d314e4e6d448cd",
+        "mapDetails": "9cda8160c00e3e4948ed3f548d51a07e0c67720c40ada70d89c90b63ae5a0217",
+        "combined": "0bdc9b18f0cc166f1462112a7ec0f782b465fc0699d67693013bf9ba8769004c"
+      },
+      "dataRef": null,
+      "notes": [
+        "MapleStory.IO stores this Taiwan snapshot under provider region code TMS.",
+        "Direct WorldMap inventory diff against TWMS/217: 79 IDs vs 85; v217 adds WorldMap0102, WorldMap0103 and WorldMap0827/08271/08272/08273."
+      ]
+    },
+    {
+      "id": "TWMS/217",
+      "label": "TWMS v217",
+      "region": "TWMS",
+      "version": "217",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/209",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "217"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "aa6e6972f19a60d21772eb90e57f02b5178c06653516471114b979317e971c5d",
+        "geometry": "cf5457f657f9ffe0b06e03a4772bd43875e0fd06ec778fe6f34816094eb0265e",
+        "assets": "88031ee455e0c02954bac408d0c0f9f37cb0b724ae9143e0ed12618065b08f4b",
+        "worldMapNames": "392ea627bc7d78641d293365146a4d5845c02f8cd7f8f45965672d57165d0e2c",
+        "mapDetails": "36394a5eaa50e7c932a5b95d7014eba6711eb44c22583ebeacd5c0a8dae23ec2",
+        "combined": "8155a77da5b03638cf53c4103087f89636a956457ebcdc06cd19122fc0921d4a"
+      },
+      "dataRef": null,
+      "notes": [
+        "Earliest currently observed MapleStory.IO TWMS snapshot."
+      ]
+    },
+    {
+      "id": "TWMS/221",
+      "label": "TWMS v221 — comparison baseline",
+      "region": "TWMS",
+      "version": "221",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "221"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Last observed 85-node baseline before the v228 inventory transition."
+      ]
+    },
+    {
+      "id": "TWMS/228",
+      "label": "TWMS v228 — RISE-era topology",
+      "region": "TWMS",
+      "version": "228",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/221",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "228"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Observed large node-inventory transition."
+      ]
+    },
+    {
+      "id": "TWMS/231",
+      "label": "TWMS v231 — comparison baseline",
+      "region": "TWMS",
+      "version": "231",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "231"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline immediately before the v232 inventory transition."
+      ]
+    },
+    {
+      "id": "TWMS/232",
+      "label": "TWMS v232 — AWAKE-era topology",
+      "region": "TWMS",
+      "version": "232",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/231",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "232"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Observed additional World Map node transition."
+      ]
+    },
+    {
+      "id": "TWMS/233",
+      "label": "TWMS v233 — comparison baseline",
+      "region": "TWMS",
+      "version": "233",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "233"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline immediately before the v236 inventory transition."
+      ]
+    },
+    {
+      "id": "TWMS/236",
+      "label": "TWMS v236",
+      "region": "TWMS",
+      "version": "236",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/233",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "236"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "1a0fe8a02c4d271c5317ba467e1b9c2b967e0a1b2b2f5216a0b820dcceb66227",
+        "geometry": "92c0891a1d92288c9db626eb8c5a1a5b2e0529f7c76277e439099d2516bef0b5",
+        "assets": "a472fbab2586a718ad52fa891b063d06bd332a9edf74a21f8e808e1b0e5f0ce5",
+        "worldMapNames": "662e44462e089e217011f8ed9a1b4601e76b39f15adc4f2f4afc5b4a9af0fc65",
+        "mapDetails": "b765a2499d29041bc0ac25349dbc316ecc89b9e69d271e73b9fc981335ed8434",
+        "combined": "d59ca64ea9e475d62f937abedc0caeb99dfa7ab4027c9fc71952b57a58af6fff"
+      },
+      "dataRef": null,
+      "notes": [
+        "Observed large NEO-era topology transition."
+      ]
+    },
+    {
+      "id": "TWMS/239",
+      "label": "TWMS v239 — comparison baseline",
+      "region": "TWMS",
+      "version": "239",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "239"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline immediately before WorldMap260 appears at v240."
+      ]
+    },
+    {
+      "id": "TWMS/240",
+      "label": "TWMS v240 — On Air-era topology",
+      "region": "TWMS",
+      "version": "240",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/239",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "240"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Observed WorldMap260 transition."
+      ]
+    },
+    {
+      "id": "TWMS/249",
+      "label": "TWMS v249 — comparison baseline",
+      "region": "TWMS",
+      "version": "249",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "249"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline immediately before WorldMap270 appears at v250."
+      ]
+    },
+    {
+      "id": "TWMS/250",
+      "label": "TWMS v250",
+      "region": "TWMS",
+      "version": "250",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/249",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "250"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Observed WorldMap270 transition."
+      ]
+    },
+    {
+      "id": "TWMS/252",
+      "label": "TWMS v252 — comparison baseline",
+      "region": "TWMS",
+      "version": "252",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "252"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline immediately before CGWorldMap and WorldMap280 appear at v253."
+      ]
+    },
+    {
+      "id": "TWMS/253",
+      "label": "TWMS v253 — Savior-era topology",
+      "region": "TWMS",
+      "version": "253",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": true,
+      "worldMapComparedTo": "TWMS/252",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "253"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "9dfd7708412becc40ccd0dd95213d05180712393f02b6facc9d9b8385cc714cf",
+        "geometry": "97843b053f70452da6494fce52fb20017edcd2d2f2dc740e56f9012014f9ea4d",
+        "assets": "b44d1eb30196115f47c0dde5fe0a98e1696a2d5193bdae6af916d6dfd326a015",
+        "worldMapNames": "e1c85129a815680116ae0f3eaddcd817985e96151419f388dffe1d118b3a2542",
+        "mapDetails": "6101f0b83a6f0ad288d0cc73fbbeee3f20f8c9956bf487d0bd35473c65af7940",
+        "combined": "5289a69bb4a0061e122abb0555e846ebc6906507dc0d665663037e888d5be8ff"
+      },
+      "dataRef": null,
+      "notes": [
+        "Observed CGWorldMap and WorldMap280 transition."
+      ]
+    },
+    {
+      "id": "TWMS/255",
+      "label": "TWMS v255 — comparison baseline",
+      "region": "TWMS",
+      "version": "255",
+      "recommended": false,
+      "selectable": false,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": null,
+      "worldMapComparedTo": null,
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "255"
+      },
+      "mapleArchive": null,
+      "fingerprint": null,
+      "dataRef": null,
+      "notes": [
+        "Comparison baseline for the latest v256 archive snapshot."
+      ]
+    },
+    {
+      "id": "TWMS/256",
+      "label": "TWMS v256",
+      "region": "TWMS",
+      "version": "256",
+      "recommended": true,
+      "selectable": true,
+      "historicallyImportant": false,
+      "worldMapDataDistinct": false,
+      "worldMapComparedTo": "TWMS/255",
+      "mapleStoryIo": {
+        "provider": "maplestory-io",
+        "regionCode": "TWMS",
+        "version": "256"
+      },
+      "mapleArchive": null,
+      "fingerprint": {
+        "topology": "77d156e2f7aeee0bacbce5fe7f0097c72924e1f841a26776ca5638f47c719a38",
+        "geometry": "f566894da76f45415e8c0d871587948ed48da2c8fad8132eb6237f9024022525",
+        "assets": "06b79989cd99ae647e75b7f66389155a90e8b0992c3ab9514f16668b3b568635",
+        "worldMapNames": "42bacad12aaaa8327864bc89d8496cb95270507bb402575d41102d8e069a3df5",
+        "mapDetails": "d5a76d0e253dbf212838fa472e8383da618d65d09fef8ec5edc25ca7aee041ed",
+        "combined": "b2012f8498b4121567c5f0e4de124dbf266a11aa47a0325d8976d1f6bef27f72"
+      },
+      "dataRef": null,
+      "notes": [
+        "Latest currently observed MapleStory.IO TWMS archive baseline.",
+        "Direct MapleStory.IO comparison against TWMS/255 found identical WorldMap topology, geometry, base/link image payloads, link tooltips, and String/WorldMap names. It remains recommended as the latest archive representative rather than as a distinct adjacent revision."
+      ]
+    }
+  ]
+}
