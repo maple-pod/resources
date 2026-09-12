@@ -19,7 +19,7 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 | `bgm/*` | yt-dlp 選到的最佳可用音源，保留來源 codec/container（例如 WebM/Opus、M4A/AAC），不統一轉 MP3 |
 | `mark/*.png` | 標記圖原檔 |
 | `bg/*.jpg` | 背景圖（1920×1080） |
-| `bg/bg.json` | 背景圖清單＋壓縮過的縮圖預覽（240×135） |
+| `bg.json` | 背景圖清單＋壓縮過的縮圖預覽（240×135） |
 | `world-map/catalog.json` | region/version snapshot catalog；目前 logical region 為 GMS/TWMS，保留 provider-native `TMS`/`TWMS` 差異、歷史 milestone metadata 與已產生 snapshot fingerprint |
 | `world-map/snapshots/<region>/<version>/world-maps.json` | exact region+version canonical world-map snapshot（schema version 7 graph contract） |
 | `world-map/snapshots/<region>/<version>/manifest.json` | 該 snapshot 的 progressive runtime manifest |
@@ -27,6 +27,9 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 | `world-map/snapshots/<region>/<version>/assets/*` | 該 snapshot 的 WZ base/link PNG；asset identity 不再只靠 WorldMap ID |
 | `world-map/world-maps.json`, `world-map/manifest.json`, `world-map/nodes/*.json` | `GMS/270` 的相容性 alias；前端遷移到 catalog 後可移除 |
 | `world-map/images/*` | 舊 Wiki corroboration 圖片；只供 legacy GMS worlds[] contract 使用 |
+
+背景圖來源是版控中的 `assets/bg/*.jpg` 靜態檔案；`process-bgs` 會將完整 JPG 原樣複製到
+`output/bg/`，並只用 sharp/fflate 產生 `output/bg.json` 中 240×135 的壓縮預覽。
 
 ## 前置需求
 
@@ -57,7 +60,7 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 ./dev.sh pnpm install           # 第一次使用，或依賴有變動時
 
 ./dev.sh pnpm run build         # 抓取曲目：下載音檔與標記圖、ffprobe 取長度、產生 data.json
-./dev.sh pnpm run process-bgs   # 背景圖：assets/bg/*.png → output/bg/*.jpg + bg.json
+./dev.sh pnpm run process-bgs   # 背景圖：追蹤的 assets/bg/*.jpg → output/bg/*.jpg + output/bg.json
 ./dev.sh pnpm run world-map:generate -- --snapshot=GMS/270       # preview：隔離寫到 output/world-map-preview/
 ./dev.sh pnpm run world-map:generate:full -- --snapshot=GMS/270  # full：正式完整 snapshot
 ./dev.sh pnpm run world-map:generate:full -- --snapshot=TWMS/209 # MapleStory.IO provider code 會自動路由到 TMS/209
