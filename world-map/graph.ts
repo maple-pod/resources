@@ -1,5 +1,5 @@
 import type { AcquiredWorldMapGraph } from './acquire'
-import type { LocalizedName, WorldMapAsset, WorldMapGraph, WorldMapGraphLink, WorldMapGraphMap, WorldMapGraphSpot } from './schema'
+import type { LocalizedName, WorldMapAsset, WorldMapGraph, WorldMapGraphLink, WorldMapGraphMap, WorldMapGraphSpot, WorldMapHitPath } from './schema'
 import type { GameMapDetail, LocalizationAttempt, LocalizedGameDataSnapshot, MapleBgmCatalogItem } from './source'
 import { buildCatalogIndex, gameBgmCatalogMatch, parseGameBgmPath } from './music'
 
@@ -70,7 +70,7 @@ function linkAssetRect(asset: WorldMapAsset | null, screenOrigin: { x: number, y
 	}
 }
 
-function mapMusic(map: GameMapDetail | null, catalog: ReturnType<typeof buildCatalogIndex>) {
+function mapMusic(map: GameMapDetail | null, catalog: ReturnType<typeof buildCatalogIndex>, source: 'gms-map-bgm' | 'game-map-bgm') {
 	if (map?.backgroundMusic == null)
 		return { gameBgm: null, selection: { trackId: null, source: null } as const }
 	const parsed = parseGameBgmPath(map.backgroundMusic)
@@ -79,12 +79,12 @@ function mapMusic(map: GameMapDetail | null, catalog: ReturnType<typeof buildCat
 		: { ...parsed, trackId: gameBgmCatalogMatch(catalog, parsed) }
 	return {
 		gameBgm,
-		selection: { trackId: gameBgm.trackId, source: gameBgm.trackId == null ? null : ('gms-map-bgm' as const) },
+		selection: { trackId: gameBgm.trackId, source: gameBgm.trackId == null ? null : source },
 	}
 }
 
-function graphMap(mapId: string, detail: GameMapDetail | null, catalog: ReturnType<typeof buildCatalogIndex>): WorldMapGraphMap {
-	const music = mapMusic(detail, catalog)
+function graphMap(mapId: string, detail: GameMapDetail | null, catalog: ReturnType<typeof buildCatalogIndex>, source: 'gms-map-bgm' | 'game-map-bgm'): WorldMapGraphMap {
+	const music = mapMusic(detail, catalog, source)
 	return {
 		mapId,
 		name: detail?.name ?? null,
@@ -99,6 +99,7 @@ function graphMap(mapId: string, detail: GameMapDetail | null, catalog: ReturnTy
 export interface GraphAssets {
 	baseImages: ReadonlyMap<string, WorldMapAsset[]>
 	linkImages: ReadonlyMap<string, ReadonlyArray<WorldMapAsset | null>>
+	linkHitPaths?: ReadonlyMap<string, ReadonlyArray<WorldMapHitPath | null>>
 }
 
 export function normalizeWorldMapGraph(
@@ -107,12 +108,13 @@ export function normalizeWorldMapGraph(
 	catalogItems: readonly MapleBgmCatalogItem[],
 ): WorldMapGraph {
 	const catalog = buildCatalogIndex(catalogItems)
+	const selectionSource = (acquired.logicalRegion ?? (acquired.region === 'GMS' ? 'GMS' : undefined)) === 'GMS' ? 'gms-map-bgm' as const : 'game-map-bgm' as const
 	const detailById = new Map(acquired.maps.map(map => [map.id, map]))
-	const canonicalLabels = new Map<string, string | null>()
+	const inboundLabels = new Map<string, string | null>()
 	for (const node of acquired.nodes) {
 		for (const link of node.links) {
-			if (!canonicalLabels.has(link.linksTo) || canonicalLabels.get(link.linksTo) == null)
-				canonicalLabels.set(link.linksTo, link.toolTip)
+			if (!inboundLabels.has(link.linksTo) || inboundLabels.get(link.linksTo) == null)
+				inboundLabels.set(link.linksTo, link.toolTip)
 		}
 	}
 	const nodes = acquired.nodes.map((node) => {
@@ -121,6 +123,7 @@ export function normalizeWorldMapGraph(
 		if (firstBase == null)
 			throw new Error(`Missing verified WZ base image assets for ${node.id}`)
 		const linkAssets = assets.linkImages.get(node.id) ?? []
+		const linkHitPaths = assets.linkHitPaths?.get(node.id) ?? []
 		const links: WorldMapGraphLink[] = node.links.map((link, index) => {
 			const linkImage = linkAssets[index] ?? null
 			const screenOrigin = {
@@ -135,6 +138,7 @@ export function normalizeWorldMapGraph(
 				linkImage,
 				screenOrigin,
 				hitRect: linkAssetRect(linkImage, screenOrigin, firstBase),
+				hitPath: linkImage == null ? null : (linkHitPaths[index] ?? null),
 			}
 		})
 		const spots: WorldMapGraphSpot[] = node.maps.map((spot, index) => ({
@@ -149,12 +153,15 @@ export function normalizeWorldMapGraph(
 				normalizedY: normalized(firstBase.origin.y + spot.spot.y, firstBase.height),
 			},
 			hitRect: null,
-			maps: spot.mapNumbers.map(mapId => graphMap(mapId, detailById.get(mapId) ?? null, catalog)),
+			maps: spot.mapNumbers.map(mapId => graphMap(mapId, detailById.get(mapId) ?? null, catalog, selectionSource)),
 		}))
+		const wzLabel = acquired.worldMapNames?.[node.id] ?? null
+		const inboundLabel = inboundLabels.get(node.id) ?? null
 		return {
 			worldMapId: node.id,
 			worldMapName: node.worldMapName,
-			canonicalLabel: canonicalLabels.get(node.id) ?? null,
+			canonicalLabel: wzLabel ?? inboundLabel,
+			canonicalLabelSource: wzLabel != null ? 'string-wz' as const : inboundLabel != null ? 'inbound-link-tooltip' as const : null,
 			localizedNames: {},
 			parentWorldMapId: node.parentWorld,
 			baseImages,
@@ -163,8 +170,11 @@ export function normalizeWorldMapGraph(
 			provenance: {
 				provider: acquired.provider,
 				region: acquired.region,
+				logicalRegion: acquired.logicalRegion,
 				version: acquired.version,
 				apiBase: acquired.apiBase,
+				releaseId: acquired.releaseId,
+				archivedWz: acquired.archivedWz,
 			},
 		}
 	})

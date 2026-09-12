@@ -1,4 +1,4 @@
-import { mkdir as _mkdir, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir as _mkdir, copyFile, rename, rm, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import fg from 'fast-glob'
@@ -27,7 +27,13 @@ async function run() {
 	assertRunningInContainer('pnpm process-bgs')
 	await mkdir(outputDir)
 
-	const bgImgPaths = fg.sync(path.join(root, 'assets/bg', '*.png'))
+	const bgImgPaths = fg.sync(path.join(root, 'assets/bg', '*.jpg')).sort()
+	if (bgImgPaths.length === 0) {
+		console.error('[ERROR] No background JPG source files found in assets/bg.')
+		process.exitCode = 1
+		return
+	}
+
 	console.log(`Processing ${bgImgPaths.length} background image(s)...\n`)
 
 	const bgData = {
@@ -38,19 +44,16 @@ async function run() {
 
 	for (const [idx, imgPath] of bgImgPaths.entries()) {
 		const imgName = path.basename(imgPath)
-		const name = path.basename(imgName, '.png')
+		const name = path.basename(imgName, '.jpg')
 		const outJpeg = path.join(outputDir, `${name}.jpg`)
 		const tempJpeg = `${outJpeg}.tmp`
 
 		process.stdout.write(`  (${idx + 1}/${bgImgPaths.length}) ${imgName}...`)
 
 		try {
-			// Write full-res JPEG via temp file for atomicity
-			await sharp(imgPath)
-				.resize(1920, 1080, { fit: 'cover' })
-				.jpeg({ quality: 90, mozjpeg: true })
-				.toFile(tempJpeg)
-			// Validate output is non-empty before committing
+			// Preserve the published full-resolution JPEG bytes exactly.
+			await copyFile(imgPath, tempJpeg)
+			// Generate the compressed preview from the static JPEG source.
 			const previewBuffer = await sharp(imgPath)
 				.resize(240, 135, { fit: 'cover' })
 				.jpeg({ quality: 90, mozjpeg: true })
@@ -76,13 +79,6 @@ async function run() {
 		}
 	}
 
-	await writeFile(
-		path.join(outputDir, 'bg.json'),
-		JSON.stringify(bgData),
-		{ encoding: 'utf-8' },
-	)
-
-	console.log()
 	if (errors.length > 0) {
 		console.error(`[WARN] ${errors.length} image(s) failed to process:`)
 		for (const err of errors) {
@@ -90,9 +86,15 @@ async function run() {
 		}
 		process.exit(1)
 	}
-	else {
-		console.log(`Done! Processed ${bgData.list.length} background image(s).`)
-	}
+
+	await writeFile(
+		path.join(root, 'output/bg.json'),
+		JSON.stringify(bgData),
+		{ encoding: 'utf-8' },
+	)
+
+	console.log()
+	console.log(`Done! Processed ${bgData.list.length} background image(s).`)
 }
 
 run()

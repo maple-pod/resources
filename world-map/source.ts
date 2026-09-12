@@ -1,5 +1,29 @@
 import type { GameDataSource } from './schema'
 
+function sameArchivedWzProvenance(left: GameDataSource['archivedWz'], right: GameDataSource['archivedWz']): boolean {
+	if (left == null || right == null)
+		return left == null && right == null
+	return left.providerRegion === right.providerRegion
+		&& left.providerVersion === right.providerVersion
+		&& left.archiveItem === right.archiveItem
+		&& left.archiveFile === right.archiveFile
+		&& left.archiveSha1.toLowerCase() === right.archiveSha1.toLowerCase()
+		&& left.members.stringWz.name === right.members.stringWz.name
+		&& left.members.stringWz.sha256.toLowerCase() === right.members.stringWz.sha256.toLowerCase()
+		&& left.members.mapWz.name === right.members.mapWz.name
+		&& left.members.mapWz.sha256.toLowerCase() === right.members.mapWz.sha256.toLowerCase()
+}
+
+export function gameDataSourceMatches(actual: GameDataSource, expected: GameDataSource): boolean {
+	return actual.provider === expected.provider
+		&& actual.region === expected.region
+		&& actual.logicalRegion === expected.logicalRegion
+		&& actual.version === expected.version
+		&& actual.apiBase === expected.apiBase
+		&& actual.releaseId === expected.releaseId
+		&& sameArchivedWzProvenance(actual.archivedWz, expected.archivedWz)
+}
+
 export interface WikiRevision {
 	revid: number
 	timestamp: string
@@ -90,7 +114,7 @@ export interface GameMapSearchCandidate {
 export interface GameDataSnapshot {
 	provider: 'maplestory-io'
 	region: string
-	version: number
+	version: string
 	apiBase: string
 	worldMaps: GameWorldMap[]
 	maps: GameMapDetail[]
@@ -103,7 +127,7 @@ export interface LocalizedGameDataSnapshot extends GameDataSnapshot {
 export interface WorldMapLocalizationConfig {
 	locale: string
 	region: string
-	version?: number
+	version?: string
 }
 
 export interface LocalizationAttempt {

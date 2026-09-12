@@ -1,20 +1,31 @@
 /* eslint-disable test/no-import-node-test */
 import type { WorldMapGraph, WorldMapNode } from '../world-map/schema'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
-import { compileWorldMapRuntime, validateWorldMapRuntime, validateWorldMapRuntimeOutput, writeWorldMapRuntime } from '../world-map/runtime'
+import { compileWorldMapRuntime, validateWorldMapRuntime, validateWorldMapRuntimeOutput, validateWorldMapRuntimeOutputAgainstIndex, writeWorldMapRuntime } from '../world-map/runtime'
 import { WORLD_MAP_SCHEMA_VERSION } from '../world-map/schema'
 
 const source = {
 	provider: 'maplestory-io' as const,
 	region: 'GMS',
-	version: 270,
+	version: '270',
 	apiBase: 'https://maplestory.io/api',
 }
 const unavailableSource = { ...source, version: null }
+const archivedProvenance = {
+	providerRegion: 'TWMS',
+	providerVersion: '158',
+	archiveItem: 'synthetic-archive',
+	archiveFile: 'v158.7z',
+	archiveSha1: '1'.repeat(40),
+	members: {
+		stringWz: { name: 'String.wz' as const, sha256: '2'.repeat(64) },
+		mapWz: { name: 'Map.wz' as const, sha256: '3'.repeat(64) },
+	},
+}
 
 function asset(file: string) {
 	return {
@@ -59,6 +70,7 @@ function fixtureIndex() {
 		linkImage: null,
 		screenOrigin: { x: 10, y: 20 },
 		hitRect: null,
+		hitPath: null,
 	})
 	const graph: WorldMapGraph = {
 		roots: ['WorldMap'],
@@ -146,6 +158,30 @@ test('compiles deterministic runtime manifest and preserves node and playback id
 	}
 })
 
+test('binds persisted runtime chunks to the canonical world-maps graph', async () => {
+	const { index } = fixtureIndex()
+	const outputDirectory = await mkdtemp(path.join(tmpdir(), 'world-map-runtime-binding-'))
+	try {
+		const worldMapDirectory = path.join(outputDirectory, 'world-map')
+		await writeWorldMapRuntime(index, worldMapDirectory, { bgmIds })
+		await validateWorldMapRuntimeOutputAgainstIndex(worldMapDirectory, index, { bgmIds })
+
+		const chunkFile = path.join(worldMapDirectory, 'nodes/WorldMap010.json')
+		const chunk = JSON.parse(await readFile(chunkFile, 'utf8')) as { node: { spots: Array<{ maps: Array<{ name: string | null }> }> } }
+		chunk.node.spots[0]!.maps[0]!.name = 'Tampered name'
+		await writeFile(chunkFile, `${JSON.stringify(chunk)}\n`, 'utf8')
+
+		await validateWorldMapRuntimeOutput(worldMapDirectory, { bgmIds })
+		await assert.rejects(
+			validateWorldMapRuntimeOutputAgainstIndex(worldMapDirectory, index, { bgmIds }),
+			/does not match canonical world-maps\.json/,
+		)
+	}
+	finally {
+		await rm(outputDirectory, { recursive: true, force: true })
+	}
+})
+
 test('validates roots, unresolved parents/links, exact chunks, and self-consistency', () => {
 	const { index } = fixtureIndex()
 	const options = { bgmIds }
@@ -167,4 +203,32 @@ test('validates roots, unresolved parents/links, exact chunks, and self-consiste
 	const rootChunk = invalidChunk.get('nodes/WorldMap.json')!
 	invalidChunk.set('nodes/WorldMap.json', { ...rootChunk, node: { ...rootChunk.node, worldMapId: 'WorldMapChanged' } })
 	assert.throws(() => validateWorldMapRuntime(compiled.manifest, invalidChunk, options), /wrong worldMapId|does not match its manifest entry/)
+	const wrongProvenanceChunk = new Map(compiled.chunks)
+	wrongProvenanceChunk.set('nodes/WorldMap.json', { ...rootChunk, node: { ...rootChunk.node, provenance: { ...rootChunk.node.provenance, apiBase: 'https://wrong-provider.example/api' } } })
+	assert.throws(() => validateWorldMapRuntime(compiled.manifest, wrongProvenanceChunk, options), /provenance does not match manifest.source/)
+})
+
+test('preserves and validates compact archived-WZ provenance in runtime output', () => {
+	const { index } = fixtureIndex()
+	const archivedIndex = structuredClone(index)
+	for (const node of archivedIndex.graph!.nodes) {
+		node.provenance = {
+			provider: 'archived-wz',
+			region: 'TWMS',
+			logicalRegion: 'TWMS',
+			version: '158',
+			apiBase: 'https://archive.org/download/twms-maplestory',
+			archivedWz: archivedProvenance,
+		}
+	}
+	const compiled = compileWorldMapRuntime(archivedIndex, { bgmIds })
+	assert.deepEqual(compiled.manifest.source.archivedWz, archivedProvenance)
+	assert.deepEqual(compiled.chunks.get('nodes/WorldMap.json')!.node.provenance.archivedWz, archivedProvenance)
+
+	const invalid = structuredClone(compiled.manifest)
+	invalid.source.archivedWz!.members.mapWz.sha256 = 'not-a-sha'
+	assert.throws(() => validateWorldMapRuntime(invalid, compiled.chunks, { bgmIds }), /archivedWz is (?:required and )?invalid/)
+	const missing = structuredClone(compiled.manifest)
+	delete missing.source.archivedWz
+	assert.throws(() => validateWorldMapRuntime(missing, compiled.chunks, { bgmIds }), /archivedWz is required and invalid/)
 })

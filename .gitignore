@@ -207,6 +207,11 @@ dist
 
 output
 assets
+!assets/
+assets/*
+!assets/bg/
+assets/bg/*
+!assets/bg/*.jpg
 
 # Incremental build state — regenerated on every build, must not be versioned
 .build-state.json

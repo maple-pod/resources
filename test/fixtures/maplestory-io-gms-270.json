@@ -1,7 +1,7 @@
 {
 	"provider": "maplestory-io",
 	"region": "GMS",
-	"version": 270,
+	"version": "270",
 	"apiBase": "https://maplestory.io/api",
 	"worldMaps": [
 		{

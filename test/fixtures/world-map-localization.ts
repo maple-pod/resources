@@ -26,7 +26,7 @@ function worldMap(id: string, links: readonly (readonly [string, string])[]): Ga
 function snapshot(
 	locale: string,
 	region: string,
-	version: number,
+	version: string,
 	mapNames: Record<string, string | null>,
 	victoriaLinks: readonly (readonly [string, string])[],
 	cerniumLinks: readonly (readonly [string, string])[],
@@ -49,7 +49,7 @@ function snapshot(
 }
 
 export const LOCALIZATION_FIXTURES: readonly LocalizedGameDataSnapshot[] = [
-	snapshot('ko-KR', 'KMS', 389, {
+	snapshot('ko-KR', 'KMS', '389', {
 		100000000: '헤네시스',
 		120000000: '노틸러스 선착장',
 		104020100: '빅토리아 나무승강장',
@@ -64,7 +64,7 @@ export const LOCALIZATION_FIXTURES: readonly LocalizedGameDataSnapshot[] = [
 		['비밀의숲 엘로딘', 'WorldMap0102'],
 		['파르템', 'WorldMap0103'],
 	], [['불타는 세르니움', 'WorldMap240']]),
-	snapshot('ja-JP', 'JMS', 444, {
+	snapshot('ja-JP', 'JMS', '444', {
 		100000000: 'ヘネシス',
 		120000000: 'ノーチラス',
 		104020100: 'ビクトリア木の乗降場',
@@ -79,7 +79,7 @@ export const LOCALIZATION_FIXTURES: readonly LocalizedGameDataSnapshot[] = [
 		['秘密の森エルディン', 'WorldMap0102'],
 		['パルテン', 'WorldMap0103'],
 	], [['燃え上がるセルニウム', 'WorldMap240']]),
-	snapshot('zh-CN', 'CMS', 202, {
+	snapshot('zh-CN', 'CMS', '202', {
 		100000000: '射手村',
 		120000000: '诺特勒斯码头',
 		104020100: '金银岛大树升降场',
@@ -94,7 +94,7 @@ export const LOCALIZATION_FIXTURES: readonly LocalizedGameDataSnapshot[] = [
 		['秘密森林艾洛丁', 'WorldMap0102'],
 		['帕勒坦', 'WorldMap0103'],
 	], [['燃烧的塞尔提乌', 'WorldMap240']]),
-	snapshot('zh-TW', 'TWMS', 256, {
+	snapshot('zh-TW', 'TWMS', '256', {
 		100000000: '弓箭手村',
 		120000000: '鯨魚號碼頭',
 		104020100: '維多利亞樹木站台',
@@ -109,7 +109,7 @@ export const LOCALIZATION_FIXTURES: readonly LocalizedGameDataSnapshot[] = [
 		['秘密森林埃羅汀', 'WorldMap0102'],
 		['帕爾坦', 'WorldMap0103'],
 	], [['失火的賽爾尼溫', 'WorldMap240']]),
-	snapshot('en-SG', 'SEA', 220, {
+	snapshot('en-SG', 'SEA', '220', {
 		100000000: 'Henesys',
 		120000000: 'Nautilus Harbor',
 		104020100: 'Victoria Tree Platform',

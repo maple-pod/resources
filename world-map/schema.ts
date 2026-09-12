@@ -1,4 +1,4 @@
-export const WORLD_MAP_SCHEMA_VERSION = 6 as const
+export const WORLD_MAP_SCHEMA_VERSION = 8 as const
 
 export type WorldMapLandmarkKind = 'map' | 'region'
 
@@ -41,7 +41,7 @@ export interface WorldMapGraphMap {
 	gameBgm: GameBgmEvidence | null
 	selection: {
 		trackId: string | null
-		source: 'gms-map-bgm' | null
+		source: 'gms-map-bgm' | 'game-map-bgm' | null
 	}
 }
 
@@ -61,6 +61,11 @@ export interface WorldMapGraphSpot {
 	maps: WorldMapGraphMap[]
 }
 
+export interface WorldMapHitPath {
+	d: string
+	fillRule: 'evenodd'
+}
+
 export interface WorldMapGraphLink {
 	id: string
 	canonicalLabel: string | null
@@ -71,12 +76,16 @@ export interface WorldMapGraphLink {
 	screenOrigin: WorldMapOrigin
 	/** Normalized link-image rectangle in the first base image's coordinate space. */
 	hitRect: NormalizedRect | null
+	/** Precise derived SVG path in base-image coordinates. */
+	hitPath: WorldMapHitPath | null
 }
 
 export interface WorldMapNode {
 	worldMapId: string
 	worldMapName: string
 	canonicalLabel: string | null
+	/** Source quality for canonicalLabel; omitted by older v6 fixtures. */
+	canonicalLabelSource?: 'string-wz' | 'inbound-link-tooltip' | null
 	localizedNames: Record<string, LocalizedName>
 	parentWorldMapId: string | null
 	baseImages: WorldMapAsset[]
@@ -90,12 +99,66 @@ export interface WorldMapGraph {
 	nodes: WorldMapNode[]
 }
 
+/**
+ * Published, compact identity for the two archived client members used to
+ * compile an archived-WZ graph. Cache manifests retain more extraction detail;
+ * this deliberately does not publish local paths or packed-block offsets.
+ */
+export interface ArchivedWzPublishedProvenance {
+	providerRegion: string
+	providerVersion: string
+	archiveItem: string
+	archiveFile: string
+	archiveSha1: string
+	members: {
+		stringWz: {
+			name: 'String.wz'
+			sha256: string
+		}
+		mapWz: {
+			name: 'Map.wz'
+			sha256: string
+		}
+	}
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return value != null && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function isArchivedWzPublishedProvenance(value: unknown): value is ArchivedWzPublishedProvenance {
+	if (!isRecord(value)
+		|| typeof value.providerRegion !== 'string' || value.providerRegion.length === 0
+		|| typeof value.providerVersion !== 'string' || value.providerVersion.length === 0
+		|| typeof value.archiveItem !== 'string' || value.archiveItem.length === 0
+		|| typeof value.archiveFile !== 'string' || value.archiveFile.length === 0
+		|| typeof value.archiveSha1 !== 'string' || !/^[a-f0-9]{40}$/iu.test(value.archiveSha1)
+		|| !isRecord(value.members)
+		|| !isRecord(value.members.stringWz)
+		|| !isRecord(value.members.mapWz)) {
+		return false
+	}
+	return value.members.stringWz.name === 'String.wz'
+		&& typeof value.members.stringWz.sha256 === 'string'
+		&& /^[a-f0-9]{64}$/iu.test(value.members.stringWz.sha256)
+		&& value.members.mapWz.name === 'Map.wz'
+		&& typeof value.members.mapWz.sha256 === 'string'
+		&& /^[a-f0-9]{64}$/iu.test(value.members.mapWz.sha256)
+}
+
 export interface GameDataSource {
-	provider: 'maplestory-io'
+	provider: 'maplestory-io' | 'maplearchive' | 'archived-wz'
+	/** Provider-native region code, e.g. TMS for the MapleStory.IO Taiwan v209 snapshot. */
 	region: string
+	/** Logical product region; omitted by legacy GMS fixtures. */
+	logicalRegion?: 'GMS' | 'TWMS'
 	/** Null is only valid for an unavailable optional localization attempt. */
-	version: number | null
+	version: string | null
 	apiBase: string
+	/** Stable release identity for archive providers when available. */
+	releaseId?: string
+	/** Compact exact archive/member identity for newly generated archived-WZ snapshots. */
+	archivedWz?: ArchivedWzPublishedProvenance
 }
 
 export interface LocalizedName {
@@ -105,7 +168,7 @@ export interface LocalizedName {
 	join: 'mapId' | 'worldMapId' | null
 }
 
-export type MusicSelectionSource = 'gms-map-bgm' | 'wiki' | null
+export type MusicSelectionSource = 'gms-map-bgm' | 'game-map-bgm' | 'wiki' | null
 
 export interface GameBgmEvidence {
 	path: string
@@ -166,7 +229,7 @@ export interface WorldMap {
 export interface WorldMapIndex {
 	schemaVersion: typeof WORLD_MAP_SCHEMA_VERSION
 	generatedAt: string
-	/** Canonical v6 native graph. Optional only for offline v5 regression fixtures. */
+	/** Canonical v7 native graph. Optional only for offline legacy regression fixtures. */
 	graph?: WorldMapGraph
 	worlds: WorldMap[]
 }

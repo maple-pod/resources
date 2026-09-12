@@ -17,6 +17,9 @@
 		"analyze:loudness": "tsx ./analyze-loudness.ts",
 		"poc:world-map": "tsx ./world-map-poc.ts",
 		"world-map:generate": "tsx ./world-map/generate.ts --mode=preview",
+		"world-map:sync": "tsx ./world-map/archived-wz.ts",
+		"world-map:verify-baselines": "tsx ./world-map/verify-baselines.ts",
+		"world-map:compare": "tsx ./world-map/compare.ts",
 		"test": "tsx --test test/*.test.ts",
 		"world-map:generate:preview": "tsx ./world-map/generate.ts --mode=preview",
 		"world-map:generate:full": "tsx ./world-map/generate.ts --mode=full"
@@ -28,6 +31,7 @@
 		"eslint": "^9.37.0",
 		"fast-glob": "^3.3.3",
 		"fflate": "^0.8.2",
+		"libwz": "0.1.1",
 		"ofetch": "^1.4.1",
 		"pathe": "^2.0.3",
 		"sharp": "^0.34.4",
