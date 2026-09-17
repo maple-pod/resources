@@ -290,7 +290,7 @@ test('writes exact TWMS snapshot resources without publishing a misleading unver
 	}
 })
 
-test('keeps GMS/270 as the temporary unversioned compatibility alias', async () => {
+test('publishes GMS/270 only through the versioned snapshot/catalog contract and removes stale aliases', async () => {
 	const image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/6FA9WQAAAABJRU5ErkJggg=='
 	class FixtureClient extends MapleStoryIoClient {
 		override async hasReadyVersion(): Promise<boolean> {
@@ -317,6 +317,12 @@ test('keeps GMS/270 as the temporary unversioned compatibility alias', async () 
 	try {
 		const catalogSource = path.join(root, 'catalog-source.json')
 		await writeFile(catalogSource, '[]\n')
+		await mkdir(path.join(root, 'world-map/nodes'), { recursive: true })
+		await mkdir(path.join(root, 'world-map/gms/270/WorldMap'), { recursive: true })
+		await writeFile(path.join(root, 'world-map/world-maps.json'), 'stale-alias-index')
+		await writeFile(path.join(root, 'world-map/manifest.json'), 'stale-alias-manifest')
+		await writeFile(path.join(root, 'world-map/nodes/WorldMap.json'), 'stale-alias-node')
+		await writeFile(path.join(root, 'world-map/gms/270/WorldMap/base-0.png'), 'stale-alias-asset')
 		await runWorldMapGeneration({
 			mode: 'full',
 			snapshot: { region: 'GMS', version: '270' },
@@ -327,22 +333,15 @@ test('keeps GMS/270 as the temporary unversioned compatibility alias', async () 
 			gameClient: new FixtureClient({ delayMs: 0 }),
 			generatedAt: '2026-09-10T00:00:00.000Z',
 		})
-		const versioned = JSON.parse(await readFile(path.join(root, 'world-map/snapshots/GMS/270/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string, source: Record<string, unknown> }
-		const compatibility = JSON.parse(await readFile(path.join(root, 'world-map/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string, source: Record<string, unknown>, assets: { nativeWz: { version: unknown } } }
+		const versioned = JSON.parse(await readFile(path.join(root, 'world-map/snapshots/GMS/270/manifest.json'), 'utf8')) as { schemaVersion: number, canonicalSchemaVersion: number, cacheKey: string }
 		assert.equal(versioned.schemaVersion, 3)
 		assert.equal(versioned.canonicalSchemaVersion, 8)
-		assert.equal(compatibility.schemaVersion, 1)
-		assert.equal(compatibility.canonicalSchemaVersion, 6)
-		assert.equal(compatibility.source.provider, 'maplestory-io')
-		assert.equal(compatibility.source.version, 270)
-		assert.equal('logicalRegion' in compatibility.source, false)
-		assert.equal(compatibility.assets.nativeWz.version, 270)
-		assert.notEqual(compatibility.cacheKey, '')
-		const compatibilityIndex = JSON.parse(await readFile(path.join(root, 'world-map/world-maps.json'), 'utf8')) as { schemaVersion: number, graph: { nodes: Array<{ canonicalLabelSource?: unknown, provenance: Record<string, unknown> }> } }
-		assert.equal(compatibilityIndex.schemaVersion, 6)
-		assert.equal(compatibilityIndex.graph.nodes[0]?.canonicalLabelSource, undefined)
-		assert.equal(compatibilityIndex.graph.nodes[0]?.provenance.version, 270)
-		assert.equal('logicalRegion' in compatibilityIndex.graph.nodes[0]!.provenance, false)
+		assert.notEqual(versioned.cacheKey, '')
+		await assert.rejects(readFile(path.join(root, 'world-map/world-maps.json'), 'utf8'))
+		await assert.rejects(readFile(path.join(root, 'world-map/manifest.json'), 'utf8'))
+		await assert.rejects(readFile(path.join(root, 'world-map/nodes/WorldMap.json'), 'utf8'))
+		await assert.rejects(readFile(path.join(root, 'world-map/gms/270/WorldMap/base-0.png'), 'utf8'))
+
 		const beforePreviewCatalog = JSON.parse(await readFile(path.join(root, 'world-map/catalog.json'), 'utf8')) as { entries: Array<{ id: string, fingerprint: unknown, selectable: boolean }> }
 		const beforePreviewEntry = beforePreviewCatalog.entries.find(entry => entry.id === 'GMS/270')!
 		assert.equal(beforePreviewEntry.selectable, true)
@@ -362,14 +361,10 @@ test('keeps GMS/270 as the temporary unversioned compatibility alias', async () 
 		const afterPreviewEntry = afterPreviewCatalog.entries.find(entry => entry.id === 'GMS/270')!
 		assert.equal(afterPreviewEntry.selectable, true)
 		assert.deepEqual(afterPreviewEntry.fingerprint, beforePreviewEntry.fingerprint)
-		const previewManifest = JSON.parse(await readFile(path.join(root, 'world-map-preview/snapshots/GMS/270/manifest.json'), 'utf8')) as { cacheKey: string }
-		assert.notEqual(previewManifest.cacheKey, '')
 		const previewCatalog = JSON.parse(await readFile(path.join(root, 'world-map-preview/catalog.json'), 'utf8')) as { entries: Array<{ id: string, fingerprint: unknown, selectable: boolean }> }
 		const previewEntry = previewCatalog.entries.find(entry => entry.id === 'GMS/270')!
 		assert.equal(previewEntry.selectable, false)
 		assert.equal(previewEntry.fingerprint, null)
-		const compatibilityAfterPreview = JSON.parse(await readFile(path.join(root, 'world-map/manifest.json'), 'utf8')) as { cacheKey: string }
-		assert.equal(compatibilityAfterPreview.cacheKey, compatibility.cacheKey)
 	}
 	finally {
 		await rm(root, { recursive: true, force: true })
@@ -705,38 +700,36 @@ test('full generation publishes through staging and preserves the old snapshot a
 	}
 })
 
-test('rolls back the versioned snapshot, images, catalog, and compatibility alias when alias publication fails', async () => {
-	const root = await mkdtemp(path.join(tmpdir(), 'world-map-alias-transaction-'))
+test('rolls back the versioned snapshot, images, and catalog when publication fails', async () => {
+	const root = await mkdtemp(path.join(tmpdir(), 'world-map-publication-transaction-'))
 	try {
 		const liveWorldMap = path.join(root, 'world-map')
 		const liveSnapshot = path.join(liveWorldMap, 'snapshots/GMS/270')
 		const liveImages = path.join(liveWorldMap, 'images')
-		await mkdir(path.join(liveSnapshot, 'nodes'), { recursive: true })
+		await mkdir(liveSnapshot, { recursive: true })
 		await mkdir(path.join(liveImages, 'old'), { recursive: true })
 		await mkdir(path.join(liveWorldMap, 'nodes'), { recursive: true })
+		await mkdir(path.join(liveWorldMap, 'gms/270/WorldMap'), { recursive: true })
 		await writeFile(path.join(liveSnapshot, 'marker'), 'old-snapshot')
 		await writeFile(path.join(liveImages, 'old/marker'), 'old-images')
-		await writeFile(path.join(liveWorldMap, 'world-maps.json'), 'old-alias-json')
+		await writeFile(path.join(liveWorldMap, 'world-maps.json'), 'old-alias-index')
 		await writeFile(path.join(liveWorldMap, 'manifest.json'), 'old-alias-manifest')
 		await writeFile(path.join(liveWorldMap, 'nodes/marker'), 'old-alias-node')
+		await writeFile(path.join(liveWorldMap, 'gms/270/WorldMap/base-0.png'), 'old-alias-asset')
 		await writeFile(path.join(liveWorldMap, 'catalog.json'), 'old-catalog')
 
 		const stagingWorldMap = path.join(root, 'staging/world-map')
 		const stagingSnapshot = path.join(stagingWorldMap, 'snapshots/GMS/270')
 		const stagingImages = path.join(stagingWorldMap, 'images')
-		await mkdir(path.join(stagingSnapshot, 'nodes'), { recursive: true })
+		await mkdir(stagingSnapshot, { recursive: true })
 		await mkdir(path.join(stagingImages, 'new'), { recursive: true })
-		await mkdir(path.join(stagingWorldMap, 'nodes'), { recursive: true })
 		await writeFile(path.join(stagingSnapshot, 'marker'), 'new-snapshot')
 		await writeFile(path.join(stagingImages, 'new/marker'), 'new-images')
-		await writeFile(path.join(stagingWorldMap, 'world-maps.json'), 'new-alias-json')
-		await writeFile(path.join(stagingWorldMap, 'manifest.json'), 'new-alias-manifest')
-		await writeFile(path.join(stagingWorldMap, 'nodes/marker'), 'new-alias-node')
 		await writeFile(path.join(stagingWorldMap, 'catalog.json'), 'new-catalog')
 
 		const failingRename = async (source: Parameters<typeof rename>[0], target: Parameters<typeof rename>[1]): Promise<void> => {
-			if (String(source).endsWith('/world-map/manifest.json'))
-				throw new Error('simulated compatibility alias publication failure')
+			if (String(source).endsWith('/staging/world-map/catalog.json'))
+				throw new Error('simulated catalog publication failure')
 			await rename(source, target)
 		}
 		await assert.rejects(
@@ -748,18 +741,17 @@ test('rolls back the versioned snapshot, images, catalog, and compatibility alia
 				path.join(liveWorldMap, 'catalog.json'),
 				liveImages,
 				root,
-				stagingWorldMap,
-				liveWorldMap,
 				{ renamePath: failingRename },
 			),
-			/simulated compatibility alias publication failure/,
+			/simulated catalog publication failure/,
 		)
 
 		assert.equal(await readFile(path.join(liveSnapshot, 'marker'), 'utf8'), 'old-snapshot')
 		assert.equal(await readFile(path.join(liveImages, 'old/marker'), 'utf8'), 'old-images')
-		assert.equal(await readFile(path.join(liveWorldMap, 'world-maps.json'), 'utf8'), 'old-alias-json')
+		assert.equal(await readFile(path.join(liveWorldMap, 'world-maps.json'), 'utf8'), 'old-alias-index')
 		assert.equal(await readFile(path.join(liveWorldMap, 'manifest.json'), 'utf8'), 'old-alias-manifest')
 		assert.equal(await readFile(path.join(liveWorldMap, 'nodes/marker'), 'utf8'), 'old-alias-node')
+		assert.equal(await readFile(path.join(liveWorldMap, 'gms/270/WorldMap/base-0.png'), 'utf8'), 'old-alias-asset')
 		assert.equal(await readFile(path.join(liveWorldMap, 'catalog.json'), 'utf8'), 'old-catalog')
 	}
 	finally {
@@ -800,8 +792,6 @@ test('preserves the recovery backup when publication rollback itself fails', asy
 				path.join(liveWorldMap, 'catalog.json'),
 				path.join(liveWorldMap, 'images'),
 				root,
-				null,
-				liveWorldMap,
 				{ renamePath: injectedRename },
 			)
 		}

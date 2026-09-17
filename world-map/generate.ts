@@ -12,7 +12,6 @@ import { acquireArchivedWzWorldMapGraph, archivedMapWzSource, archivedStringWzCa
 import { enrichCanonicalMapDetails } from './enrich'
 import { localizeWorldMapGraph, normalizeWorldMapGraph } from './graph'
 import { deriveHitPathFromPng } from './hit-path'
-import { writeLegacyWorldMapCompatibility } from './legacy'
 import { localizeWorldMap } from './localize'
 import { acquireMapleArchiveWorldMapGraph, MAPLEARCHIVE_API, MapleArchiveClient } from './maplearchive'
 import { buildCatalogIndex } from './music'
@@ -521,37 +520,41 @@ export async function publishFullSnapshot(
 	targetCatalogFile: string,
 	targetImageDirectory: string,
 	outputDir: string,
-	stagingCompatibilityDirectory: string | null,
-	targetWorldMapDirectory: string,
 	options: { renamePath?: typeof rename } = {},
 ): Promise<void> {
 	await mkdir(path.dirname(targetSnapshotDirectory), { recursive: true })
 	const backupDirectory = await mkdtemp(path.join(outputDir, '.world-map-publish-'))
 	const move = options.renamePath ?? rename
-	const replacements = [
+	const targetWorldMapDirectory = path.dirname(targetCatalogFile)
+	const operations: Array<{ staged: string | null, target: string, backup: string }> = [
 		{ staged: stagingSnapshotDirectory, target: targetSnapshotDirectory, backup: path.join(backupDirectory, 'snapshot') },
 		...(await pathExists(stagingImageDirectory)
 			? [{ staged: stagingImageDirectory, target: targetImageDirectory, backup: path.join(backupDirectory, 'images') }]
 			: []),
-		...(stagingCompatibilityDirectory == null
-			? []
-			: [
-					{ staged: path.join(stagingCompatibilityDirectory, 'world-maps.json'), target: path.join(targetWorldMapDirectory, 'world-maps.json'), backup: path.join(backupDirectory, 'compatibility-world-maps.json') },
-					{ staged: path.join(stagingCompatibilityDirectory, 'manifest.json'), target: path.join(targetWorldMapDirectory, 'manifest.json'), backup: path.join(backupDirectory, 'compatibility-manifest.json') },
-					{ staged: path.join(stagingCompatibilityDirectory, 'nodes'), target: path.join(targetWorldMapDirectory, 'nodes'), backup: path.join(backupDirectory, 'compatibility-nodes') },
-				]
-		),
+		// One-time publication migration: these paths belonged to the removed
+		// unversioned GMS/270 compatibility surface. Moving them into the same
+		// rollback backup makes their deletion atomic with the versioned publish.
+		{ staged: null, target: path.join(targetWorldMapDirectory, 'world-maps.json'), backup: path.join(backupDirectory, 'legacy-world-maps.json') },
+		{ staged: null, target: path.join(targetWorldMapDirectory, 'manifest.json'), backup: path.join(backupDirectory, 'legacy-manifest.json') },
+		{ staged: null, target: path.join(targetWorldMapDirectory, 'nodes'), backup: path.join(backupDirectory, 'legacy-nodes') },
+		{ staged: null, target: path.join(targetWorldMapDirectory, 'gms'), backup: path.join(backupDirectory, 'legacy-gms') },
 		{ staged: stagingCatalogFile, target: targetCatalogFile, backup: path.join(backupDirectory, 'catalog.json') },
 	]
-	const states = await Promise.all(replacements.map(async replacement => ({ ...replacement, hadTarget: await pathExists(replacement.target), moved: false })))
+	const states = await Promise.all(operations.map(async operation => ({
+		...operation,
+		hadTarget: await pathExists(operation.target),
+		publishedTarget: false,
+	})))
 	let published = false
 	let rollbackCompleted = true
 	try {
 		for (const state of states) {
 			if (state.hadTarget)
 				await move(state.target, state.backup)
-			await move(state.staged, state.target)
-			state.moved = true
+			if (state.staged != null) {
+				await move(state.staged, state.target)
+				state.publishedTarget = true
+			}
 		}
 		published = true
 	}
@@ -559,7 +562,7 @@ export async function publishFullSnapshot(
 		const rollbackErrors: unknown[] = []
 		for (const state of [...states].reverse()) {
 			try {
-				if (state.moved)
+				if (state.publishedTarget)
 					await rm(state.target, { recursive: true, force: true })
 				if (state.hadTarget && await pathExists(state.backup))
 					await move(state.backup, state.target)
@@ -833,9 +836,6 @@ export async function runWorldMapGeneration(options: WorldMapGenerationOptions =
 		const outputFile = path.join(snapshotDirectory, 'world-maps.json')
 		await writeFile(outputFile, `${JSON.stringify(index, null, 2)}\n`, 'utf8')
 		const runtime = await writeWorldMapRuntime(index, snapshotDirectory, { bgmIds, resourceRoot, nativeAssetPathPrefix })
-		if (plan.mode === 'full' && snapshot.id === DEFAULT_WORLD_MAP_SNAPSHOT)
-			await writeLegacyWorldMapCompatibility(index, generationWorldMapDir, { bgmIds, resourceRoot, nativeAssetPathPrefix })
-
 		const catalogFile = path.join(targetWorldMapDir, 'catalog.json')
 		await mkdir(generationWorldMapDir, { recursive: true })
 		const stagedCatalogFile = path.join(generationWorldMapDir, 'catalog.json')
@@ -862,8 +862,6 @@ export async function runWorldMapGeneration(options: WorldMapGenerationOptions =
 					catalogFile,
 					path.join(targetWorldMapDir, 'images'),
 					targetOutputDir,
-					snapshot.id === DEFAULT_WORLD_MAP_SNAPSHOT ? generationWorldMapDir : null,
-					targetWorldMapDir,
 				)
 			})
 		}

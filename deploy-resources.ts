@@ -61,11 +61,14 @@ async function run() {
 		// Only publish known resource paths. output/ may also contain ignored POC or
 		// diagnostic artifacts, which must never leak into the gh-pages branch.
 		const snapshotJson = /^world-map\/snapshots\/(?:GMS|TWMS)\/[^/]+\/(?:world-maps|manifest)\.json$|^world-map\/snapshots\/(?:GMS|TWMS)\/[^/]+\/nodes\/[^/]+\.json$/
-		const jsonFiles = files.filter(f => ['data.json', 'bg.json', 'loudness-analysis.json', 'world-map/catalog.json', 'world-map/world-maps.json', 'world-map/manifest.json'].includes(f.path) || /^world-map\/nodes\/[^/]+\.json$/.test(f.path) || snapshotJson.test(f.path))
-		const imageFiles = files.filter(f => /^mark\/[^/]+\.png$/.test(f.path) || /^bg\/[^/]+\.jpg$/.test(f.path) || /^world-map\/(?:images\/[^/]+|gms\/\d+\/[^/]+\/(?:base|link)-\d+|snapshots\/(?:GMS|TWMS)\/[^/]+\/assets\/[^/]+\/(?:base|link)-\d+)\.(?:png|jpg|jpeg|webp)$/.test(f.path))
+		const legacyWorldMapArtifact = /^world-map\/(?:world-maps\.json|manifest\.json|nodes\/[^/]+\.json|gms\/.*)$/
+		const isDeletion = (file: typeof files[number]) => file.index === 'D' || file.working_dir === 'D'
+		const legacyDeletionFiles = files.filter(file => legacyWorldMapArtifact.test(file.path) && isDeletion(file))
+		const jsonFiles = files.filter(f => ['data.json', 'bg.json', 'loudness-analysis.json', 'world-map/catalog.json'].includes(f.path) || snapshotJson.test(f.path))
+		const imageFiles = files.filter(f => /^mark\/[^/]+\.png$/.test(f.path) || /^bg\/[^/]+\.jpg$/.test(f.path) || /^world-map\/(?:images\/[^/]+|snapshots\/(?:GMS|TWMS)\/[^/]+\/assets\/[^/]+\/(?:base|link)-\d+)\.(?:png|jpg|jpeg|webp)$/.test(f.path))
 		const audioFiles = files.filter(f => /^bgm\/[^/]+$/.test(f.path))
 
-		if (jsonFiles.length === 0 && imageFiles.length === 0 && audioFiles.length === 0) {
+		if (jsonFiles.length === 0 && imageFiles.length === 0 && legacyDeletionFiles.length === 0 && audioFiles.length === 0) {
 			console.log('No files to commit.')
 			return
 		}
@@ -76,9 +79,9 @@ async function run() {
 			.split('T')[0]!
 
 		// Commit metadata and images first.
-		if (jsonFiles.length > 0 || imageFiles.length > 0) {
-			const filePaths = [...jsonFiles, ...imageFiles].map(f => f.path)
-			console.log(`Committing ${jsonFiles.length} JSON and ${imageFiles.length} image files — Part ${part}...`)
+		if (jsonFiles.length > 0 || imageFiles.length > 0 || legacyDeletionFiles.length > 0) {
+			const filePaths = [...jsonFiles, ...imageFiles, ...legacyDeletionFiles].map(f => f.path)
+			console.log(`Committing ${jsonFiles.length} JSON, ${imageFiles.length} image, and ${legacyDeletionFiles.length} legacy deletion files — Part ${part}...`)
 			await git.add(filePaths)
 			await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
 			part++

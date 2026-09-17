@@ -17,7 +17,6 @@ import {
 	isValidSvgHitPathString,
 	isValidWorldMapHitPath,
 } from '../world-map/hit-path'
-import { createLegacyWorldMapCompatibilityIndex } from '../world-map/legacy'
 import { compileWorldMapRuntime } from '../world-map/runtime'
 import { WORLD_MAP_SCHEMA_VERSION } from '../world-map/schema'
 import { fingerprintWorldMapGraph } from '../world-map/snapshot'
@@ -281,44 +280,6 @@ test('canonical v8 validation rejects links that omit required hitPath', async (
 	finally {
 		await rm(assetRoot, { recursive: true, force: true })
 	}
-})
-
-test('legacy v6/v1 compatibility index strips hitPath completely', () => {
-	const node: WorldMapNode = {
-		worldMapId: 'WorldMap',
-		worldMapName: 'WorldMap',
-		canonicalLabel: null,
-		localizedNames: {},
-		parentWorldMapId: null,
-		baseImages: [{ file: 'world-map/gms/270/WorldMap/base-0.png', width: 100, height: 100, sha1: '0'.repeat(40), origin: { x: 0, y: 0 } }],
-		links: [{
-			id: 'link-0',
-			canonicalLabel: 'Child',
-			localizedNames: {},
-			targetWorldMapId: 'WorldMapChild',
-			linkImage: { file: 'world-map/gms/270/WorldMap/link-0.png', width: 20, height: 20, sha1: '0'.repeat(40), origin: { x: 0, y: 0 } },
-			screenOrigin: { x: 10, y: 20 },
-			hitRect: { left: 0.1, top: 0.2, width: 0.2, height: 0.2 },
-			hitPath: { d: 'M 10 20 L 30 20 L 30 40 L 10 40 Z', fillRule: 'evenodd' },
-		}],
-		spots: [],
-		provenance: { provider: 'maplestory-io', region: 'GMS', version: '270', apiBase: 'https://maplestory.io/api' },
-	}
-	const index: WorldMapIndex = {
-		schemaVersion: WORLD_MAP_SCHEMA_VERSION,
-		generatedAt: '2026-09-10T00:00:00.000Z',
-		graph: { roots: ['WorldMap'], nodes: [node] },
-		worlds: [],
-	}
-
-	const legacy = createLegacyWorldMapCompatibilityIndex(index) as unknown as {
-		schemaVersion: number
-		graph: { nodes: Array<{ links: Array<Record<string, unknown>> }> }
-	}
-	assert.equal(legacy.schemaVersion, 6)
-	const legacyLink = legacy.graph.nodes[0]!.links[0]!
-	assert.equal('hitRect' in legacyLink, true)
-	assert.equal('hitPath' in legacyLink, false)
 })
 
 test('geometry fingerprint and comparison detect hitPath changes', () => {
