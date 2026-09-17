@@ -21,7 +21,7 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 | `bg/*.jpg` | 背景圖（1920×1080） |
 | `bg.json` | 背景圖清單＋壓縮過的縮圖預覽（240×135） |
 | `world-map/catalog.json` | region/version snapshot catalog；目前 logical region 為 GMS/TWMS，保留 provider-native `TMS`/`TWMS` 差異、歷史 milestone metadata 與已產生 snapshot fingerprint |
-| `world-map/snapshots/<region>/<version>/world-maps.json` | exact region+version canonical world-map snapshot（current canonical graph contract） |
+| `world-map/snapshots/<region>/<version>/world-maps.json` | exact region+version canonical world-map snapshot（目前 canonical schema v8） |
 | `world-map/snapshots/<region>/<version>/manifest.json` | 該 snapshot 的 progressive runtime manifest |
 | `world-map/snapshots/<region>/<version>/nodes/*.json` | 該 snapshot 每個 game-native `worldMapId` 的 runtime chunk |
 | `world-map/snapshots/<region>/<version>/assets/*` | 該 snapshot 的 WZ base/link PNG；asset identity 不再只靠 WorldMap ID |
@@ -154,7 +154,7 @@ YTDLP_VERSION=2026.01.15 ./build-env.sh
 
 ## World-map contract
 
-versioned snapshot 發布契約使用目前的 explicit canonical/runtime schema；實際相容版本由 shipped schema constants 定義。歷史上曾發布的未版本化 `GMS/270` compatibility alias 使用 legacy canonical v6 / runtime v1；full publication 現在會以可 rollback 的 migration 移除既有 alias，deploy 只會接受這些 legacy path 的 deletion，不會再發布它們。canonical navigation graph 使用原生 `roots` + `nodes`，不把舊的 flat `worlds[]` 假裝成階層。
+目前發布的 versioned snapshot compatibility state 是 canonical schema v8、runtime schema v3、snapshot catalog schema v1。這些數字描述目前 shipped reader/writer 的相容狀態，不是永久不變的產品語義；相容性應透過明確 versioned snapshot/catalog contract 演進，而不是把今天的數字硬編碼成永恆規則。歷史上曾發布的未版本化 `GMS/270` compatibility alias 使用 legacy canonical v6 / runtime v1；full publication 現在會以可 rollback 的 migration 移除既有 alias，deploy 只會接受這些 legacy path 的 deletion，不會再發布它們。canonical navigation graph 使用原生 `roots` + `nodes`，不把舊的 flat `worlds[]` 假裝成階層。
 
 `world-map:generate` 與 `world-map:generate:full` 都會同步編譯 `world-maps.json`、`manifest.json` 與 `nodes/<worldMapId>.json` runtime resources；preview 全部隔離在 `output/world-map-preview/`，full 才寫入可部署的 `output/world-map/`。runtime manifest 的 `cacheKey` 是 canonical graph 的 SHA-256（不含 `generatedAt`）；preview/full 都會把 acquisition 跳過的 parent 或 link target 保留為 node 原生 reference，並在 node index 的 `missingParentWorldMapId`、`missingLinkTargetWorldMapIds` 與 manifest 的 `unresolved` summary 明確列出，不會靜默忽略或把 orphan 升格成 root。canonical JSON 不由 runtime compiler 改寫或取代。
 

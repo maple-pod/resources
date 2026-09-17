@@ -229,7 +229,7 @@ export interface WorldMap {
 export interface WorldMapIndex {
 	schemaVersion: typeof WORLD_MAP_SCHEMA_VERSION
 	generatedAt: string
-	/** Canonical v7 native graph. Optional only for offline legacy regression fixtures. */
+	/** Current canonical native graph. Optional only for offline legacy regression fixtures. */
 	graph?: WorldMapGraph
 	worlds: WorldMap[]
 }
