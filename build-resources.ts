@@ -539,6 +539,24 @@ async function main(): Promise<void> {
 
 	await migrateAudioState(outputData)
 
+	// Fingerprints identify the declared WZ source, but do not prove that
+	// bytes on disk are still intact. Revalidate pinned assets on every build.
+	// This path does not fetch: existing files must pass SHA-256 and ffprobe.
+	for (const item of outputData) {
+		if (item.acquisition.type !== 'maplestory-io-wz-audio')
+			continue
+		const cached = getBgmAudio(item)
+		if (cached == null)
+			continue
+		const cachedPath = path.join(bgmDir, cached.file)
+		if (!existsSync(cachedPath))
+			continue
+		await downloadMapleStoryIoWzAudio(item.acquisition, cachedPath, {
+			probeAudio: probeAudioInfo,
+			fetchImpl: async () => { throw new Error('Cached WZ verification must not access the network') },
+		})
+	}
+
 	for (const item of outputData)
 		item.audio = getBgmAudio(item) ?? null
 

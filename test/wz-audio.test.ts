@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { readFileSync } from 'node:fs'
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
@@ -111,6 +111,28 @@ test('bad response bytes fail hash verification and leave no target or temp file
 		assert.equal(requests, 1)
 		await assert.rejects(readFile(target))
 		assert.deepEqual(await readdir(tempDir), [])
+	}
+	finally {
+		await rm(tempDir, { recursive: true, force: true })
+	}
+})
+
+test('corrupt cached WZ audio is rejected before network access', async () => {
+	const tempDir = await mkdtemp(path.join(os.tmpdir(), 'maple-wz-audio-test-'))
+	const target = path.join(tempDir, 'audio.mp3')
+	const incorrectBytes = Buffer.from('a corrupted cached mp3')
+	let fetchCount = 0
+	try {
+		await writeFile(target, incorrectBytes)
+		await assert.rejects(downloadMapleStoryIoWzAudio(source, target, {
+			fetchImpl: async () => {
+				fetchCount++
+				throw new Error('unexpected network access')
+			},
+			probeAudio: async () => { throw new Error('unexpected ffprobe') },
+		}), /Refusing to overwrite existing non-matching WZ audio file/)
+		assert.equal(fetchCount, 0)
+		assert.deepEqual(await readFile(target), incorrectBytes)
 	}
 	finally {
 		await rm(tempDir, { recursive: true, force: true })
