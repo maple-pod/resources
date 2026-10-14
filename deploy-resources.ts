@@ -1,16 +1,12 @@
 import type { SimpleGit } from 'simple-git'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import process, { env } from 'node:process'
 import { fileURLToPath } from 'node:url'
 import simpleGit, { CheckRepoActions } from 'simple-git'
 import { assertRunningInContainer } from './assert-container'
-
-function chunkArray<T>(array: T[], size: number): T[][] {
-	const result: T[][] = []
-	for (let i = 0; i < array.length; i += size) {
-		result.push(array.slice(i, i + size))
-	}
-	return result
-}
+import { getNewlyReferencedAudioFiles, planResourceDeployment } from './deploy-plan'
+import { waitForLiveAudioAssets } from './deploy-readiness'
 
 assertRunningInContainer('pnpm deploy')
 
@@ -58,14 +54,17 @@ async function run() {
 		}
 
 		const { files } = await git.status()
-		// Only publish known resource paths. output/ may also contain ignored POC or
-		// diagnostic artifacts, which must never leak into the gh-pages branch.
-		const snapshotJson = /^world-map\/snapshots\/(?:GMS|TWMS)\/[^/]+\/(?:world-maps|manifest)\.json$|^world-map\/snapshots\/(?:GMS|TWMS)\/[^/]+\/nodes\/[^/]+\.json$/
-		const jsonFiles = files.filter(f => ['data.json', 'bg.json', 'loudness-analysis.json', 'world-map/catalog.json', 'world-map/world-maps.json', 'world-map/manifest.json'].includes(f.path) || /^world-map\/nodes\/[^/]+\.json$/.test(f.path) || snapshotJson.test(f.path))
-		const imageFiles = files.filter(f => /^mark\/[^/]+\.png$/.test(f.path) || /^bg\/[^/]+\.jpg$/.test(f.path) || /^world-map\/(?:images\/[^/]+|gms\/\d+\/[^/]+\/(?:base|link)-\d+|snapshots\/(?:GMS|TWMS)\/[^/]+\/assets\/[^/]+\/(?:base|link)-\d+)\.(?:png|jpg|jpeg|webp)$/.test(f.path))
-		const audioFiles = files.filter(f => /^bgm\/[^/]+$/.test(f.path))
+		// Only explicitly published resource paths are eligible. output/ can also
+		// contain ignored POC or diagnostic artifacts, which must never be pushed.
+		const plan = planResourceDeployment(files)
+		if (plan.staleAudioFiles.length > 0) {
+			console.log(`[DEFERRED] ${plan.staleAudioFiles.length} stale audio deletion(s) remain pending locally. Cleanup requires separate explicit approval and a manual deployment.`)
+		}
+		if (plan.modifiedAudioFiles.length > 0) {
+			throw new Error(`Refusing to publish changed audio at an existing URL without comparable remote hash proof: ${plan.modifiedAudioFiles.join(', ')}. Keep the old URL and publish the new bytes under a new immutable filename.`)
+		}
 
-		if (jsonFiles.length === 0 && imageFiles.length === 0 && audioFiles.length === 0) {
+		if (plan.metadataFiles.length === 0 && plan.newAudioFiles.length === 0) {
 			console.log('No files to commit.')
 			return
 		}
@@ -75,28 +74,43 @@ async function run() {
 			.toISOString()
 			.split('T')[0]!
 
-		// Commit metadata and images first.
-		if (jsonFiles.length > 0 || imageFiles.length > 0) {
-			const filePaths = [...jsonFiles, ...imageFiles].map(f => f.path)
-			console.log(`Committing ${jsonFiles.length} JSON and ${imageFiles.length} image files — Part ${part}...`)
-			await git.add(filePaths)
-			await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
+		// Publish new immutable audio paths before metadata can reference them.
+		for (const [batchIdx, batch] of plan.audioBatches.entries()) {
+			console.log(`Committing new audio batch ${batchIdx + 1}/${plan.audioBatches.length} (${batch.length} files) — Part ${part}...`)
+			await git.add(batch)
+			await git.commit(`${dateText} - Deploy resources - Part ${part}`, batch)
 			part++
 			await pushBranch(git)
 		}
 
-		// Commit source-preserved audio files (and stale representation deletions)
-		// in batches to avoid oversized commits.
-		if (audioFiles.length > 0) {
-			const batches = chunkArray(audioFiles, 100)
-			for (const [batchIdx, batch] of batches.entries()) {
-				const filePaths = batch.map(f => f.path)
-				console.log(`Committing audio batch ${batchIdx + 1}/${batches.length} (${filePaths.length} files) — Part ${part}...`)
-				await git.add(filePaths)
-				await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
-				part++
-				await pushBranch(git)
+		// GitHub Pages and the custom domain update asynchronously. Check only the
+		// audio paths newly referenced by the pending data.json. Comparing against
+		// HEAD also retries readiness after a previous run pushed audio but stopped
+		// before publishing metadata.
+		if (plan.metadataFiles.length > 0) {
+			if (plan.metadataFiles.includes('data.json')) {
+				const currentDataJson = await readFile(path.join(dir, 'data.json'), 'utf8')
+				let previousDataJson: string | undefined
+				try {
+					previousDataJson = await git.show(['HEAD:data.json'])
+				}
+				catch {
+					// An empty orphan branch or first publish has no prior data.json.
+				}
+				const newlyReferencedAudioFiles = getNewlyReferencedAudioFiles(previousDataJson, currentDataJson)
+				if (newlyReferencedAudioFiles.length > 0) {
+					console.log(`Waiting for ${newlyReferencedAudioFiles.length} newly referenced audio asset(s) to become publicly visible...`)
+					await waitForLiveAudioAssets(newlyReferencedAudioFiles)
+					console.log('All newly referenced audio assets are publicly visible.')
+				}
 			}
+
+			const filePaths = plan.metadataFiles
+			console.log(`Committing ${plan.jsonFiles.length} JSON and ${plan.imageFiles.length} image files — Part ${part}...`)
+			await git.add(filePaths)
+			await git.commit(`${dateText} - Deploy resources - Part ${part}`, filePaths)
+			part++
+			await pushBranch(git)
 		}
 
 		console.log('Deployment completed successfully!')

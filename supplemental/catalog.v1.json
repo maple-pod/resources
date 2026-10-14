@@ -1,0 +1,173 @@
+{
+	"schemaVersion": 1,
+	"entries": [
+		{
+			"id": "supplemental:dimension-tower-falling-old-login",
+			"filename": "supplemental--dimension-tower-falling-old-login",
+			"description": "Dimension Tower falling recorder track",
+			"mark": "Event",
+			"metadata": {
+				"albumArtist": "",
+				"artist": "",
+				"title": "Dimension Tower Falling (Old Login)",
+				"year": ""
+			},
+			"metadataAuthority": {
+				"kind": "supplemental-curation",
+				"evidence": [
+					"https://github.com/maplestory-music/maplebgm-db/issues/18"
+				]
+			},
+			"lifecycle": {
+				"status": "active"
+			},
+			"acquisition": {
+				"type": "maplestory-io-wz-audio",
+				"region": "GMS",
+				"version": "270",
+				"path": "Sound/SoundEff.img/dimensionTower/dimensionTowerFalling_oldLogin.mp3",
+				"sha256": "d6f8401d3d037e327689f37aa843bded5d9e625e8529f14501a325a778bb864d",
+				"codec": "mp3",
+				"sampleRate": 44100,
+				"duration": 17.263542
+			},
+			"source": {
+				"client": "GMS",
+				"date": "",
+				"structure": "Sound/SoundEff.img/dimensionTower",
+				"version": "270"
+			},
+			"catalog": {
+				"membership": "supplemental",
+				"status": "pending-upstream",
+				"tracking": "https://github.com/maplestory-music/maplebgm-db/issues/18"
+			}
+		},
+		{
+			"id": "supplemental:dimension-tower-falling-lets-march",
+			"filename": "supplemental--dimension-tower-falling-lets-march",
+			"description": "Dimension Tower falling recorder track",
+			"mark": "Event",
+			"metadata": {
+				"albumArtist": "",
+				"artist": "",
+				"title": "Dimension Tower Falling (Let's March)",
+				"year": ""
+			},
+			"metadataAuthority": {
+				"kind": "supplemental-curation",
+				"evidence": [
+					"https://github.com/maplestory-music/maplebgm-db/issues/18"
+				]
+			},
+			"lifecycle": {
+				"status": "active"
+			},
+			"acquisition": {
+				"type": "maplestory-io-wz-audio",
+				"region": "GMS",
+				"version": "270",
+				"path": "Sound/SoundEff.img/dimensionTower/dimensionTowerFalling__Lets March.mp3",
+				"sha256": "922b90e8a677cf3fe568e286d6fd4f449ba7c49c8426400960c1e3c66ba945c1",
+				"codec": "mp3",
+				"sampleRate": 44100,
+				"duration": 20.476583
+			},
+			"source": {
+				"client": "GMS",
+				"date": "",
+				"structure": "Sound/SoundEff.img/dimensionTower",
+				"version": "270"
+			},
+			"catalog": {
+				"membership": "supplemental",
+				"status": "pending-upstream",
+				"tracking": "https://github.com/maplestory-music/maplebgm-db/issues/18"
+			}
+		},
+		{
+			"id": "supplemental:dimension-tower-falling-lake-of-oblivion",
+			"filename": "supplemental--dimension-tower-falling-lake-of-oblivion",
+			"description": "Dimension Tower falling recorder track",
+			"mark": "Event",
+			"metadata": {
+				"albumArtist": "",
+				"artist": "",
+				"title": "Dimension Tower Falling (Lake of Oblivion)",
+				"year": ""
+			},
+			"metadataAuthority": {
+				"kind": "supplemental-curation",
+				"evidence": [
+					"https://github.com/maplestory-music/maplebgm-db/issues/18"
+				]
+			},
+			"lifecycle": {
+				"status": "active"
+			},
+			"acquisition": {
+				"type": "maplestory-io-wz-audio",
+				"region": "GMS",
+				"version": "270",
+				"path": "Sound/SoundEff.img/dimensionTower/dimensionTowerFalling__Lake of Oblivion.mp3",
+				"sha256": "fbcb947982a5be6457bed41516445b82701c8aa0d48b8644c596a5a59ee8d081",
+				"codec": "mp3",
+				"sampleRate": 44100,
+				"duration": 16.34925
+			},
+			"source": {
+				"client": "GMS",
+				"date": "",
+				"structure": "Sound/SoundEff.img/dimensionTower",
+				"version": "270"
+			},
+			"catalog": {
+				"membership": "supplemental",
+				"status": "pending-upstream",
+				"tracking": "https://github.com/maplestory-music/maplebgm-db/issues/18"
+			}
+		},
+		{
+			"id": "supplemental:dimension-tower-falling-bad-guys",
+			"filename": "supplemental--dimension-tower-falling-bad-guys",
+			"description": "Dimension Tower falling recorder track",
+			"mark": "Event",
+			"metadata": {
+				"albumArtist": "",
+				"artist": "",
+				"title": "Dimension Tower Falling (Bad Guys)",
+				"year": ""
+			},
+			"metadataAuthority": {
+				"kind": "supplemental-curation",
+				"evidence": [
+					"https://github.com/maplestory-music/maplebgm-db/issues/18"
+				]
+			},
+			"lifecycle": {
+				"status": "active"
+			},
+			"acquisition": {
+				"type": "maplestory-io-wz-audio",
+				"region": "GMS",
+				"version": "270",
+				"path": "Sound/SoundEff.img/dimensionTower/dimensionTowerFalling__Bad Guys.mp3",
+				"sha256": "27e6e7d81240345123d9599e98ad46ecdebc6350e0e309f24918571500f02aff",
+				"codec": "mp3",
+				"sampleRate": 44100,
+				"duration": 19.144333
+			},
+			"source": {
+				"client": "GMS",
+				"date": "",
+				"structure": "Sound/SoundEff.img/dimensionTower",
+				"version": "270"
+			},
+			"catalog": {
+				"membership": "supplemental",
+				"status": "pending-upstream",
+				"tracking": "https://github.com/maplestory-music/maplebgm-db/issues/18"
+			}
+		}
+	]
+}
