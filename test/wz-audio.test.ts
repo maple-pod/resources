@@ -1,16 +1,24 @@
 /* eslint-disable test/no-import-node-test */
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
-import { validateSupplementalCatalog } from '../supplemental-catalog'
+import { getContentAddressedAudioFilename } from '../audio-filename'
+import { getAudioSourceFingerprint, validateSupplementalCatalog } from '../supplemental-catalog'
 import { downloadMapleStoryIoWzAudio, getMapleStoryIoWzAudioUrl } from '../wz-audio'
 
 const catalog = validateSupplementalCatalog(JSON.parse(readFileSync(new URL('../supplemental/catalog.v1.json', import.meta.url), 'utf8')) as unknown)
 const source = catalog.entries[1]!.acquisition
+
+function hash(bytes: Uint8Array): string {
+	return createHash('sha256')
+		.update(bytes)
+		.digest('hex')
+}
 
 test('WZ URL is fixed to MapleStory.io and encodes path segments', () => {
 	assert.equal(
@@ -133,6 +141,99 @@ test('corrupt cached WZ audio is rejected before network access', async () => {
 		}), /Refusing to overwrite existing non-matching WZ audio file/)
 		assert.equal(fetchCount, 0)
 		assert.deepEqual(await readFile(target), incorrectBytes)
+	}
+	finally {
+		await rm(tempDir, { recursive: true, force: true })
+	}
+})
+
+test('a changed pin uses a new content-addressed path and preserves the previous published bytes', async () => {
+	const tempDir = await mkdtemp(path.join(os.tmpdir(), 'maple-wz-audio-test-'))
+	const previousTarget = path.join(tempDir, 'audio.mp3')
+	const previousBytes = Buffer.from('previous pinned audio bytes')
+	const replacementBytes = Buffer.from('replacement pinned audio bytes')
+	const replacementSource = { ...source, sha256: hash(replacementBytes) }
+	const replacementFilename = getContentAddressedAudioFilename(
+		'audio',
+		getAudioSourceFingerprint(replacementSource),
+		hash(replacementBytes),
+		'mp3',
+	)
+	const replacementTarget = path.join(tempDir, replacementFilename)
+	let requests = 0
+	try {
+		await writeFile(previousTarget, previousBytes)
+		const resource = await downloadMapleStoryIoWzAudio(replacementSource, replacementTarget, {
+			fetchImpl: async () => {
+				requests++
+				return new Response(replacementBytes)
+			},
+			probeAudio: async (filePath) => {
+				assert.deepEqual(await readFile(filePath), replacementBytes)
+				return { codec: 'mp3', sampleRate: replacementSource.sampleRate, duration: replacementSource.duration }
+			},
+			retryDelayMs: 0,
+		})
+
+		assert.equal(resource.file, replacementFilename)
+		assert.equal(requests, 1)
+		assert.deepEqual(await readFile(previousTarget), previousBytes)
+		assert.deepEqual(await readFile(replacementTarget), replacementBytes)
+		assert.deepEqual(new Set(await readdir(tempDir)), new Set(['audio.mp3', replacementFilename]))
+	}
+	finally {
+		await rm(tempDir, { recursive: true, force: true })
+	}
+})
+
+test('a failed content-addressed download preserves the prior published bytes and removes its temp file', async () => {
+	const tempDir = await mkdtemp(path.join(os.tmpdir(), 'maple-wz-audio-test-'))
+	const previousTarget = path.join(tempDir, 'audio.mp3')
+	const previousBytes = Buffer.from('previous pinned audio bytes')
+	const replacementBytes = Buffer.from('replacement pinned audio bytes')
+	const replacementSource = { ...source, sha256: hash(replacementBytes) }
+	const replacementFilename = getContentAddressedAudioFilename(
+		'audio',
+		getAudioSourceFingerprint(replacementSource),
+		hash(replacementBytes),
+		'mp3',
+	)
+	const replacementTarget = path.join(tempDir, replacementFilename)
+	try {
+		await writeFile(previousTarget, previousBytes)
+		await assert.rejects(downloadMapleStoryIoWzAudio(replacementSource, replacementTarget, {
+			fetchImpl: async () => new Response(replacementBytes),
+			probeAudio: async () => { throw new Error('ffprobe rejected replacement') },
+			maxAttempts: 1,
+			retryDelayMs: 0,
+		}), /ffprobe rejected replacement/)
+		assert.deepEqual(await readFile(previousTarget), previousBytes)
+		await assert.rejects(readFile(replacementTarget))
+		assert.deepEqual(await readdir(tempDir), ['audio.mp3'])
+	}
+	finally {
+		await rm(tempDir, { recursive: true, force: true })
+	}
+})
+
+test('a changed pin fails closed instead of replacing an existing published path', async () => {
+	const tempDir = await mkdtemp(path.join(os.tmpdir(), 'maple-wz-audio-test-'))
+	const target = path.join(tempDir, 'audio.mp3')
+	const corruptBytes = Buffer.from('corrupted cache')
+	const replacementBytes = Buffer.from('replacement pinned audio bytes')
+	const replacementSource = { ...source, sha256: hash(replacementBytes) }
+	let requests = 0
+	try {
+		await writeFile(target, corruptBytes)
+		await assert.rejects(downloadMapleStoryIoWzAudio(replacementSource, target, {
+			fetchImpl: async () => {
+				requests++
+				return new Response(replacementBytes)
+			},
+			probeAudio: async () => ({ codec: 'mp3', sampleRate: replacementSource.sampleRate, duration: replacementSource.duration }),
+		}), /Refusing to overwrite existing non-matching WZ audio file/)
+		assert.equal(requests, 0)
+		assert.deepEqual(await readFile(target), corruptBytes)
 	}
 	finally {
 		await rm(tempDir, { recursive: true, force: true })

@@ -1,6 +1,6 @@
 import type { MapleStoryIoWzAudioSource } from './supplemental-catalog'
 import { createHash, randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { link, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { validatePinnedWzAudioSource } from './supplemental-catalog'
 
@@ -101,17 +101,59 @@ function verifyAudioInfo(source: MapleStoryIoWzAudioSource, info: ProbedAudio): 
 	}
 }
 
-async function validateExistingFile(
+function isMissingFile(error: unknown): boolean {
+	return error instanceof Error && 'code' in error && error.code === 'ENOENT'
+}
+
+function refusingExistingFile(filePath: string): Error {
+	return new Error(`Refusing to overwrite existing non-matching WZ audio file: ${filePath}`)
+}
+
+async function validateExistingCache(
 	filePath: string,
 	source: MapleStoryIoWzAudioSource,
 	probeAudio: WzAudioDownloadOptions['probeAudio'],
+): Promise<WzAudioResource | null> {
+	let bytes: Uint8Array
+	try {
+		bytes = await readFile(filePath)
+	}
+	catch (error) {
+		if (!isMissingFile(error))
+			throw error
+		return null
+	}
+
+	const existingSha256 = sha256(bytes)
+	if (existingSha256 === source.sha256.toLowerCase()) {
+		const info = await probeAudio(filePath)
+		verifyAudioInfo(source, info)
+		return { file: path.basename(filePath), container: 'mp3', ...info }
+	}
+	throw refusingExistingFile(filePath)
+}
+
+async function publishVerifiedTemp(
+	tempPath: string,
+	targetPath: string,
+	source: MapleStoryIoWzAudioSource,
+	info: ProbedAudio,
+	probeAudio: WzAudioDownloadOptions['probeAudio'],
 ): Promise<WzAudioResource> {
-	const bytes = await readFile(filePath)
-	if (sha256(bytes) !== source.sha256)
-		throw new Error(`Refusing to overwrite existing non-matching WZ audio file: ${filePath}`)
-	const info = await probeAudio(filePath)
-	verifyAudioInfo(source, info)
-	return { file: path.basename(filePath), container: 'mp3', ...info }
+	try {
+		await link(tempPath, targetPath)
+		await rm(tempPath, { force: true })
+		return { file: path.basename(targetPath), container: 'mp3', ...info }
+	}
+	catch (error) {
+		if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST'))
+			throw error
+		const cached = await validateExistingCache(targetPath, source, probeAudio)
+		if (!cached)
+			throw refusingExistingFile(targetPath)
+		await rm(tempPath, { force: true })
+		return cached
+	}
 }
 
 export async function downloadMapleStoryIoWzAudio(
@@ -131,13 +173,9 @@ export async function downloadMapleStoryIoWzAudio(
 		throw new Error('WZ audio timeoutMs must be positive')
 
 	await mkdir(path.dirname(targetPath), { recursive: true })
-	try {
-		return await validateExistingFile(targetPath, source, probeAudio)
-	}
-	catch (error) {
-		if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT'))
-			throw error
-	}
+	const cached = await validateExistingCache(targetPath, source, probeAudio)
+	if (cached)
+		return cached
 
 	let lastError: unknown
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -173,14 +211,13 @@ export async function downloadMapleStoryIoWzAudio(
 			}
 			if (bytes.byteLength === 0 || bytes.byteLength > MAX_AUDIO_BYTES)
 				throw new WzAudioRequestError(`WZ audio response has invalid size (${bytes.byteLength} bytes)`, false)
-			if (sha256(bytes) !== source.sha256)
+			if (sha256(bytes) !== source.sha256.toLowerCase())
 				throw new WzAudioRequestError('WZ audio SHA-256 mismatch', false)
 
 			await writeFile(tempPath, bytes, { flag: 'wx' })
 			const info = await probeAudio(tempPath)
 			verifyAudioInfo(source, info)
-			await rename(tempPath, targetPath)
-			return { file: path.basename(targetPath), container: 'mp3', ...info }
+			return await publishVerifiedTemp(tempPath, targetPath, source, info, probeAudio)
 		}
 		catch (error) {
 			lastError = error

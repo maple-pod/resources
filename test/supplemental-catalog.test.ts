@@ -3,6 +3,7 @@ import type { UpstreamTrack } from '../supplemental-catalog'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
+import { toPublishedBgm } from '../build-output'
 import {
 	getAudioSourceFingerprint,
 	mergeSupplementalCatalog,
@@ -53,6 +54,7 @@ test('catalog adds four event-marked supplemental tracks without matching same-t
 	assert.equal(merged.length, 5)
 	assert.equal(merged[0]?.filename, 'LegacyTrack')
 	assert.equal(merged[0]?.stableId, undefined)
+	assert.equal(merged[0]?.aliases, undefined)
 	assert.equal(merged[0]?.acquisition.type, 'youtube')
 	const supplemental = merged.slice(1)
 	assert.deepEqual(supplemental.map(item => item.stableId), [
@@ -192,12 +194,33 @@ test('verified promotion emits one supplemental ID using upstream metadata', () 
 	const promoted = merged[0]!
 	assert.equal(promoted.stableId, 'supplemental:dimension-tower-falling-old-login')
 	assert.equal(promoted.filename, 'supplemental--dimension-tower-falling-old-login')
+	assert.deepEqual(promoted.aliases, ['LegacyTrack'])
 	assert.equal(promoted.metadata.artist, 'Upstream Artist')
 	assert.equal(promoted.description, 'Curated upstream metadata')
 	assert.equal(promoted.acquisition.type, 'maplestory-io-wz-audio')
 	assert.equal(promoted.metadataAuthority?.kind, 'upstream')
 	assert.deepEqual(promoted.catalog, { membership: 'supplemental', status: 'curated' })
 	assert.equal(merged.filter(item => item.stableId === promoted.stableId).length, 1)
+	const published = toPublishedBgm({
+		...promoted,
+		id: promoted.stableId,
+		audio: { file: `${promoted.filename}.mp3`, codec: 'mp3', container: 'mp3' },
+		duration: promoted.acquisition.type === 'maplestory-io-wz-audio' ? promoted.acquisition.duration : 0,
+	})
+	assert.equal(published.id, 'supplemental:dimension-tower-falling-old-login')
+	assert.deepEqual(published.aliases, ['LegacyTrack'])
+	assert.equal('stableId' in published, false)
+})
+
+test('promotion aliases cannot collide with another published stable ID', () => {
+	const conflictingTrack = upstreamTrack({ filename: 'AnotherTrack', stableId: 'LegacyTrack' })
+	assert.throws(() => mergeSupplementalCatalog([
+		upstreamTrack(),
+		conflictingTrack,
+	], catalogFixture, {
+		schemaVersion: 1,
+		promotions: [promotion()],
+	}), /Merged track alias collides with another stable ID: LegacyTrack/)
 })
 
 test('promotion to a missing or inactive entry is rejected', () => {

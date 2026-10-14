@@ -84,6 +84,7 @@ export interface PromotionMap {
 
 export interface MergedTrack extends UpstreamTrack {
 	stableId?: string
+	aliases?: string[]
 	acquisition: { type: 'youtube', videoId: string } | MapleStoryIoWzAudioSource
 	metadataAuthority?: {
 		kind: 'supplemental-curation' | 'upstream'
@@ -428,6 +429,7 @@ export function mergeSupplementalCatalog(
 			...item,
 			filename: supplemental.filename,
 			stableId: supplemental.id,
+			aliases: [item.filename],
 			acquisition: supplemental.acquisition,
 			catalog: { membership: 'supplemental', status: 'curated' },
 			metadataAuthority: {
@@ -469,6 +471,28 @@ export function mergeSupplementalCatalog(
 				sha256: entry.acquisition.sha256,
 			},
 		})
+	}
+
+	const stableIdOwners = new Map(result.map(track => [track.stableId ?? track.filename, track]))
+	const aliasOwners = new Map<string, MergedTrack>()
+	for (const track of result) {
+		if (track.aliases == null)
+			continue
+		if (!Array.isArray(track.aliases))
+			throw new Error(`Merged track aliases must be an array: ${track.stableId ?? track.filename}`)
+		for (const alias of track.aliases) {
+			if (typeof alias !== 'string' || alias.trim() === '')
+				throw new Error(`Merged track alias must be a non-empty string: ${track.stableId ?? track.filename}`)
+			const stableIdOwner = stableIdOwners.get(alias)
+			if (stableIdOwner && stableIdOwner !== track)
+				throw new Error(`Merged track alias collides with another stable ID: ${alias}`)
+			if (stableIdOwner === track)
+				throw new Error(`Merged track alias duplicates its stable ID: ${alias}`)
+			const aliasOwner = aliasOwners.get(alias)
+			if (aliasOwner && aliasOwner !== track)
+				throw new Error(`Duplicate merged track alias: ${alias}`)
+			aliasOwners.set(alias, track)
+		}
 	}
 
 	return result

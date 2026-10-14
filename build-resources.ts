@@ -2,8 +2,9 @@ import type { MergedTrack, UpstreamTrack } from './supplemental-catalog'
 import type { ProbedAudio } from './wz-audio'
 import { Buffer } from 'node:buffer'
 import { execFile } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { mkdir as _mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { createReadStream, existsSync, readFileSync } from 'node:fs'
+import { mkdir as _mkdir, link, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -13,19 +14,21 @@ import { ofetch } from 'ofetch'
 import path from 'pathe'
 import { create as createYtDlp } from 'youtube-dl-exec'
 import { assertRunningInContainer } from './assert-container'
+import { getContentAddressedAudioFilename } from './audio-filename'
 import { downloadAudioWithHlsFallback } from './bgm-download'
-import { writeBuildDataIfComplete } from './build-output'
+import { toPublishedBgm, writeBuildDataIfComplete } from './build-output'
 import {
 	getAudioSourceFingerprint,
 	mergeSupplementalCatalog,
 } from './supplemental-catalog'
-import { downloadMapleStoryIoWzAudio, getMapleStoryIoWzAudioUrl } from './wz-audio'
+import { downloadMapleStoryIoWzAudio } from './wz-audio'
 
 const execFileAsync = promisify(execFile)
 
 interface OutputDataItem extends UpstreamTrack {
 	id?: string
 	stableId?: string
+	aliases?: string[]
 	acquisition: MergedTrack['acquisition']
 	metadataAuthority?: MergedTrack['metadataAuthority']
 	catalog?: MergedTrack['catalog']
@@ -105,6 +108,7 @@ let buildState: BuildState = {
 	lastUpdated: 0,
 }
 let legacyAudioState = false
+let previousPublishedTracks = new Map<string, Record<string, unknown>>()
 
 async function loadBuildState(): Promise<void> {
 	if (!existsSync(stateFilePath))
@@ -145,33 +149,6 @@ async function loadBuildState(): Promise<void> {
 async function saveBuildState(): Promise<void> {
 	buildState.lastUpdated = Date.now()
 	await writeFile(stateFilePath, JSON.stringify(buildState, null, 2), { encoding: 'utf-8' })
-}
-
-function toPublishedBgm(item: OutputDataItem): Record<string, unknown> {
-	const {
-		stableId,
-		acquisition,
-		metadataAuthority,
-		audioProvenance,
-		...publishedFields
-	} = item
-	const published = {
-		...publishedFields,
-		...(stableId ? { id: stableId } : {}),
-	}
-	if (!metadataAuthority || !audioProvenance || acquisition.type !== 'maplestory-io-wz-audio')
-		return published
-
-	return {
-		...published,
-		provenance: {
-			metadata: metadataAuthority,
-			audio: {
-				...audioProvenance,
-				url: getMapleStoryIoWzAudioUrl(acquisition),
-			},
-		},
-	}
 }
 
 // ── Directory setup ────────────────────────────────────────────────────────
@@ -239,16 +216,6 @@ async function removeIfExists(filePath: string, label?: string): Promise<void> {
 	}
 }
 
-async function removeStaleBgmRepresentations(item: Pick<OutputDataItem, 'filename'>, keepFilename: string): Promise<void> {
-	const files = await readdir(bgmDir)
-	const staleFiles = files.filter((file) => {
-		if (file === keepFilename || file.startsWith('_tmp_'))
-			return false
-		return path.basename(file, path.extname(file)) === item.filename
-	})
-	await Promise.all(staleFiles.map(file => removeIfExists(path.join(bgmDir, file), 'stale BGM representation')))
-}
-
 async function getAudioCodec(filePath: string): Promise<string> {
 	const { stdout } = await execFileAsync('ffprobe', [
 		'-v',
@@ -308,7 +275,6 @@ function readPreviousPublishedTracks(): Map<string, Record<string, unknown>> {
 }
 
 async function migrateAudioState(outputData: OutputDataItem[]): Promise<void> {
-	const previousTracks = readPreviousPublishedTracks()
 	const migrated: Record<string, StoredAudioResource> = {}
 	for (const item of outputData) {
 		const sourceFingerprint = getAudioSourceFingerprint(item.acquisition)
@@ -320,7 +286,7 @@ async function migrateAudioState(outputData: OutputDataItem[]): Promise<void> {
 			continue
 
 		const hasMatchingFingerprint = entry.sourceFingerprint === sourceFingerprint
-		const previousTrack = previousTracks.get(item.filename)
+		const previousTrack = previousPublishedTracks.get(item.filename)
 		const previousAudio = previousTrack?.audio as { file?: unknown } | undefined
 		const isVerifiedLegacyYouTubeEntry = legacyAudioState
 			&& entry.sourceFingerprint == null
@@ -341,6 +307,31 @@ async function migrateAudioState(outputData: OutputDataItem[]): Promise<void> {
 	legacyAudioState = false
 	console.log(`[STATE] Reconciled ${Object.keys(migrated).length}/${outputData.length} audio entries by source fingerprint.`)
 	await saveBuildState()
+}
+
+async function getFileSha256(filePath: string): Promise<string> {
+	const hash = createHash('sha256')
+	for await (const chunk of createReadStream(filePath))
+		hash.update(chunk)
+	return hash.digest('hex')
+}
+
+async function publishAudioWithoutOverwrite(tempPath: string, targetPath: string, expectedSha256: string): Promise<void> {
+	try {
+		// Both paths are in output/bgm. A hard link creates the final name only
+		// when it does not exist, so an existing published representation is never
+		// replaced by a rename.
+		await link(tempPath, targetPath)
+		await rm(tempPath, { force: true })
+	}
+	catch (error) {
+		if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST'))
+			throw error
+		const existingSha256 = await getFileSha256(targetPath)
+		if (existingSha256 !== expectedSha256)
+			throw new Error(`Refusing to overwrite existing content-addressed audio file: ${targetPath}`)
+		await rm(tempPath, { force: true })
+	}
 }
 
 // ── Download: mark image ───────────────────────────────────────────────────
@@ -383,12 +374,17 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 	// Use a temp base name and let yt-dlp preserve the selected source representation.
 	// yt-dlp appends the actual source container as .%(ext)s.
 	const tempBase = path.join(bgmDir, `_tmp_${item.filename}`)
-	let targetPath: string | null = null
 	const sourceFingerprint = getAudioSourceFingerprint(item.acquisition)
 
 	try {
 		if (item.acquisition.type === 'maplestory-io-wz-audio') {
-			targetPath = path.join(bgmDir, `${item.filename}.mp3`)
+			const targetFilename = getContentAddressedAudioFilename(
+				item.filename,
+				sourceFingerprint,
+				item.acquisition.sha256,
+				'mp3',
+			)
+			const targetPath = path.join(bgmDir, targetFilename)
 			const resource = await downloadMapleStoryIoWzAudio(item.acquisition, targetPath, {
 				probeAudio: probeAudioInfo,
 			})
@@ -445,15 +441,15 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 		}
 
 		const codec = await getAudioCodec(tempPath)
-		const bgmFilename = `${item.filename}.${container}`
-		targetPath = path.join(bgmDir, bgmFilename)
-		await rename(tempPath, targetPath)
+		const contentSha256 = await getFileSha256(tempPath)
+		const bgmFilename = getContentAddressedAudioFilename(item.filename, sourceFingerprint, contentSha256, container)
+		const targetPath = path.join(bgmDir, bgmFilename)
+		await publishAudioWithoutOverwrite(tempPath, targetPath, contentSha256)
 		const audio: AudioResource = {
 			file: bgmFilename,
 			codec,
 			container,
 		}
-		await removeStaleBgmRepresentations(item, bgmFilename)
 		buildState.downloadedBgms[getAudioStateKey(item)] = { ...audio, sourceFingerprint }
 		item.audio = audio
 		delete buildState.failedBgms[item.filename]
@@ -462,10 +458,6 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 		// Remove all temp files left by yt-dlp (including .part files)
 		const tempFiles = fg.sync(`${tempBase}*`)
 		await Promise.all(tempFiles.map(f => rm(f, { force: true }).catch(() => {})))
-		// Remove potentially corrupt target file. A legacy representation is left
-		// untouched unless the new source-preserving download has fully succeeded.
-		if (targetPath != null && item.acquisition.type === 'youtube')
-			await removeIfExists(targetPath, 'invalid BGM')
 		delete buildState.downloadedBgms[getAudioStateKey(item)]
 		item.audio = null
 
@@ -503,6 +495,7 @@ async function main(): Promise<void> {
 	assertRunningInContainer('pnpm build')
 	console.log('=== MapleStory BGM Resource Builder ===\n')
 	await prepareDirs()
+	previousPublishedTracks = readPreviousPublishedTracks()
 
 	console.log('Fetching BGM database...')
 	const upstreamItems = (

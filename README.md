@@ -37,7 +37,9 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 
 目前唯一支援的 supplemental acquisition 是 MapleStory.io WZ MP3。版本化 manifest 逐筆固定受支援區服（GMS、TWMS、KMS、JMS）、exact numeric version、`Sound/...` WZ path、64 位十六進位 SHA-256、sample rate 與 duration；加入新曲目只需新增 manifest entry 並手動釘定 SHA-256，不需修改程式碼，程式也不會產生或推測 hash。path 不接受 URL、query/hash、percent-encoded segment、反斜線或 traversal。下載端仍固定使用 `https://maplestory.io/api/wz/audio`，拒絕 redirect，保留 bounded retry、24 MiB response 上限、stream size check、SHA-256 與 ffprobe 驗證。`data.json` 會在 supplemental 曲目輸出頂層 `catalog` metadata；pending 項目會帶入 tracking URL。若 promotion map 將項目精確合併到 upstream，輸出 metadata authority 會改為 upstream，catalog status 改為 `curated`，不再顯示 pending-upstream。
 
-`supplemental/promotions.v1.json` 預設為空；只有精確指定 upstream filename、YouTube ID 與來源欄位，並明確提供已驗證的 identity-equivalence evidence，才會將 supplemental entry 與 upstream entry 合併。合併後使用 supplemental ID 與 upstream metadata，只輸出一首；不依標題自動配對。
+WZ 音檔快取每次建置都會依 manifest SHA-256 與 ffprobe 驗證；快取不符時會 fail closed，不會下載來覆蓋它。同一曲目的來源或 bytes 改變時，新音檔會使用包含 source fingerprint 與內容 SHA-256 的新檔名，保留 `data.json` 前次發布所引用的檔案。yt-dlp 也保留來源選出的 container；建立最終檔名時不會覆寫已存在的音檔。舊音檔不會由 build 自動清除。
+
+`supplemental/promotions.v1.json` 預設為空；只有精確指定 upstream filename、YouTube ID 與來源欄位，並明確提供已驗證的 identity-equivalence evidence，才會將 supplemental entry 與 upstream entry 合併。合併後使用 supplemental ID 與 upstream metadata，只輸出一首，並在 `aliases` 保留原 upstream filename，讓前端遷移舊保存項目與 offline keys；alias 若與另一個輸出 stable ID 衝突，建置會失敗。不依標題自動配對。
 
 ## 前置需求
 
@@ -106,6 +108,7 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 - 每完成一個項目就寫入一次，中斷後重跑會從斷點續做。
 - 每次啟動會先跟 `output/` 的實際檔案對帳：state 指向的音檔被手動刪掉時會重新下載。
   音檔 state 以曲目 filename 與 source fingerprint 為 key，並記錄實際 filename / codec / container。舊版 state 會先比對既有 `data.json` 的 YouTube ID 與音檔路徑，再補上 fingerprint；對得上的音檔會沿用，不會因 state 格式升級重抓。
+- 需要重新取得音檔時，build 以 source fingerprint 與實際 bytes 的 SHA-256 建立新路徑，並沿用 yt-dlp 選出的 container。原本發布的路徑會保留，build 不會自動清理舊媒體。
 - 失敗的項目記在 `failedBgms` / `failedMarks`，下次執行會自動重試。
 - 有任何失敗時會在根目錄產生 `error-<timestamp>.log`，且行程以 exit code 1 結束。
 - 只有所有目前曲目都有可驗證音檔、正 duration 與 mark 時，才會以暫存檔原子替換 `output/data.json`；catalog 驗證或 acquisition 失敗會保留原本的 `data.json`。
@@ -118,7 +121,10 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 
 `deploy` 把 `output/` 當成獨立的 git repo（orphan `gh-pages` 分支）操作：
 
-- JSON 與 PNG 先進一個 commit，音檔每 100 個一批，避免單一 commit 過大；音檔副檔名不再限定 MP3。
+- 新音檔路徑按每批 100 個提交並推送，再提交 JSON 與圖片。deploy 會拒絕更新已存在的音檔 URL，必須由 build 產生新的 immutable filename；metadata 只會引用新路徑。
+- metadata 提交前，deploy 會比較待發布與目前 `data.json` 的音檔參照，透過 `https://maple-pod.deviltea.me/resources` 對新參照路徑做有限重試的 HEAD 可見性檢查，最多 16 個並行請求、總計 60 秒。超時會停止，保留已推送的音檔但不推送 metadata；重跑時會再次檢查仍待發布的新參照路徑。
+- HEAD 只確認新路徑可讀；新 filename 同時包含 source fingerprint 與本機音檔 SHA-256。GitHub Pages、自訂網域與各層快取仍是非同步更新，單一客戶端的成功檢查不代表所有公開快取同時切換，因此 deploy 不是跨資源原子發布。
+- 過期音檔刪除會保留為 `output/` 中的本機 pending deletion；自動 deploy 不會 stage 或推送刪除，`git status` 顯示這些刪除不會阻止其他資源發布。清理只能在取得另外明確核准後手動執行。
 - **不使用 `--force`**。若本機 `output/` 的歷史與 `origin/gh-pages` 分歧，推送會直接失敗，
   需要人工判斷後處理，不會靜默覆蓋遠端。
 - deploy 會將 world-map/catalog.json、versioned `world-map/snapshots/<region>/<version>/...`、相容性 world-map/world-maps.json / manifest / nodes、world-map/images/* 與舊版 world-map/gms/<version>/**/* 納入 metadata/image commit；
