@@ -138,6 +138,7 @@ YTDLP_VERSION=2026.01.15 ./build-env.sh
 
 音訊下載使用 `bestaudio/best` 並直接保留 yt-dlp 選中的來源 representation；不使用
 `--extract-audio`、不指定 `--audio-format mp3`，也不再使用 codec format-sort 去偏好某個轉檔格式。
+若直接音訊連結回傳 HTTP 403，僅對該曲目重試原始 HLS 音訊串流。
 若 yt-dlp/FFmpeg 只做 container fixup/remux（例如 M4A 修正），音訊 stream 仍不會重新編碼。
 
 **推送被拒（non-fast-forward）**

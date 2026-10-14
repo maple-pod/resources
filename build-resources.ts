@@ -11,6 +11,7 @@ import { ofetch } from 'ofetch'
 import path from 'pathe'
 import { create as createYtDlp } from 'youtube-dl-exec'
 import { assertRunningInContainer } from './assert-container'
+import { downloadAudioWithHlsFallback } from './bgm-download'
 
 const execFileAsync = promisify(execFile)
 
@@ -275,7 +276,8 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 	await delay(2000) // Gentle rate-limit protection between downloads
 
 	try {
-		await ytdlp(`https://www.youtube.com/watch?v=${item.youtube}`, {
+		const url = `https://www.youtube.com/watch?v=${item.youtube}`
+		const options = {
 			output: `${tempBase}.%(ext)s`,
 			format: 'bestaudio/best',
 			noPlaylist: true,
@@ -283,7 +285,16 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 			// YouTube extraction without a JS runtime is deprecated; yt-dlp only
 			// enables deno by default, so point it at the image's own Node.
 			jsRuntimes: 'node',
-		})
+		} as const
+		await downloadAudioWithHlsFallback(
+			url,
+			options,
+			ytdlp,
+			async () => {
+				await Promise.all(fg.sync(`${tempBase}*`).map(file => rm(file, { force: true })))
+			},
+			() => console.warn(`  [RETRY] ${item.filename}: direct audio returned 403; trying HLS audio`),
+		)
 
 		const tempPrefix = `_tmp_${item.filename}.`
 		const candidates = (await readdir(bgmDir))
