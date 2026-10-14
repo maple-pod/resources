@@ -275,7 +275,8 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 	await delay(2000) // Gentle rate-limit protection between downloads
 
 	try {
-		await ytdlp(`https://www.youtube.com/watch?v=${item.youtube}`, {
+		const url = `https://www.youtube.com/watch?v=${item.youtube}`
+		const options = {
 			output: `${tempBase}.%(ext)s`,
 			format: 'bestaudio/best',
 			noPlaylist: true,
@@ -283,7 +284,18 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 			// YouTube extraction without a JS runtime is deprecated; yt-dlp only
 			// enables deno by default, so point it at the image's own Node.
 			jsRuntimes: 'node',
-		})
+		} as const
+		try {
+			await ytdlp(url, options)
+		}
+		catch (error) {
+			if (!/HTTP Error 403/i.test(String(error)))
+				throw error
+			// YouTube may return 403 for a direct audio URL while HLS remains available.
+			console.warn(`  [RETRY] ${item.filename}: direct audio returned 403; trying HLS audio`)
+			await Promise.all(fg.sync(`${tempBase}*`).map(file => rm(file, { force: true })))
+			await ytdlp(url, { ...options, format: 'bestaudio[protocol=m3u8_native]/bestaudio[protocol=m3u8]' })
+		}
 
 		const tempPrefix = `_tmp_${item.filename}.`
 		const candidates = (await readdir(bgmDir))
