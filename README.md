@@ -31,6 +31,14 @@ https://cdn.jsdelivr.net/gh/maple-pod/resources@gh-pages/data.json
 背景圖來源是版控中的 `assets/bg/*.jpg` 靜態檔案；`process-bgs` 會將完整 JPG 原樣複製到
 `output/bg/`，並只用 sharp/fflate 產生 `output/bg.json` 中 240×135 的壓縮預覽。
 
+## Supplemental 曲目
+
+`supplemental/catalog.v1.json` 是獨立於 maplebgm-db 與音訊下載流程的版本化補充曲目清單；每筆資料分開記錄 metadata authority、catalog curation status、`active` / `disabled` / `retired` lifecycle，以及音訊 acquisition。`catalog.status` 是明確策展欄位，不從 `metadataAuthority.evidence` 推測：`pending-upstream` 必須帶 HTTPS `tracking` URL，`curated` 不帶 tracking。`membership` 與 curation status 都不取代 lifecycle。補充曲目使用 `supplemental:<stable-slug>` 作為 `id`，並使用不含冒號的 `filename` 作為實體音檔名稱。未提供的 artist、album artist 與年份保持空白，不推測 credit。
+
+目前唯一支援的 supplemental acquisition 是 MapleStory.io WZ MP3。版本化 manifest 逐筆固定受支援區服（GMS、TWMS、KMS、JMS）、exact numeric version、`Sound/...` WZ path、64 位十六進位 SHA-256、sample rate 與 duration；加入新曲目只需新增 manifest entry 並手動釘定 SHA-256，不需修改程式碼，程式也不會產生或推測 hash。path 不接受 URL、query/hash、percent-encoded segment、反斜線或 traversal。下載端仍固定使用 `https://maplestory.io/api/wz/audio`，拒絕 redirect，保留 bounded retry、24 MiB response 上限、stream size check、SHA-256 與 ffprobe 驗證。`data.json` 會在 supplemental 曲目輸出頂層 `catalog` metadata；pending 項目會帶入 tracking URL。若 promotion map 將項目精確合併到 upstream，輸出 metadata authority 會改為 upstream，catalog status 改為 `curated`，不再顯示 pending-upstream。
+
+`supplemental/promotions.v1.json` 預設為空；只有精確指定 upstream filename、YouTube ID 與來源欄位，並明確提供已驗證的 identity-equivalence evidence，才會將 supplemental entry 與 upstream entry 合併。合併後使用 supplemental ID 與 upstream metadata，只輸出一首；不依標題自動配對。
+
 ## 前置需求
 
 **所有指令都在容器內執行，不要直接在主機上跑。** 管線依賴 `yt-dlp`、`ffprobe` 與
@@ -97,9 +105,10 @@ GH_TOKEN=github_pat_...                     # 發佈用，需要本 repo 的 con
 
 - 每完成一個項目就寫入一次，中斷後重跑會從斷點續做。
 - 每次啟動會先跟 `output/` 的實際檔案對帳：state 指向的音檔被手動刪掉時會重新下載。
-  音檔 state 會記錄實際 filename / codec / container；舊版只記 MP3 filename 的 state 會自動失效並重新抓來源。
+  音檔 state 以曲目 filename 與 source fingerprint 為 key，並記錄實際 filename / codec / container。舊版 state 會先比對既有 `data.json` 的 YouTube ID 與音檔路徑，再補上 fingerprint；對得上的音檔會沿用，不會因 state 格式升級重抓。
 - 失敗的項目記在 `failedBgms` / `failedMarks`，下次執行會自動重試。
 - 有任何失敗時會在根目錄產生 `error-<timestamp>.log`，且行程以 exit code 1 結束。
+- 只有所有目前曲目都有可驗證音檔、正 duration 與 mark 時，才會以暫存檔原子替換 `output/data.json`；catalog 驗證或 acquisition 失敗會保留原本的 `data.json`。
 
 想完整重建，刪掉 `.build-state.json` 與 `output/` 對應的檔案即可。
 

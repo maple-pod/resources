@@ -1,3 +1,5 @@
+import type { MergedTrack, UpstreamTrack } from './supplemental-catalog'
+import type { ProbedAudio } from './wz-audio'
 import { Buffer } from 'node:buffer'
 import { execFile } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -12,29 +14,22 @@ import path from 'pathe'
 import { create as createYtDlp } from 'youtube-dl-exec'
 import { assertRunningInContainer } from './assert-container'
 import { downloadAudioWithHlsFallback } from './bgm-download'
+import { writeBuildDataIfComplete } from './build-output'
+import {
+	getAudioSourceFingerprint,
+	mergeSupplementalCatalog,
+} from './supplemental-catalog'
+import { downloadMapleStoryIoWzAudio, getMapleStoryIoWzAudioUrl } from './wz-audio'
 
 const execFileAsync = promisify(execFile)
 
-interface MapleBgmItem {
-	description: string
-	filename: string
-	mark: string
-	metadata: {
-		albumArtist: string
-		artist: string
-		title: string
-		year: string
-	}
-	source: {
-		client: string
-		date: string
-		structure: string
-		version: string
-	}
-	youtube: string
-}
-
-interface OutputDataItem extends MapleBgmItem {
+interface OutputDataItem extends UpstreamTrack {
+	id?: string
+	stableId?: string
+	acquisition: MergedTrack['acquisition']
+	metadataAuthority?: MergedTrack['metadataAuthority']
+	catalog?: MergedTrack['catalog']
+	audioProvenance?: MergedTrack['audioProvenance']
 	audio: AudioResource | null
 	duration: number
 }
@@ -45,6 +40,10 @@ interface AudioResource {
 	container: string
 }
 
+interface StoredAudioResource extends AudioResource {
+	sourceFingerprint?: string
+}
+
 interface FailedEntry {
 	error: string
 	attempts: number
@@ -53,14 +52,14 @@ interface FailedEntry {
 
 interface BuildState {
 	version: number
-	downloadedBgms: Record<string, AudioResource>
+	downloadedBgms: Record<string, StoredAudioResource>
 	downloadedMarks: string[]
 	failedBgms: Record<string, FailedEntry>
 	failedMarks: Record<string, FailedEntry>
 	lastUpdated: number
 }
 
-const BUILD_STATE_VERSION = 2
+const BUILD_STATE_VERSION = 3
 
 // ── Paths ──────────────────────────────────────────────────────────────────
 const workspaceDir = fileURLToPath(new URL('.', import.meta.url))
@@ -105,26 +104,31 @@ let buildState: BuildState = {
 	failedMarks: {},
 	lastUpdated: 0,
 }
+let legacyAudioState = false
 
 async function loadBuildState(): Promise<void> {
 	if (!existsSync(stateFilePath))
 		return
 	try {
 		const parsed = JSON.parse(readFileSync(stateFilePath, 'utf-8')) as Partial<BuildState> & { downloadedBgms?: unknown }
-		const canReuseBgmState = parsed.version === BUILD_STATE_VERSION
+		const canReuseBgmState = (parsed.version === 2 || parsed.version === BUILD_STATE_VERSION)
 			&& parsed.downloadedBgms != null
 			&& typeof parsed.downloadedBgms === 'object'
 			&& !Array.isArray(parsed.downloadedBgms)
+		legacyAudioState = canReuseBgmState && parsed.version !== BUILD_STATE_VERSION
 		buildState = {
 			version: BUILD_STATE_VERSION,
-			downloadedBgms: canReuseBgmState ? parsed.downloadedBgms as Record<string, AudioResource> : {},
+			downloadedBgms: canReuseBgmState ? parsed.downloadedBgms as Record<string, StoredAudioResource> : {},
 			downloadedMarks: Array.isArray(parsed.downloadedMarks) ? parsed.downloadedMarks : [],
 			failedBgms: parsed.failedBgms ?? {},
 			failedMarks: parsed.failedMarks ?? {},
 			lastUpdated: parsed.lastUpdated ?? 0,
 		}
 		if (!canReuseBgmState && parsed.downloadedBgms != null) {
-			console.log('[STATE] Audio state format changed — legacy MP3 download state will be rebuilt from source.')
+			console.log('[STATE] Audio state format is unsupported — source fingerprints will be rebuilt.')
+		}
+		else if (legacyAudioState) {
+			console.log('[STATE] Migrating legacy audio state against the previous data.json sources.')
 		}
 		console.log(`[STATE] Resumed: ${Object.keys(buildState.downloadedBgms).length} BGMs, ${buildState.downloadedMarks.length} marks already downloaded`)
 		const failedBgms = Object.keys(buildState.failedBgms).length
@@ -141,6 +145,33 @@ async function loadBuildState(): Promise<void> {
 async function saveBuildState(): Promise<void> {
 	buildState.lastUpdated = Date.now()
 	await writeFile(stateFilePath, JSON.stringify(buildState, null, 2), { encoding: 'utf-8' })
+}
+
+function toPublishedBgm(item: OutputDataItem): Record<string, unknown> {
+	const {
+		stableId,
+		acquisition,
+		metadataAuthority,
+		audioProvenance,
+		...publishedFields
+	} = item
+	const published = {
+		...publishedFields,
+		...(stableId ? { id: stableId } : {}),
+	}
+	if (!metadataAuthority || !audioProvenance || acquisition.type !== 'maplestory-io-wz-audio')
+		return published
+
+	return {
+		...published,
+		provenance: {
+			metadata: metadataAuthority,
+			audio: {
+				...audioProvenance,
+				url: getMapleStoryIoWzAudioUrl(acquisition),
+			},
+		},
+	}
 }
 
 // ── Directory setup ────────────────────────────────────────────────────────
@@ -173,8 +204,6 @@ async function prepareDirs(): Promise<void> {
 		if (!buildState.downloadedMarks.includes(f))
 			buildState.downloadedMarks.push(f)
 	}
-
-	await saveBuildState()
 }
 
 // ── Filename helpers ───────────────────────────────────────────────────────
@@ -182,8 +211,15 @@ function getMarkFilename(item: Pick<OutputDataItem, 'mark'>): string {
 	return `${item.mark}.png`
 }
 
-function getBgmAudio(item: Pick<OutputDataItem, 'filename'>): AudioResource | undefined {
-	return buildState.downloadedBgms[item.filename]
+function getAudioStateKey(item: Pick<OutputDataItem, 'filename' | 'acquisition'>): string {
+	return JSON.stringify([item.filename, getAudioSourceFingerprint(item.acquisition)])
+}
+
+function getBgmAudio(item: Pick<OutputDataItem, 'filename' | 'acquisition'>): AudioResource | undefined {
+	const entry = buildState.downloadedBgms[getAudioStateKey(item)]
+	if (entry?.sourceFingerprint !== getAudioSourceFingerprint(item.acquisition))
+		return undefined
+	return { file: entry.file, codec: entry.codec, container: entry.container }
 }
 
 function isMarkDownloaded(item: OutputDataItem): boolean {
@@ -231,6 +267,82 @@ async function getAudioCodec(filePath: string): Promise<string> {
 	return codec
 }
 
+async function probeAudioInfo(filePath: string): Promise<ProbedAudio> {
+	const { stdout } = await execFileAsync('ffprobe', [
+		'-v',
+		'error',
+		'-select_streams',
+		'a:0',
+		'-show_entries',
+		'stream=codec_name,sample_rate:format=duration',
+		'-of',
+		'json',
+		filePath,
+	])
+	const parsed = JSON.parse(stdout) as {
+		streams?: Array<{ codec_name?: string, sample_rate?: string }>
+		format?: { duration?: string }
+	}
+	const stream = parsed.streams?.[0]
+	const codec = stream?.codec_name
+	const sampleRate = Number(stream?.sample_rate)
+	const duration = Number(parsed.format?.duration)
+	if (!codec || !Number.isFinite(sampleRate) || !Number.isFinite(duration))
+		throw new Error(`ffprobe returned incomplete audio details for ${path.basename(filePath)}`)
+	return { codec, sampleRate, duration }
+}
+
+function readPreviousPublishedTracks(): Map<string, Record<string, unknown>> {
+	try {
+		const parsed = JSON.parse(readFileSync(path.join(outputDir, 'data.json'), 'utf-8')) as { bgms?: unknown }
+		if (!Array.isArray(parsed.bgms))
+			return new Map()
+		return new Map(parsed.bgms
+			.filter((item): item is Record<string, unknown> => item != null && typeof item === 'object' && !Array.isArray(item))
+			.filter(item => typeof item.filename === 'string')
+			.map(item => [item.filename as string, item]))
+	}
+	catch {
+		return new Map()
+	}
+}
+
+async function migrateAudioState(outputData: OutputDataItem[]): Promise<void> {
+	const previousTracks = readPreviousPublishedTracks()
+	const migrated: Record<string, StoredAudioResource> = {}
+	for (const item of outputData) {
+		const sourceFingerprint = getAudioSourceFingerprint(item.acquisition)
+		const stateKey = getAudioStateKey(item)
+		const currentEntry = buildState.downloadedBgms[stateKey]
+		const legacyEntry = legacyAudioState ? buildState.downloadedBgms[item.filename] : undefined
+		const entry = currentEntry ?? legacyEntry
+		if (!entry || !entry.file || !existsSync(path.join(bgmDir, entry.file)))
+			continue
+
+		const hasMatchingFingerprint = entry.sourceFingerprint === sourceFingerprint
+		const previousTrack = previousTracks.get(item.filename)
+		const previousAudio = previousTrack?.audio as { file?: unknown } | undefined
+		const isVerifiedLegacyYouTubeEntry = legacyAudioState
+			&& entry.sourceFingerprint == null
+			&& item.acquisition.type === 'youtube'
+			&& previousTrack?.youtube === item.acquisition.videoId
+			&& previousAudio?.file === entry.file
+		if (!hasMatchingFingerprint && !isVerifiedLegacyYouTubeEntry)
+			continue
+
+		migrated[stateKey] = {
+			file: entry.file,
+			codec: entry.codec,
+			container: entry.container,
+			sourceFingerprint,
+		}
+	}
+	buildState.downloadedBgms = migrated
+	legacyAudioState = false
+	console.log(`[STATE] Reconciled ${Object.keys(migrated).length}/${outputData.length} audio entries by source fingerprint.`)
+	await saveBuildState()
+}
+
 // ── Download: mark image ───────────────────────────────────────────────────
 async function downloadMark(item: OutputDataItem): Promise<void> {
 	const markFilename = getMarkFilename(item)
@@ -272,11 +384,27 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 	// yt-dlp appends the actual source container as .%(ext)s.
 	const tempBase = path.join(bgmDir, `_tmp_${item.filename}`)
 	let targetPath: string | null = null
-
-	await delay(2000) // Gentle rate-limit protection between downloads
+	const sourceFingerprint = getAudioSourceFingerprint(item.acquisition)
 
 	try {
-		const url = `https://www.youtube.com/watch?v=${item.youtube}`
+		if (item.acquisition.type === 'maplestory-io-wz-audio') {
+			targetPath = path.join(bgmDir, `${item.filename}.mp3`)
+			const resource = await downloadMapleStoryIoWzAudio(item.acquisition, targetPath, {
+				probeAudio: probeAudioInfo,
+			})
+			const audio: AudioResource = {
+				file: resource.file,
+				codec: resource.codec,
+				container: resource.container,
+			}
+			buildState.downloadedBgms[getAudioStateKey(item)] = { ...audio, sourceFingerprint }
+			item.audio = audio
+			delete buildState.failedBgms[item.filename]
+			return
+		}
+
+		await delay(2000) // Gentle rate-limit protection between YouTube downloads
+		const url = `https://www.youtube.com/watch?v=${item.acquisition.videoId}`
 		const options = {
 			output: `${tempBase}.%(ext)s`,
 			format: 'bestaudio/best',
@@ -326,7 +454,7 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 			container,
 		}
 		await removeStaleBgmRepresentations(item, bgmFilename)
-		buildState.downloadedBgms[item.filename] = audio
+		buildState.downloadedBgms[getAudioStateKey(item)] = { ...audio, sourceFingerprint }
 		item.audio = audio
 		delete buildState.failedBgms[item.filename]
 	}
@@ -336,9 +464,9 @@ async function downloadBgm(item: OutputDataItem): Promise<void> {
 		await Promise.all(tempFiles.map(f => rm(f, { force: true }).catch(() => {})))
 		// Remove potentially corrupt target file. A legacy representation is left
 		// untouched unless the new source-preserving download has fully succeeded.
-		if (targetPath != null)
+		if (targetPath != null && item.acquisition.type === 'youtube')
 			await removeIfExists(targetPath, 'invalid BGM')
-		delete buildState.downloadedBgms[item.filename]
+		delete buildState.downloadedBgms[getAudioStateKey(item)]
 		item.audio = null
 
 		const existing = buildState.failedBgms[item.filename]
@@ -377,19 +505,44 @@ async function main(): Promise<void> {
 	await prepareDirs()
 
 	console.log('Fetching BGM database...')
-	const outputData: OutputDataItem[] = (
-		await ofetch<MapleBgmItem[]>(
+	const upstreamItems = (
+		await ofetch<UpstreamTrack[]>(
 			'https://raw.githubusercontent.com/maplestory-music/maplebgm-db/prod/bgm.min.json',
 			{ responseType: 'json' },
 		)
 	)
 		.filter(item => item.youtube)
-		.map<OutputDataItem>(item => ({ ...item, audio: null, duration: 0 }))
+
+	console.log('Loading versioned supplemental catalog...')
+	const catalog = JSON.parse(readFileSync(path.join(workspaceDir, 'supplemental/catalog.v1.json'), 'utf-8')) as unknown
+	const promotions = JSON.parse(readFileSync(path.join(workspaceDir, 'supplemental/promotions.v1.json'), 'utf-8')) as unknown
+	const mergedTracks = mergeSupplementalCatalog(upstreamItems, catalog, promotions)
+	const outputData: OutputDataItem[] = mergedTracks.map((track) => {
+		const {
+			stableId,
+			acquisition,
+			metadataAuthority,
+			audioProvenance,
+			...publishedFields
+		} = track
+		return {
+			...publishedFields,
+			...(stableId ? { id: stableId } : {}),
+			stableId,
+			acquisition,
+			metadataAuthority,
+			audioProvenance,
+			audio: null,
+			duration: 0,
+		}
+	})
+
+	await migrateAudioState(outputData)
 
 	for (const item of outputData)
 		item.audio = getBgmAudio(item) ?? null
 
-	console.log(`Total items with YouTube source: ${outputData.length}\n`)
+	console.log(`Total merged tracks: ${outputData.length} (${upstreamItems.length} upstream + ${outputData.length - upstreamItems.length} supplemental/promotion)\n`)
 
 	const errorLogs: { type: 'bgm' | 'mark', filename: string, message: string, attempts: number }[] = []
 
@@ -522,24 +675,42 @@ async function main(): Promise<void> {
 	await saveBuildState()
 	console.log()
 
-	// ── Step 4: Write output ────────────────────────────────────────────────
-	console.log('[Step 4/4] Writing output data...')
-	await writeFile(
-		path.join(outputDir, 'data.json'),
-		JSON.stringify({ bgms: outputData, marks, builtAt: Date.now() }),
-		{ encoding: 'utf-8' },
-	)
+	for (const item of outputData) {
+		if (item.audio == null || item.duration <= 0 || !Number.isFinite(item.duration)) {
+			errorLogs.push({
+				type: 'bgm',
+				filename: item.filename,
+				message: 'Track is incomplete: valid audio and duration are required before publishing data.json',
+				attempts: buildState.failedBgms[item.filename]?.attempts ?? 1,
+			})
+		}
+		if (!Object.hasOwn(marks, item.mark)) {
+			errorLogs.push({
+				type: 'mark',
+				filename: item.mark,
+				message: 'Track is incomplete: encoded mark is required before publishing data.json',
+				attempts: buildState.failedMarks[getMarkFilename(item)]?.attempts ?? 1,
+			})
+		}
+	}
 
-	if (errorLogs.length > 0) {
+	// ── Step 4: Write output only after every current entry is complete ──────
+	const publishedBgms = outputData.map(toPublishedBgm)
+	const published = await writeBuildDataIfComplete(
+		path.join(outputDir, 'data.json'),
+		{ bgms: publishedBgms, marks, builtAt: Date.now() },
+		errorLogs,
+	)
+	if (!published) {
 		const errorLogPath = path.join(workspaceDir, `error-${Date.now()}.log`)
 		await writeFile(errorLogPath, JSON.stringify(errorLogs, null, 2), { encoding: 'utf-8' })
-		console.error(`\n[WARN] ${errorLogs.length} error(s) logged to: ${path.basename(errorLogPath)}`)
-		console.log('       Re-run the build to retry failed items.\n')
-		process.exit(1)
+		console.error(`\n[ERROR] ${errorLogs.length} incomplete resource(s) logged to: ${path.basename(errorLogPath)}`)
+		console.error('       data.json was left unchanged. Re-run the build to retry failed items.\n')
+		process.exitCode = 1
+		return
 	}
-	else {
-		console.log('\n=== Build complete! All items succeeded. ===\n')
-	}
+	console.log('[Step 4/4] Atomically wrote complete output data.')
+	console.log('\n=== Build complete! All items succeeded. ===\n')
 }
 
 main()
